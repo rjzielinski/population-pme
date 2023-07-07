@@ -1,0 +1,49 @@
+\documentclass[11pt, reqno]{article}
+\usepackage[legalpaper, margin=1in]{geometry}
+
+\usepackage[colorlinks, citecolor=blue, urlcolor=blue]{hyperref}
+\usepackage{graphicx} % Required for inserting images
+
+\usepackage[backend=biber, style=authoryear]{biblatex}
+\addbibresource{references.bib}
+
+\title{Population PME Project Propsal}
+\author{Robert Zielinski}
+\date{July 12, 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Motivation}
+
+The PME algorithm is a valuable approach for estimating a low-dimensional parameterization of a manifold in high-dimensional space. The LPME approach extends this to estimate how the embedding map found using PME changes over time. However, both of these methods are limited in the sense that the PME algorithm can only be used for dimension reduction for a single object, and the LPME algorithm can be used for that single object over multiple time points.
+
+There are many cases where it would be useful to allow an estimate from one object to inform an estimate of a similar object, or to compare between estimates of two similar objects. For example, we have focused on the use of the LPME algorithm to estimate the surface of the hippocampus or other subcortical structures from MRI images. The hippocampi of one person are very similar in form to the hippocampi of another person, so it could be useful to allow the parameterization of the hippocampus from one individual to inform the estimation of an embedding map for another person or a larger group of people. This could improve the accuracy of our estimates and allow for consistent parameterizations (meaning that similar parameter values would correspond to similar locations on the hippocampus) across people, which is difficult to achieve given the current approaches.
+
+We may also be interested in using the estimates from the PME and LPME algorithms to compare between similar objects for multiple people. As an example, we can again consider the hippocampus: because people with Alzheimer's disease (AD) tend to experience hippocampal atrophy, we would expect that the hippocampi of someone with AD would have different characteristics than the hippocampi of a cognitively healthy individual who is similar in most other respects. This could be visible at one time point, but the comparison would be even more powerful when viewed over time. Currently, the coefficients of the higher-level spline function estimated by the LPME algorithm would be useful for this purpose, if we had a means of ensuring a consistent parameterization across individuals. 
+
+Ultimately, it would be valuable to extend this type of analysis to comparison of multiple groups. For instance, we may be interested in understanding the aggregate change in the hippocampi of cognitively healthy individuals versus that of a group of people with AD. One potentially powerful use case could be in the analysis of clinical trials, where we may be interested in comparing changes in structures between two study groups. A modeling approach that allows for principal manifold estimation over large, potentially heterogeneous groups or populations would address these use cases.
+
+\section{Proposed Approach}
+
+The modeling approach I am considering right now is influenced by \cite{schulamIntegrativeAnalysisUsing2016}.
+
+\section{Toy Data}
+
+We have discussed using the MNIST dataset as a possible example dataset, and I think this would be a good case for it. We could consider trying to find an aggregate estimate of a manifold for the figure "0", where differences in the shape of the character from the group-wide estimate would be handled by the random-effects type of structure described above. 
+
+\section{Application}
+
+A clear use case that would extend closely from our work on the LPME algorithm would be to develop estimates of the hippocampi of those in ADNI's healthy control, mild cognitive impairment, and AD groups. This would provide a way to test whether the method is capable of producing meaningful results given a real-world dataset that would closely reflect a potential use case.
+
+\section{Potential Challenges}
+
+Likely the most significant challenge to be addressed in this project will be how computation time will intersect with the ease of estimating the model parameters. Right now, I have seen the most extensive discussion of fitting hierarchical models from a Bayesian perspective, and there are software packages that may allow us to fit the model with relatively minor adjustments. However, given the iterative nature of the algorithm and the size of the datasets under consideration, it is unlikely that Bayesian inference will be a viable option due to time constraints. This will instead require a different approach to fitting the model (likely EM-related), which will require more math and more custom code, with benefits in terms of time that are unclear at the moment.
+
+Another challenge that may arise is the prospect of overparameterization. Because smoothing spline coefficients are considered the model output, we will need to use models that have a very high number of parameters. If we are able to use Bayesian computation to fit the model, then priors on those parameters may help to alleviate this concern. However, in the more likely scenario that we will need to use frequentist approaches for estimation, overparameterization may become a concern. It is unclear to me how we would resolve that issue should it arise. In any case, the high number of parameters in the model will likely make interpretation difficult, although it may be helpful to have a different set of spline coefficients assigned to each category of interest.
+
+\nocite{*}
+\printbibliography
+
+\end{document}
