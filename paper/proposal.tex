@@ -27,7 +27,18 @@ Ultimately, it would be valuable to extend this type of analysis to comparison o
 
 \section{Proposed Approach}
 
-The modeling approach I am considering right now is influenced by \cite{schulamIntegrativeAnalysisUsing2016}.
+The modeling approach I am considering right now is influenced by the Latent Trajectory Model in \cite{schulamIntegrativeAnalysisUsing2016}. Essentially, rather than using a single spline function to represent the embedding function, I consider using several spline functions, each representing a different level of the model in question. For example, if we were interested in using the ADNI data to model the hippocampus at one time point, we may consider representing the embedding as a sum of three spline functions. One spline would represent the population level, another would represent the subgroup level (for instance, whether someone belongs to the cognitively healthy group or the group with AD), and the final spline would represent individual-level variability. The number of splines used, and their structure, would ultimately be flexible depending on the situation being modeled. However, I believe the general structure could be flexible enough to adapt to a number of distinct scenarios.
+
+To fit the model, it will be necessary to consider two separate scenarios: one where we consider only a single time point, and one where we attempt to model change over time. Both cases will largely resemble the PME algorithm. We begin with the single time point case.
+
+\begin{itemize}
+  \item Data Reduction
+  \item Initialization: Run PME on data from one observation, then use the estimated manifold to find parameterizations for all other observations.
+  \item Fitting: Iterate between estimating spline coefficients in alignment with the model structure determined for the given problem and updating the parameterization for each observation
+  \item Tuning: For each spline function, select the most appropriate smoothing value
+\end{itemize}
+
+The specific approach for data reduction, as well as how the concentration of points across individuals will be calculated, is currently unclear. Additionally, the estimation mechanism for the spline coefficients is also unclear. In \cite{schulamIntegrativeAnalysisUsing2016}, the EM algorithm is used to estimate the parameters, so this may be a viable option in this case as well.
 
 \section{Toy Data}
 
