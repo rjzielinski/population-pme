@@ -15,6 +15,61 @@
   file = {/Users/rzielinski/Zotero/storage/TTUYHGUS/Alexander_Alkema_2018_Global estimation of neonatal mortality using a Bayesian hierarchical splines.pdf}
 }
 
+@article{belkinLaplacianEigenmapsDimensionality2003,
+  title = {Laplacian {{Eigenmaps}} for {{Dimensionality Reduction}} and {{Data Representation}}},
+  author = {Belkin, Mikhail and Niyogi, Partha},
+  date = {2003-06-01},
+  journaltitle = {Neural Computation},
+  shortjournal = {Neural Computation},
+  volume = {15},
+  number = {6},
+  pages = {1373--1396},
+  issn = {0899-7667},
+  doi = {10.1162/089976603321780317},
+  url = {https://doi.org/10.1162/089976603321780317},
+  urldate = {2023-02-24},
+  abstract = {One of the central problems in machine learning and pattern recognition is to develop appropriate representations for complex data. We consider the problem of constructing a representation for data lying on a low-dimensional manifold embedded in a high-dimensional space. Drawing on the correspondence between the graph Laplacian, the Laplace Beltrami operator on the manifold, and the connections to the heat equation, we propose a geometrically motivated algorithm for representing the high-dimensional data. The algorithm provides a computationally efficient approach to nonlinear dimensionality reduction that has locality-preserving properties and a natural connection to clustering. Some potential applications and illustrative examples are discussed.},
+  file = {/Users/rzielinski/Zotero/storage/AZKEL28L/Belkin_Niyogi_2003_Laplacian Eigenmaps for Dimensionality Reduction and Data Representation.pdf;/Users/rzielinski/Zotero/storage/6RS77KNT/Laplacian-Eigenmaps-for-Dimensionality-Reduction.html}
+}
+
+@inproceedings{bhatiaHierarchicalManifoldLearning2012,
+  title = {Hierarchical {{Manifold Learning}}},
+  booktitle = {Medical {{Image Computing}} and {{Computer-Assisted Intervention}} – {{MICCAI}} 2012},
+  author = {Bhatia, Kanwal K. and Rao, Anil and Price, Anthony N. and Wolz, Robin and Hajnal, Jo and Rueckert, Daniel},
+  editor = {Ayache, Nicholas and Delingette, Hervé and Golland, Polina and Mori, Kensaku},
+  date = {2012},
+  series = {Lecture {{Notes}} in {{Computer Science}}},
+  pages = {512--519},
+  publisher = {{Springer}},
+  location = {{Berlin, Heidelberg}},
+  doi = {10.1007/978-3-642-33415-3_63},
+  abstract = {We present a novel method of Hierarchical Manifold Learning which aims to automatically discover regional variations within images. This involves constructing manifolds in a hierarchy of image patches of increasing granularity, while ensuring consistency between hierarchy levels. We demonstrate its utility in two very different settings: (1) to learn the regional correlations in motion within a sequence of time-resolved images of the thoracic cavity; (2) to find discriminative regions of 3D brain images in the classification of neurodegenerative disease.},
+  isbn = {978-3-642-33415-3},
+  langid = {english},
+  keywords = {Image Patch,Laplacian Eigenmaps,Manifold Learning,Mechanical Dyssynchrony,Patch Size},
+  file = {/Users/rzielinski/Zotero/storage/JKJIKHDJ/Bhatia et al_2012_Hierarchical Manifold Learning.pdf}
+}
+
+@article{coifmanDiffusionMaps2006,
+  title = {Diffusion Maps},
+  author = {Coifman, Ronald R. and Lafon, Stéphane},
+  date = {2006-07-01},
+  journaltitle = {Applied and Computational Harmonic Analysis},
+  shortjournal = {Applied and Computational Harmonic Analysis},
+  series = {Special {{Issue}}: {{Diffusion Maps}} and {{Wavelets}}},
+  volume = {21},
+  number = {1},
+  pages = {5--30},
+  issn = {1063-5203},
+  doi = {10.1016/j.acha.2006.04.006},
+  url = {https://www.sciencedirect.com/science/article/pii/S1063520306000546},
+  urldate = {2023-08-08},
+  abstract = {In this paper, we provide a framework based upon diffusion processes for finding meaningful geometric descriptions of data sets. We show that eigenfunctions of Markov matrices can be used to construct coordinates called diffusion maps that generate efficient representations of complex geometric structures. The associated family of diffusion distances, obtained by iterating the Markov matrix, defines multiscale geometries that prove to be useful in the context of data parametrization and dimensionality reduction. The proposed framework relates the spectral properties of Markov processes to their geometric counterparts and it unifies ideas arising in a variety of contexts such as machine learning, spectral graph theory and eigenmap methods.},
+  langid = {english},
+  keywords = {Diffusion metric,Diffusion processes,Dimensionality reduction,Eigenmaps,Graph Laplacian,Manifold learning},
+  file = {/Users/rzielinski/Zotero/storage/CB492H7Z/S1063520306000546.html}
+}
+
 @article{dengPolynomialSplinesHierarchical2008,
   title = {Polynomial Splines over Hierarchical {{T-meshes}}},
   author = {Deng, Jiansong and Chen, Falai and Li, Xin and Hu, Changqi and Tong, Weihua and Yang, Zhouwang and Feng, Yuyu},
@@ -51,6 +106,23 @@
   file = {/Users/rzielinski/Zotero/storage/34AFW4PU/Forsey_Bartels_1995_Surface fitting with hierarchical splines.pdf}
 }
 
+@inproceedings{gaoHierarchicalManifoldLearning2019,
+  title = {A {{Hierarchical Manifold Learning Framework}} for {{High-Dimensional Neuroimaging Data}}},
+  booktitle = {Information {{Processing}} in {{Medical Imaging}}},
+  author = {Gao, Siyuan and Mishne, Gal and Scheinost, Dustin},
+  editor = {Chung, Albert C. S. and Gee, James C. and Yushkevich, Paul A. and Bao, Siqi},
+  date = {2019},
+  series = {Lecture {{Notes}} in {{Computer Science}}},
+  pages = {631--643},
+  publisher = {{Springer International Publishing}},
+  location = {{Cham}},
+  doi = {10.1007/978-3-030-20351-1_49},
+  abstract = {Better understanding of large-scale brain dynamics with functional magnetic resonance imaging (fMRI) data is a major goal of modern neuroscience. In this work, we propose a novel hierarchical manifold learning framework for time-synchronized fMRI data for elucidating brain dynamics. Our framework—labelled 2-step diffusion maps (2sDM)—is based on diffusion maps, a nonlinear dimensionality reduction method. First, 2sDM learns the manifold of fMRI data for each individual separately and then learns a low-dimensional group-level embedding by integrating individual information. We also propose a method for out-of-sample extension within our hierarchical framework. Using 2sDM, we constructed a single manifold structure based on 6 different task-based fMRI (tfMRI) runs. Results on the tfMRI data show a clear manifold structure with four distinct clusters, or brain states. We extended this to embedding resting-state fMRI (rsfMRI) data by first synchronizing across individuals using an optimal orthogonal transformation. The rsfMRI data from the same individuals cleanly embedded onto the four clusters, suggesting that rsfMRI is a collection of different brains states. Overall, our results highlight 2sDM as a powerful method to understand brain dynamics and show that tfMRI and rsfMRI data share representative brain states.},
+  isbn = {978-3-030-20351-1},
+  langid = {english},
+  file = {/Users/rzielinski/Zotero/storage/V7EH2W4L/Gao et al_2019_A Hierarchical Manifold Learning Framework for High-Dimensional Neuroimaging.pdf}
+}
+
 @book{gelmanBayesianDataAnalysis2014,
   title = {Bayesian {{Data Analysis}}},
   author = {Gelman, Andrew and Carlin, John B. and Stern, Hal S. and Dunson, David B. and Vehtari, Aki and Rubin, Donald B.},
@@ -77,6 +149,23 @@
   series = {Monographs on {{Statistics}} and {{Applied Probability}}},
   number = {58},
   publisher = {{Springer}}
+}
+
+@article{hastiePrincipalCurves1989,
+  title = {Principal {{Curves}}},
+  author = {Hastie, Trevor and Stuetzle, Werner},
+  date = {1989-06},
+  journaltitle = {Journal of the American Statistical Association},
+  shortjournal = {Journal of the American Statistical Association},
+  volume = {84},
+  number = {406},
+  pages = {502--516},
+  issn = {0162-1459, 1537-274X},
+  doi = {10.1080/01621459.1989.10478797},
+  url = {http://www.tandfonline.com/doi/abs/10.1080/01621459.1989.10478797},
+  urldate = {2022-11-29},
+  langid = {english},
+  file = {/Users/rzielinski/Zotero/storage/TMMWWYQ6/Hastie and Stuetzle - 1989 - Principal Curves.pdf}
 }
 
 @inproceedings{heManifoldTSpline2006,
@@ -133,6 +222,21 @@
   file = {/Users/rzielinski/Zotero/storage/6SFTW3GD/Meng and Eloyan - 2021 - Principal manifold estimation via model complexity.pdf}
 }
 
+@article{roweisNonlinearDimensionalityReduction2000,
+  title = {Nonlinear {{Dimensionality Reduction}} by {{Locally Linear Embedding}}},
+  author = {Roweis, Sam T. and Saul, Lawrence K.},
+  date = {2000-12-22},
+  journaltitle = {Science},
+  volume = {290},
+  number = {5500},
+  pages = {2323--2326},
+  publisher = {{American Association for the Advancement of Science}},
+  doi = {10.1126/science.290.5500.2323},
+  url = {https://www.science.org/doi/10.1126/science.290.5500.2323},
+  urldate = {2023-02-24},
+  abstract = {Many areas of science depend on exploratory data analysis and visualization. The need to analyze large amounts of multivariate data raises the fundamental problem of dimensionality reduction: how to discover compact representations of high-dimensional data. Here, we introduce locally linear embedding (LLE), an unsupervised learning algorithm that computes low-dimensional, neighborhood-preserving embeddings of high-dimensional inputs. Unlike clustering methods for local dimensionality reduction, LLE maps its inputs into a single global coordinate system of lower dimensionality, and its optimizations do not involve local minima. By exploiting the local symmetries of linear reconstructions, LLE is able to learn the global structure of nonlinear manifolds, such as those generated by images of faces or documents of text.}
+}
+
 @article{schulamIntegrativeAnalysisUsing2016,
   title = {Integrative {{Analysis}} Using {{Coupled Latent Variable Models}} for {{Individualizing Prognoses}}},
   author = {Schulam, Peter and Saria, Suchi},
@@ -146,6 +250,21 @@
   urldate = {2023-07-06},
   abstract = {Complex chronic diseases (e.g., autism, lupus, and Parkinson's) are remarkably heterogeneous across individuals. This heterogeneity makes treatment difficult for caregivers because they cannot accurately predict the way in which the disease will progress in order to guide treatment decisions. Therefore, tools that help to predict the trajectory of these complex chronic diseases can help to improve the quality of health care. To build such tools, we can leverage clinical markers that are collected at baseline when a patient first presents and longitudinally over time during follow-up visits. Because complex chronic diseases are typically systemic, the longitudinal markers often track disease progression in multiple organ systems. In this paper, our goal is to predict a function of time that models the future trajectory of a single target clinical marker tracking a disease process of interest. We want to make these predictions using the histories of many related clinical markers as input. Our proposed solution tackles several key challenges. First, we can easily handle irregularly and sparsely sampled markers, which are standard in clinical data. Second, the number of parameters and the computational complexity of learning our model grows linearly in the number of marker types included in the model. This makes our approach applicable to diseases where many different markers are recorded over time. Finally, our model accounts for latent factors influencing disease expression, whereas standard regression models rely on observed features alone to explain variability. Moreover, our approach can be applied dynamically in continous- time and updates its predictions as soon as any new data is available. We apply our approach to the problem of predicting lung disease trajectories in scleroderma, a complex autoimmune disease. We show that our model improves over state-of-the-art baselines in predictive accuracy and we provide a qualitative analysis of our model's output. Finally, the variability of disease presentation in scleroderma makes clinical trial recruitment challenging. We show that a prognostic tool that integrates multiple types of routinely collected longitudinal data can be used to identify individuals at greatest risk of rapid progression and to target trial recruitment.},
   file = {/Users/rzielinski/Zotero/storage/E5UZXH72/Schulam_Saria_2016_Integrative Analysis using Coupled Latent Variable Models for Individualizing.pdf}
+}
+
+@article{tenenbaumGlobalGeometricFramework2000,
+  title = {A {{Global Geometric Framework}} for {{Nonlinear Dimensionality Reduction}}},
+  author = {Tenenbaum, Joshua B. and family=Silva, given=Vin, prefix=de, useprefix=false and Langford, John C.},
+  date = {2000-12-22},
+  journaltitle = {Science},
+  volume = {290},
+  number = {5500},
+  pages = {2319--2323},
+  publisher = {{American Association for the Advancement of Science}},
+  doi = {10.1126/science.290.5500.2319},
+  url = {https://www.science.org/doi/10.1126/science.290.5500.2319},
+  urldate = {2023-02-24},
+  abstract = {Scientists working with large volumes of high-dimensional data, such as global climate patterns, stellar spectra, or human gene distributions, regularly confront the problem of dimensionality reduction: finding meaningful low-dimensional structures hidden in their high-dimensional observations. The human brain confronts the same problem in everyday perception, extracting from its high-dimensional sensory inputs—30,000 auditory nerve fibers or 106 optic nerve fibers—a manageably small number of perceptually relevant features. Here we describe an approach to solving dimensionality reduction problems that uses easily measured local metric information to learn the underlying global geometry of a data set. Unlike classical techniques such as principal component analysis (PCA) and multidimensional scaling (MDS), our approach is capable of discovering the nonlinear degrees of freedom that underlie complex natural observations, such as human handwriting or images of a face under different viewing conditions. In contrast to previous algorithms for nonlinear dimensionality reduction, ours efficiently computes a globally optimal solution, and, for an important class of data manifolds, is guaranteed to converge asymptotically to the true structure.}
 }
 
 @article{xieImageRegistrationUsing2004,
@@ -162,4 +281,24 @@
   eventtitle = {{{IEEE Transactions}} on {{Visualization}} and {{Computer Graphics}}},
   keywords = {Image motion analysis,Image registration,Iterative algorithms,Iterative closest point algorithm,Magnetic resonance imaging,Nonlinear distortion,Nonlinear optics,Optical distortion,Shape,Spline},
   file = {/Users/rzielinski/Zotero/storage/GE7RCB6Z/1260760.html}
+}
+
+@article{yueParameterizationWhiteMatter2016,
+  title = {Parameterization of {{White Matter Manifold-Like Structures Using Principal Surfaces}}},
+  author = {Yue, Chen and Zipunnikov, Vadim and Bazin, Pierre-Louis and Pham, Dzung and Reich, Daniel and Crainiceanu, Ciprian and Caffo, Brian},
+  date = {2016-07-02},
+  journaltitle = {Journal of the American Statistical Association},
+  volume = {111},
+  number = {515},
+  eprint = {28090127},
+  eprinttype = {pmid},
+  pages = {1050--1060},
+  publisher = {{Taylor \& Francis}},
+  issn = {0162-1459},
+  doi = {10.1080/01621459.2016.1164050},
+  url = {https://doi.org/10.1080/01621459.2016.1164050},
+  urldate = {2023-02-24},
+  abstract = {In this article, we are concerned with data generated from a diffusion tensor imaging (DTI) experiment. The goal is to parameterize manifold-like white matter tracts, such as the corpus callosum, using principal surfaces. The problem is approached by finding a geometrically motivated surface-based representation of the corpus callosum and visualized fractional anisotropy (FA) values projected onto the surface. The method also applies to any other diffusion summary. An algorithm is proposed that (a) constructs the principal surface of a corpus callosum; (b) flattens the surface into a parametric two-dimensional (2D) map; and (c) projects associated FA values on the map. The algorithm is applied to a longitudinal study containing 466 diffusion tensor images of 176 multiple sclerosis (MS) patients observed at multiple visits. For each subject and visit, the study contains a registered DTI scan of the corpus callosum at roughly 20,000 voxels. Extensive simulation studies demonstrate fast convergence and robust performance of the algorithm under a variety of challenging scenarios.},
+  keywords = {Corpus callosum,Principal curves and surfaces,Thin plate splines},
+  file = {/Users/rzielinski/Zotero/storage/A74IGZ37/Yue et al_2016_Parameterization of White Matter Manifold-Like Structures Using Principal.pdf}
 }

@@ -1,14 +1,108 @@
-\documentclass{article}
-\usepackage{graphicx} % Required for inserting images
+%\documentclass[12pt]{amsart}
+\documentclass[11pt,reqno]{article}
+%\usepackage{cases}
 
-\title{Population Principal Manifold Estimation}
-\author{Robert Zielinski, Kun Meng, and Ani Eloyan}
-\date{July 2023}
+%\RequirePackage[numbers]{natbib}
+%\RequirePackage[authoryear]{natbib}%% uncomment this for author-year citations
+\RequirePackage[colorlinks,citecolor=blue,urlcolor=blue]{hyperref}%% uncomment this for coloring bibliography citations and linked URLs
+\RequirePackage{graphicx}%% uncomment this for including figures
+
+\usepackage[
+backend=biber,
+style=authoryear
+]{biblatex}
+
+\addbibresource{references.bib}
+
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amscd}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage[perpage,symbol*]{footmisc}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{color}  
+\usepackage{tikz}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{algorithm2e}
+
+%\usepackage{natbib}
+%\bibliographystyle{abbrvnat}
+%\setcitestyle{authoryear,open={(},close={)}}
+\usepackage{authblk}
+
+\usepackage{csquotes}
+\usepackage[english]{babel}
+
+\renewcommand{\baselinestretch}{1.0}
+\setlength{\oddsidemargin}{-0.5cm}
+\setlength{\evensidemargin}{-0.5cm}
+\renewcommand{\topmargin}{-2cm}
+\renewcommand{\oddsidemargin}{0mm}
+\renewcommand{\evensidemargin}{0mm}
+\renewcommand{\textwidth}{180mm}
+\renewcommand{\textheight}{240mm}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\T}{\intercal}
+\newcommand{\commentout}[1]{}
+
+\newcommand{\kmedit}[1]{{\color{purple}  #1}}
+\newcommand{\meng}[1]{{\color{purple} \sf $\clubsuit\clubsuit\clubsuit$ Kun Meng: [#1]}}
+\newcommand{\Meng}[1]{\margMa{(Kun Meng) #1}}
+
+\newcommand{\zielinski}[1]{{\color{blue} \sf $\spadesuit\spadesuit\spadesuit$ Rob Zielinski: [#1]}}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
 
 \begin{document}
 
+\title{Hierarchical Principal Manifold Estimation}
+\author[1]{Robert Zielinski}
+\author[2]{Kun Meng}
+\author[1]{Ani Eloyan}
+\affil[1]{Department of Biostatistics, Brown University}
+\affil[2]{Division of Applied Mathematics, Brown University}
+
+
+
 \maketitle
 
+\doublespacing
+
+\section*{Abstract}
+
 \section{Introduction}
+
+Neurodegenerative diseases such as Alzheimer's disease (AD) and Parkinson's disease are highly complex, chronic conditions that exhibit substantial heterogeneity between patients. To enable researchers to identify potential biomarkers of progression for these conditions, large multi-site longitudinal observational studies have been conducted that collect information from a wide range of participants over long durations across several modalities, including neuroimaging [Cite ADNI and PPMI studies]. Neuroimaging data in particular have been shown to be sensitive to developments in the early stages of disease progression, often before diagnosis occurs [Find citation from reading].
+
+While observations from neuroimaging data are typically high-dimensional, it is commonly assumed that the data lie along a low-dimensional manifold [Relevant citations demonstrating this]. Under this assumption, manifold learning algorithms can be used to recover this underlying manifold and parameterize this high-dimensional input data in the learned low-dimensional space. Most commonly-used manifold learning algorithms, including Isomap (\cite{tenenbaumGlobalGeometricFramework2000}), Locally Linear Embedding (\cite{roweisNonlinearDimensionalityReduction2000}), Laplacian Eigenmaps (\cite{belkinLaplacianEigenmapsDimensionality2003}), and Diffusion Maps (\cite{coifmanDiffusionMaps2006}) construct a graph of similarities between observations, which is then used to determine the structure of the manifold. \cite{mengPrincipalManifoldEstimation2021} presents an alternative principal manifold framework for manifold estimation which extends to higher dimensions the principal curve framework introduced in \cite{hastiePrincipalCurves1989}, in which principal curves are defined as one-dimensional curves that pass through the middle of a high-dimensional dataset. 
+
+In neuroimaging settings, manifold learning algorithms are most often used to estimate the underlying manifold at the population level, with vectorized image intensities being used as the input data [Citations]. \cite{yueParameterizationWhiteMatter2016} used manifold learning to estimate a low-dimensional parameterization of the corpus callosum at the individual level. However, in many cases, the outcome of interest is framed as a comparison between different groups (e.g. treatment groups in a clinical trial). 
+
+\section{Methods}
+
+\section{Simulations}
+
+\section{Applications}
+
+\section{Discussion}
+
+\newpage
+
+\nocite{*}
+%\bibliographystyle{plain}
+%\bibliography{references}
+\printbibliography
 
 \end{document}

@@ -77,6 +77,224 @@
       \verb https://www.jstor.org/stable/26457049
       \endverb
     \endentry
+    \entry{belkinLaplacianEigenmapsDimensionality2003}{article}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=b2aeb0539e71c989e52b170b56b1fabd}{%
+           family={Belkin},
+           familyi={B\bibinitperiod},
+           given={Mikhail},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=156804623cd62fb419db269c507e26ce}{%
+           family={Niyogi},
+           familyi={N\bibinitperiod},
+           given={Partha},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{91e66b6bb0ec19548744f2daa009553e}
+      \strng{fullhash}{91e66b6bb0ec19548744f2daa009553e}
+      \strng{bibnamehash}{91e66b6bb0ec19548744f2daa009553e}
+      \strng{authorbibnamehash}{91e66b6bb0ec19548744f2daa009553e}
+      \strng{authornamehash}{91e66b6bb0ec19548744f2daa009553e}
+      \strng{authorfullhash}{91e66b6bb0ec19548744f2daa009553e}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{One of the central problems in machine learning and pattern recognition is to develop appropriate representations for complex data. We consider the problem of constructing a representation for data lying on a low-dimensional manifold embedded in a high-dimensional space. Drawing on the correspondence between the graph Laplacian, the Laplace Beltrami operator on the manifold, and the connections to the heat equation, we propose a geometrically motivated algorithm for representing the high-dimensional data. The algorithm provides a computationally efficient approach to nonlinear dimensionality reduction that has locality-preserving properties and a natural connection to clustering. Some potential applications and illustrative examples are discussed.}
+      \field{day}{1}
+      \field{issn}{0899-7667}
+      \field{journaltitle}{Neural Computation}
+      \field{month}{6}
+      \field{number}{6}
+      \field{shortjournal}{Neural Computation}
+      \field{title}{Laplacian {{Eigenmaps}} for {{Dimensionality Reduction}} and {{Data Representation}}}
+      \field{urlday}{24}
+      \field{urlmonth}{2}
+      \field{urlyear}{2023}
+      \field{volume}{15}
+      \field{year}{2003}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{1373\bibrangedash 1396}
+      \range{pages}{24}
+      \verb{doi}
+      \verb 10.1162/089976603321780317
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/AZKEL28L/Belkin_Niyogi_2003_Laplacian Eigenmaps for Dimensionality Reduction and Data Representation.pdf;/Users/rzielinski/Zotero/storage/6RS77KNT/Laplacian-Eigenmaps-for-Dimensionality-Reduction.html
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1162/089976603321780317
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1162/089976603321780317
+      \endverb
+    \endentry
+    \entry{bhatiaHierarchicalManifoldLearning2012}{inproceedings}{}
+      \name{author}{6}{}{%
+        {{un=0,uniquepart=base,hash=a3f99e321af92bb3580e0e7eb22eb458}{%
+           family={Bhatia},
+           familyi={B\bibinitperiod},
+           given={Kanwal\bibnamedelima K.},
+           giveni={K\bibinitperiod\bibinitdelim K\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9626c0602b58807c5f384a72a27b6246}{%
+           family={Rao},
+           familyi={R\bibinitperiod},
+           given={Anil},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=5f7aa4a3780ea730b7c2ea1a460a6039}{%
+           family={Price},
+           familyi={P\bibinitperiod},
+           given={Anthony\bibnamedelima N.},
+           giveni={A\bibinitperiod\bibinitdelim N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=5014b87aaa035dcc7023d6388b29ade0}{%
+           family={Wolz},
+           familyi={W\bibinitperiod},
+           given={Robin},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=dc765c4ef86b9bf62fd125bcce8b2694}{%
+           family={Hajnal},
+           familyi={H\bibinitperiod},
+           given={Jo},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=92712fbc7c7c3c1daa0630f54b19b582}{%
+           family={Rueckert},
+           familyi={R\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+      }
+      \name{editor}{4}{}{%
+        {{hash=4508e505f5ba1748190296dcda952f76}{%
+           family={Ayache},
+           familyi={A\bibinitperiod},
+           given={Nicholas},
+           giveni={N\bibinitperiod}}}%
+        {{hash=d6f8f15e8d1cccc95f6df5aa1d7064be}{%
+           family={Delingette},
+           familyi={D\bibinitperiod},
+           given={Hervé},
+           giveni={H\bibinitperiod}}}%
+        {{hash=b98a46bf744a48af39d940493261dad9}{%
+           family={Golland},
+           familyi={G\bibinitperiod},
+           given={Polina},
+           giveni={P\bibinitperiod}}}%
+        {{hash=10f2e21b65cb187d92ec6355cb0c3aa0}{%
+           family={Mori},
+           familyi={M\bibinitperiod},
+           given={Kensaku},
+           giveni={K\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berlin, Heidelberg}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{2fccbee5aa2c9ce2161beb86de19b362}
+      \strng{fullhash}{0c7cb732e09c889e6bcf86350e98de4c}
+      \strng{bibnamehash}{2fccbee5aa2c9ce2161beb86de19b362}
+      \strng{authorbibnamehash}{2fccbee5aa2c9ce2161beb86de19b362}
+      \strng{authornamehash}{2fccbee5aa2c9ce2161beb86de19b362}
+      \strng{authorfullhash}{0c7cb732e09c889e6bcf86350e98de4c}
+      \strng{editorbibnamehash}{11b4f88a7d37446c63abf787c5d9d1d7}
+      \strng{editornamehash}{11b4f88a7d37446c63abf787c5d9d1d7}
+      \strng{editorfullhash}{92a68941cdc11e8ae0976651319e754f}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We present a novel method of Hierarchical Manifold Learning which aims to automatically discover regional variations within images. This involves constructing manifolds in a hierarchy of image patches of increasing granularity, while ensuring consistency between hierarchy levels. We demonstrate its utility in two very different settings: (1) to learn the regional correlations in motion within a sequence of time-resolved images of the thoracic cavity; (2) to find discriminative regions of 3D brain images in the classification of neurodegenerative disease.}
+      \field{booktitle}{Medical {{Image Computing}} and {{Computer-Assisted Intervention}} – {{MICCAI}} 2012}
+      \field{isbn}{978-3-642-33415-3}
+      \field{langid}{english}
+      \field{series}{Lecture {{Notes}} in {{Computer Science}}}
+      \field{title}{Hierarchical {{Manifold Learning}}}
+      \field{year}{2012}
+      \field{dateera}{ce}
+      \true{nocite}
+      \field{pages}{512\bibrangedash 519}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1007/978-3-642-33415-3_63
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/JKJIKHDJ/Bhatia et al_2012_Hierarchical Manifold Learning.pdf
+      \endverb
+      \keyw{Image Patch,Laplacian Eigenmaps,Manifold Learning,Mechanical Dyssynchrony,Patch Size}
+    \endentry
+    \entry{coifmanDiffusionMaps2006}{article}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=fe9788da6815fa55d42f93415adf67f1}{%
+           family={Coifman},
+           familyi={C\bibinitperiod},
+           given={Ronald\bibnamedelima R.},
+           giveni={R\bibinitperiod\bibinitdelim R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=bb0f16f4fc7f63cbbd0dfc4ae0bb3175}{%
+           family={Lafon},
+           familyi={L\bibinitperiod},
+           given={Stéphane},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{15a242a3e379e5141f6a6e3f09a3d295}
+      \strng{fullhash}{15a242a3e379e5141f6a6e3f09a3d295}
+      \strng{bibnamehash}{15a242a3e379e5141f6a6e3f09a3d295}
+      \strng{authorbibnamehash}{15a242a3e379e5141f6a6e3f09a3d295}
+      \strng{authornamehash}{15a242a3e379e5141f6a6e3f09a3d295}
+      \strng{authorfullhash}{15a242a3e379e5141f6a6e3f09a3d295}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{In this paper, we provide a framework based upon diffusion processes for finding meaningful geometric descriptions of data sets. We show that eigenfunctions of Markov matrices can be used to construct coordinates called diffusion maps that generate efficient representations of complex geometric structures. The associated family of diffusion distances, obtained by iterating the Markov matrix, defines multiscale geometries that prove to be useful in the context of data parametrization and dimensionality reduction. The proposed framework relates the spectral properties of Markov processes to their geometric counterparts and it unifies ideas arising in a variety of contexts such as machine learning, spectral graph theory and eigenmap methods.}
+      \field{day}{1}
+      \field{issn}{1063-5203}
+      \field{journaltitle}{Applied and Computational Harmonic Analysis}
+      \field{langid}{english}
+      \field{month}{7}
+      \field{number}{1}
+      \field{series}{Special {{Issue}}: {{Diffusion Maps}} and {{Wavelets}}}
+      \field{shortjournal}{Applied and Computational Harmonic Analysis}
+      \field{title}{Diffusion Maps}
+      \field{urlday}{8}
+      \field{urlmonth}{8}
+      \field{urlyear}{2023}
+      \field{volume}{21}
+      \field{year}{2006}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{5\bibrangedash 30}
+      \range{pages}{26}
+      \verb{doi}
+      \verb 10.1016/j.acha.2006.04.006
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/CB492H7Z/S1063520306000546.html
+      \endverb
+      \verb{urlraw}
+      \verb https://www.sciencedirect.com/science/article/pii/S1063520306000546
+      \endverb
+      \verb{url}
+      \verb https://www.sciencedirect.com/science/article/pii/S1063520306000546
+      \endverb
+      \keyw{Diffusion metric,Diffusion processes,Dimensionality reduction,Eigenmaps,Graph Laplacian,Manifold learning}
+    \endentry
     \entry{dengPolynomialSplinesHierarchical2008}{article}{}
       \name{author}{7}{}{%
         {{un=0,uniquepart=base,hash=9b8d1c9ca6990f38dcd15c6321459f4d}{%
@@ -224,6 +442,88 @@
       \verb https://dl.acm.org/doi/10.1145/221659.221665
       \endverb
     \endentry
+    \entry{gaoHierarchicalManifoldLearning2019}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=87a29904145b3da300d70ddd3b5eaffa}{%
+           family={Gao},
+           familyi={G\bibinitperiod},
+           given={Siyuan},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=09bb26ed88f9ebb2ef400e1cb6757867}{%
+           family={Mishne},
+           familyi={M\bibinitperiod},
+           given={Gal},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=61b3368e9b14975b96cfaf0e750cd447}{%
+           family={Scheinost},
+           familyi={S\bibinitperiod},
+           given={Dustin},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+      }
+      \name{editor}{4}{}{%
+        {{hash=9d1ce87a9472f31f2fd0db5fd7016ec6}{%
+           family={Chung},
+           familyi={C\bibinitperiod},
+           given={Albert\bibnamedelimb C.\bibnamedelimi S.},
+           giveni={A\bibinitperiod\bibinitdelim C\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=dfc9247080478babae33740cfb0199db}{%
+           family={Gee},
+           familyi={G\bibinitperiod},
+           given={James\bibnamedelima C.},
+           giveni={J\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=d0865af6e0989cf8a5768a668f097b23}{%
+           family={Yushkevich},
+           familyi={Y\bibinitperiod},
+           given={Paul\bibnamedelima A.},
+           giveni={P\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=94c1ece62bae5e12d7908b47c599af0e}{%
+           family={Bao},
+           familyi={B\bibinitperiod},
+           given={Siqi},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Cham}%
+      }
+      \list{publisher}{1}{%
+        {Springer International Publishing}%
+      }
+      \strng{namehash}{a282f1fa8564d8eeb3d0ba5b51ab17b6}
+      \strng{fullhash}{a282f1fa8564d8eeb3d0ba5b51ab17b6}
+      \strng{bibnamehash}{a282f1fa8564d8eeb3d0ba5b51ab17b6}
+      \strng{authorbibnamehash}{a282f1fa8564d8eeb3d0ba5b51ab17b6}
+      \strng{authornamehash}{a282f1fa8564d8eeb3d0ba5b51ab17b6}
+      \strng{authorfullhash}{a282f1fa8564d8eeb3d0ba5b51ab17b6}
+      \strng{editorbibnamehash}{8d2055d60befa48f94354fd963612a57}
+      \strng{editornamehash}{8d2055d60befa48f94354fd963612a57}
+      \strng{editorfullhash}{76846fe12156bc72d366c6fce4edd5a8}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Better understanding of large-scale brain dynamics with functional magnetic resonance imaging (fMRI) data is a major goal of modern neuroscience. In this work, we propose a novel hierarchical manifold learning framework for time-synchronized fMRI data for elucidating brain dynamics. Our framework—labelled 2-step diffusion maps (2sDM)—is based on diffusion maps, a nonlinear dimensionality reduction method. First, 2sDM learns the manifold of fMRI data for each individual separately and then learns a low-dimensional group-level embedding by integrating individual information. We also propose a method for out-of-sample extension within our hierarchical framework. Using 2sDM, we constructed a single manifold structure based on 6 different task-based fMRI (tfMRI) runs. Results on the tfMRI data show a clear manifold structure with four distinct clusters, or brain states. We extended this to embedding resting-state fMRI (rsfMRI) data by first synchronizing across individuals using an optimal orthogonal transformation. The rsfMRI data from the same individuals cleanly embedded onto the four clusters, suggesting that rsfMRI is a collection of different brains states. Overall, our results highlight 2sDM as a powerful method to understand brain dynamics and show that tfMRI and rsfMRI data share representative brain states.}
+      \field{booktitle}{Information {{Processing}} in {{Medical Imaging}}}
+      \field{isbn}{978-3-030-20351-1}
+      \field{langid}{english}
+      \field{series}{Lecture {{Notes}} in {{Computer Science}}}
+      \field{title}{A {{Hierarchical Manifold Learning Framework}} for {{High-Dimensional Neuroimaging Data}}}
+      \field{year}{2019}
+      \field{dateera}{ce}
+      \true{nocite}
+      \field{pages}{631\bibrangedash 643}
+      \range{pages}{13}
+      \verb{doi}
+      \verb 10.1007/978-3-030-20351-1_49
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/V7EH2W4L/Gao et al_2019_A Hierarchical Manifold Learning Framework for High-Dimensional Neuroimaging.pdf
+      \endverb
+    \endentry
     \entry{gelmanBayesianDataAnalysis2014}{book}{}
       \name{author}{6}{ul=2}{%
         {{un=0,uniquepart=base,hash=1e1eb60e3b6e222217bf8e9b24070b28}{%
@@ -363,6 +663,62 @@
       \field{year}{1994}
       \field{dateera}{ce}
       \true{nocite}
+    \endentry
+    \entry{hastiePrincipalCurves1989}{article}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=0cb8fe4210baa81c4b0e67913b4d2768}{%
+           family={Hastie},
+           familyi={H\bibinitperiod},
+           given={Trevor},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=78839a6a63ee6d2680ebc15a3ef7fc58}{%
+           family={Stuetzle},
+           familyi={S\bibinitperiod},
+           given={Werner},
+           giveni={W\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{e9d12e45ff62fbc8445447896a2f39e0}
+      \strng{fullhash}{e9d12e45ff62fbc8445447896a2f39e0}
+      \strng{bibnamehash}{e9d12e45ff62fbc8445447896a2f39e0}
+      \strng{authorbibnamehash}{e9d12e45ff62fbc8445447896a2f39e0}
+      \strng{authornamehash}{e9d12e45ff62fbc8445447896a2f39e0}
+      \strng{authorfullhash}{e9d12e45ff62fbc8445447896a2f39e0}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0162-1459, 1537-274X}
+      \field{journaltitle}{Journal of the American Statistical Association}
+      \field{langid}{english}
+      \field{month}{6}
+      \field{number}{406}
+      \field{shortjournal}{Journal of the American Statistical Association}
+      \field{title}{Principal {{Curves}}}
+      \field{urlday}{29}
+      \field{urlmonth}{11}
+      \field{urlyear}{2022}
+      \field{volume}{84}
+      \field{year}{1989}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{502\bibrangedash 516}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1080/01621459.1989.10478797
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/TMMWWYQ6/Hastie and Stuetzle - 1989 - Principal Curves.pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://www.tandfonline.com/doi/abs/10.1080/01621459.1989.10478797
+      \endverb
+      \verb{url}
+      \verb http://www.tandfonline.com/doi/abs/10.1080/01621459.1989.10478797
+      \endverb
     \endentry
     \entry{heManifoldTSpline2006}{inproceedings}{}
       \name{author}{5}{}{%
@@ -550,7 +906,6 @@
       \field{year}{2021}
       \field{dateera}{ce}
       \field{urldateera}{ce}
-      \true{nocite}
       \field{pages}{369\bibrangedash 394}
       \range{pages}{26}
       \verb{doi}
@@ -566,6 +921,61 @@
       \verb https://onlinelibrary.wiley.com/doi/abs/10.1111/rssb.12416
       \endverb
       \keyw{lung cancer,splines,total squared curvature,tumour interior}
+    \endentry
+    \entry{roweisNonlinearDimensionalityReduction2000}{article}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=c89a3b977a0617edc15b2d82b36929f3}{%
+           family={Roweis},
+           familyi={R\bibinitperiod},
+           given={Sam\bibnamedelima T.},
+           giveni={S\bibinitperiod\bibinitdelim T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=cd2d8ad2373696effc18491288917dd1}{%
+           family={Saul},
+           familyi={S\bibinitperiod},
+           given={Lawrence\bibnamedelima K.},
+           giveni={L\bibinitperiod\bibinitdelim K\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {American Association for the Advancement of Science}%
+      }
+      \strng{namehash}{91a4781c6ebe461831ea3f4c50e3294d}
+      \strng{fullhash}{91a4781c6ebe461831ea3f4c50e3294d}
+      \strng{bibnamehash}{91a4781c6ebe461831ea3f4c50e3294d}
+      \strng{authorbibnamehash}{91a4781c6ebe461831ea3f4c50e3294d}
+      \strng{authornamehash}{91a4781c6ebe461831ea3f4c50e3294d}
+      \strng{authorfullhash}{91a4781c6ebe461831ea3f4c50e3294d}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Many areas of science depend on exploratory data analysis and visualization. The need to analyze large amounts of multivariate data raises the fundamental problem of dimensionality reduction: how to discover compact representations of high-dimensional data. Here, we introduce locally linear embedding (LLE), an unsupervised learning algorithm that computes low-dimensional, neighborhood-preserving embeddings of high-dimensional inputs. Unlike clustering methods for local dimensionality reduction, LLE maps its inputs into a single global coordinate system of lower dimensionality, and its optimizations do not involve local minima. By exploiting the local symmetries of linear reconstructions, LLE is able to learn the global structure of nonlinear manifolds, such as those generated by images of faces or documents of text.}
+      \field{day}{22}
+      \field{journaltitle}{Science}
+      \field{month}{12}
+      \field{number}{5500}
+      \field{title}{Nonlinear {{Dimensionality Reduction}} by {{Locally Linear Embedding}}}
+      \field{urlday}{24}
+      \field{urlmonth}{2}
+      \field{urlyear}{2023}
+      \field{volume}{290}
+      \field{year}{2000}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{2323\bibrangedash 2326}
+      \range{pages}{4}
+      \verb{doi}
+      \verb 10.1126/science.290.5500.2323
+      \endverb
+      \verb{urlraw}
+      \verb https://www.science.org/doi/10.1126/science.290.5500.2323
+      \endverb
+      \verb{url}
+      \verb https://www.science.org/doi/10.1126/science.290.5500.2323
+      \endverb
     \endentry
     \entry{schulamIntegrativeAnalysisUsing2016}{article}{}
       \name{author}{2}{}{%
@@ -606,6 +1016,7 @@
       \field{year}{2016}
       \field{dateera}{ce}
       \field{urldateera}{ce}
+      \true{nocite}
       \field{pages}{1\bibrangedash 35}
       \range{pages}{35}
       \verb{file}
@@ -616,6 +1027,70 @@
       \endverb
       \verb{url}
       \verb http://jmlr.org/papers/v17/15-436.html
+      \endverb
+    \endentry
+    \entry{tenenbaumGlobalGeometricFramework2000}{article}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=5c7ff02e1f8b4c4aa7bfddece14f23d2}{%
+           family={Tenenbaum},
+           familyi={T\bibinitperiod},
+           given={Joshua\bibnamedelima B.},
+           giveni={J\bibinitperiod\bibinitdelim B\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,useprefix=false,hash=8914ed3ba6a5221539f9df16b4db08ac}{%
+           family={Silva},
+           familyi={S\bibinitperiod},
+           given={Vin},
+           giveni={V\bibinitperiod},
+           givenun=0,
+           prefix={de},
+           prefixi={d\bibinitperiod},
+           prefixun=0}}%
+        {{un=0,uniquepart=base,hash=98c8721f0693b159457b9b2d6fa05362}{%
+           family={Langford},
+           familyi={L\bibinitperiod},
+           given={John\bibnamedelima C.},
+           giveni={J\bibinitperiod\bibinitdelim C\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {American Association for the Advancement of Science}%
+      }
+      \strng{namehash}{1a719078945c65e53718d043cbf0992f}
+      \strng{fullhash}{1a719078945c65e53718d043cbf0992f}
+      \strng{bibnamehash}{1a719078945c65e53718d043cbf0992f}
+      \strng{authorbibnamehash}{1a719078945c65e53718d043cbf0992f}
+      \strng{authornamehash}{1a719078945c65e53718d043cbf0992f}
+      \strng{authorfullhash}{1a719078945c65e53718d043cbf0992f}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Scientists working with large volumes of high-dimensional data, such as global climate patterns, stellar spectra, or human gene distributions, regularly confront the problem of dimensionality reduction: finding meaningful low-dimensional structures hidden in their high-dimensional observations. The human brain confronts the same problem in everyday perception, extracting from its high-dimensional sensory inputs—30,000 auditory nerve fibers or 106 optic nerve fibers—a manageably small number of perceptually relevant features. Here we describe an approach to solving dimensionality reduction problems that uses easily measured local metric information to learn the underlying global geometry of a data set. Unlike classical techniques such as principal component analysis (PCA) and multidimensional scaling (MDS), our approach is capable of discovering the nonlinear degrees of freedom that underlie complex natural observations, such as human handwriting or images of a face under different viewing conditions. In contrast to previous algorithms for nonlinear dimensionality reduction, ours efficiently computes a globally optimal solution, and, for an important class of data manifolds, is guaranteed to converge asymptotically to the true structure.}
+      \field{day}{22}
+      \field{journaltitle}{Science}
+      \field{month}{12}
+      \field{number}{5500}
+      \field{title}{A {{Global Geometric Framework}} for {{Nonlinear Dimensionality Reduction}}}
+      \field{urlday}{24}
+      \field{urlmonth}{2}
+      \field{urlyear}{2023}
+      \field{volume}{290}
+      \field{year}{2000}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{2319\bibrangedash 2323}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.1126/science.290.5500.2319
+      \endverb
+      \verb{urlraw}
+      \verb https://www.science.org/doi/10.1126/science.290.5500.2319
+      \endverb
+      \verb{url}
+      \verb https://www.science.org/doi/10.1126/science.290.5500.2319
       \endverb
     \endentry
     \entry{xieImageRegistrationUsing2004}{article}{}
@@ -665,6 +1140,100 @@
       \verb /Users/rzielinski/Zotero/storage/GE7RCB6Z/1260760.html
       \endverb
       \keyw{Image motion analysis,Image registration,Iterative algorithms,Iterative closest point algorithm,Magnetic resonance imaging,Nonlinear distortion,Nonlinear optics,Optical distortion,Shape,Spline}
+    \endentry
+    \entry{yueParameterizationWhiteMatter2016}{article}{}
+      \name{author}{7}{}{%
+        {{un=0,uniquepart=base,hash=1b7e9f6e125cde7c9182dee40900cae7}{%
+           family={Yue},
+           familyi={Y\bibinitperiod},
+           given={Chen},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7525f6b6701f813d61f6359b03ead8e5}{%
+           family={Zipunnikov},
+           familyi={Z\bibinitperiod},
+           given={Vadim},
+           giveni={V\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=8c1b3749f53e1deeba2bd0b32a78e047}{%
+           family={Bazin},
+           familyi={B\bibinitperiod},
+           given={Pierre-Louis},
+           giveni={P\bibinithyphendelim L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=36fb6c75447c4923037f380ea0c5a595}{%
+           family={Pham},
+           familyi={P\bibinitperiod},
+           given={Dzung},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=f6d5ffec97df1c023f0b85b8494d2363}{%
+           family={Reich},
+           familyi={R\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=cf33b67afe8f813caa335813c7a16970}{%
+           family={Crainiceanu},
+           familyi={C\bibinitperiod},
+           given={Ciprian},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=02718c3a6f8c62a612ee950406ac15bf}{%
+           family={Caffo},
+           familyi={C\bibinitperiod},
+           given={Brian},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Taylor \& Francis}%
+      }
+      \strng{namehash}{97046a30eccd53602ad4ca33c13f3628}
+      \strng{fullhash}{9d240dd9e055ddd5380335ab514c095f}
+      \strng{bibnamehash}{97046a30eccd53602ad4ca33c13f3628}
+      \strng{authorbibnamehash}{97046a30eccd53602ad4ca33c13f3628}
+      \strng{authornamehash}{97046a30eccd53602ad4ca33c13f3628}
+      \strng{authorfullhash}{9d240dd9e055ddd5380335ab514c095f}
+      \field{sortinit}{Y}
+      \field{sortinithash}{fd67ad5a9ef0f7456bdd9aab10fe1495}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{In this article, we are concerned with data generated from a diffusion tensor imaging (DTI) experiment. The goal is to parameterize manifold-like white matter tracts, such as the corpus callosum, using principal surfaces. The problem is approached by finding a geometrically motivated surface-based representation of the corpus callosum and visualized fractional anisotropy (FA) values projected onto the surface. The method also applies to any other diffusion summary. An algorithm is proposed that (a) constructs the principal surface of a corpus callosum; (b) flattens the surface into a parametric two-dimensional (2D) map; and (c) projects associated FA values on the map. The algorithm is applied to a longitudinal study containing 466 diffusion tensor images of 176 multiple sclerosis (MS) patients observed at multiple visits. For each subject and visit, the study contains a registered DTI scan of the corpus callosum at roughly 20,000 voxels. Extensive simulation studies demonstrate fast convergence and robust performance of the algorithm under a variety of challenging scenarios.}
+      \field{day}{2}
+      \field{eprinttype}{pmid}
+      \field{issn}{0162-1459}
+      \field{journaltitle}{Journal of the American Statistical Association}
+      \field{month}{7}
+      \field{number}{515}
+      \field{title}{Parameterization of {{White Matter Manifold-Like Structures Using Principal Surfaces}}}
+      \field{urlday}{24}
+      \field{urlmonth}{2}
+      \field{urlyear}{2023}
+      \field{volume}{111}
+      \field{year}{2016}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{1050\bibrangedash 1060}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1080/01621459.2016.1164050
+      \endverb
+      \verb{eprint}
+      \verb 28090127
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/A74IGZ37/Yue et al_2016_Parameterization of White Matter Manifold-Like Structures Using Principal.pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1080/01621459.2016.1164050
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1080/01621459.2016.1164050
+      \endverb
+      \keyw{Corpus callosum,Principal curves and surfaces,Thin plate splines}
     \endentry
   \enddatalist
 \endrefsection

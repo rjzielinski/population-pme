@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2023.7.7)  7 JUL 2023 18:42
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2023.7.7)  12 JUL 2023 08:36
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -513,49 +513,36 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <8> on input line 17.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 17.
-
-
-LaTeX Warning: Citation 'schulamIntegrativeAnalysisUsing2016' on page 1 undefined on input line 30.
-
-
-Overfull \hbox (54.06184pt too wide) in paragraph at lines 30--31
-\OT1/cmr/m/n/10.95 The mod-el-ing ap-proach I am con-sid-er-ing right now is in-flu-enced by []. 
- []
-
-[1
+ [1
 
 {/usr/local/texlive/2023/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <10.95> on input line 60.
+ [2{/usr/local/texlive/2023/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+Overfull \hbox (9.81847pt too wide) in paragraph at lines 61--61
+[][]\OT1/cmr/m/n/10.95 Gelman, An-drew and Jen-nifer Hill (2007). \OT1/cmr/m/it/10.95 Data Anal-y-sis Us-ing Re-gres-sion and Mul-ti-level/Hierarchical
+ []
 
-LaTeX Warning: Empty bibliography on input line 47.
-
-[2] (./proposal.aux)
-
-LaTeX Warning: There were undefined references.
-
+[3] (./proposal.aux)
 Package rerunfilecheck Info: File `proposal.out' has not changed.
 (rerunfilecheck)             Checksum: BF6619BDB4A37E59FBBDC9D312907F68;554.
-
-Package biblatex Warning: Please (re)run Biber on the file:
-(biblatex)                proposal
-(biblatex)                and rerun LaTeX afterwards.
-
 Package logreq Info: Writing requests to 'proposal.run.xml'.
 \openout1 = `proposal.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 16227 strings out of 476025
- 288535 string characters out of 5790018
+ 16362 strings out of 476025
+ 292886 string characters out of 5790018
  1868388 words of memory out of 5000000
- 36527 multiletter control sequences out of 15000+600000
- 516535 words of font info for 46 fonts, out of 8000000 for 9000
+ 36645 multiletter control sequences out of 15000+600000
+ 517999 words of font info for 51 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,6n,76p,908b,801s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb>
-Output written on proposal.pdf (2 pages, 76841 bytes).
+ 75i,6n,76p,2443b,1452s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
+Output written on proposal.pdf (3 pages, 127143 bytes).
 PDF statistics:
- 65 PDF objects out of 1000 (max. 8388607)
- 50 compressed objects within 1 object stream
- 8 named destinations out of 1000 (max. 500000)
+ 117 PDF objects out of 1000 (max. 8388607)
+ 95 compressed objects within 1 object stream
+ 21 named destinations out of 1000 (max. 500000)
  41 words of extra memory for PDF output out of 10000 (max. 10000000)
 

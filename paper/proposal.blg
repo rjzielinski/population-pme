@@ -1,9 +1,15 @@
 [0] Config.pm:307> INFO - This is Biber 2.19
 [0] Config.pm:310> INFO - Logfile is 'proposal.blg'
-[76] biber-darwin:340> INFO - === Fri Jul  7, 2023, 18:42:14
-[96] Biber.pm:419> INFO - Reading 'proposal.bcf'
-[169] Biber.pm:976> INFO - Using all citekeys in bib section 0
-[184] Biber.pm:4419> INFO - Processing section 0
-[197] Biber.pm:4610> INFO - Looking for bibtex file 'references.bib' for section 0
-[200] bibtex.pm:1713> INFO - LaTeX decoding ...
-[223] bibtex.pm:1519> INFO - Found BibTeX data source 'references.bib'
+[30] biber-darwin:340> INFO - === Wed Jul 12, 2023, 08:36:54
+[39] Biber.pm:419> INFO - Reading 'proposal.bcf'
+[72] Biber.pm:976> INFO - Using all citekeys in bib section 0
+[79] Biber.pm:4419> INFO - Processing section 0
+[84] Biber.pm:4610> INFO - Looking for bibtex file 'references.bib' for section 0
+[86] bibtex.pm:1713> INFO - LaTeX decoding ...
+[96] bibtex.pm:1519> INFO - Found BibTeX data source 'references.bib'
+[159] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[159] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[159] Biber.pm:4239> INFO - Sorting list 'nyt/global//global/global' of type 'entry' with template 'nyt' and locale 'en-US'
+[159] Biber.pm:4245> INFO - No sort tailoring available for locale 'en-US'
+[168] bbl.pm:660> INFO - Writing 'proposal.bbl' with encoding 'UTF-8'
+[175] bbl.pm:763> INFO - Output to proposal.bbl
