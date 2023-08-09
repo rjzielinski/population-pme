@@ -224,7 +224,6 @@
       \field{title}{Hierarchical {{Manifold Learning}}}
       \field{year}{2012}
       \field{dateera}{ce}
-      \true{nocite}
       \field{pages}{512\bibrangedash 519}
       \range{pages}{8}
       \verb{doi}
@@ -234,6 +233,66 @@
       \verb /Users/rzielinski/Zotero/storage/JKJIKHDJ/Bhatia et al_2012_Hierarchical Manifold Learning.pdf
       \endverb
       \keyw{Image Patch,Laplacian Eigenmaps,Manifold Learning,Mechanical Dyssynchrony,Patch Size}
+    \endentry
+    \entry{brumbackSmoothingSplineModels1998}{article}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=900ebff2290ad799a0d03dc3f439cafb}{%
+           family={Brumback},
+           familyi={B\bibinitperiod},
+           given={Babette\bibnamedelima A.},
+           giveni={B\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9ba45d4d0f3fbda9a75d49fd875d308b}{%
+           family={Rice},
+           familyi={R\bibinitperiod},
+           given={John\bibnamedelima A.},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Taylor \& Francis}%
+      }
+      \strng{namehash}{585ad579c88f8e30e85a5a6996a65550}
+      \strng{fullhash}{585ad579c88f8e30e85a5a6996a65550}
+      \strng{bibnamehash}{585ad579c88f8e30e85a5a6996a65550}
+      \strng{authorbibnamehash}{585ad579c88f8e30e85a5a6996a65550}
+      \strng{authornamehash}{585ad579c88f8e30e85a5a6996a65550}
+      \strng{authorfullhash}{585ad579c88f8e30e85a5a6996a65550}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We introduce a class of models for an additive decomposition of groups of curves stratified by crossed and nested factors, generalizing smoothing splines to such samples by associating them with a corresponding mixed-effects model. The models are also useful for imputation of missing data and exploratory analysis of variance. We prove that the best linear unbiased predictors (BLUPs) from the extended mixed-effects model correspond to solutions of a generalized penalized regression where smoothing parameters are directly related to variance components, and we show that these solutions are natural cubic splines. The model parameters are estimated using a highly efficient implementation of the EM algorithm for restricted maximum likelihood (REML) estimation based on a preliminary eigenvector decomposition. Variability of computed estimates can be assessed with asymptotic techniques or with a novel hierarchical bootstrap resampling scheme for nested mixed-effects models. Our methods are applied to menstrual cycle data from studies of reproductive function that measure daily urinary progesterone; the sample of progesterone curves is stratified by cycles nested within subjects nested within conceptive and nonconceptive groups.}
+      \field{day}{1}
+      \field{issn}{0162-1459}
+      \field{journaltitle}{Journal of the American Statistical Association}
+      \field{month}{9}
+      \field{number}{443}
+      \field{title}{Smoothing {{Spline Models}} for the {{Analysis}} of {{Nested}} and {{Crossed Samples}} of {{Curves}}}
+      \field{urlday}{9}
+      \field{urlmonth}{8}
+      \field{urlyear}{2023}
+      \field{volume}{93}
+      \field{year}{1998}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{961\bibrangedash 976}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1080/01621459.1998.10473755
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/JD84NF64/Brumback_Rice_1998_Smoothing Spline Models for the Analysis of Nested and Crossed Samples of Curves.pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1080/01621459.1998.10473755
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1080/01621459.1998.10473755
+      \endverb
+      \keyw{Hierarchical bootstrap,Menstrual data,Mixed-effects model,Penalized regression,Smoothing parameter,Variance component.}
     \endentry
     \entry{coifmanDiffusionMaps2006}{article}{}
       \name{author}{2}{}{%
@@ -442,6 +501,120 @@
       \verb https://dl.acm.org/doi/10.1145/221659.221665
       \endverb
     \endentry
+    \entry{freicheCharacterizingMyocardialIschemia2022}{inproceedings}{}
+      \name{author}{5}{}{%
+        {{un=0,uniquepart=base,hash=d058a933bb85d564e6fdabb0ee1880b7}{%
+           family={Freiche},
+           familyi={F\bibinitperiod},
+           given={Benoît},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9170a5ec1497d48eaf7baecf4f8bd989}{%
+           family={Clarysse},
+           familyi={C\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=70fa62c3a6fac9847eedc7f532100fca}{%
+           family={Viallon},
+           familyi={V\bibinitperiod},
+           given={Magalie},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=91a8b367455a11c15c381c7f78f571ef}{%
+           family={Croisille},
+           familyi={C\bibinitperiod},
+           given={Pierre},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c9417186b7b609ac1b50509f81d158c9}{%
+           family={Duchateau},
+           familyi={D\bibinitperiod},
+           given={Nicolas},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+      }
+      \name{editor}{8}{}{%
+        {{hash=4c393f2b119720d31c1aa8f0a394478f}{%
+           family={Puyol\bibnamedelima Antón},
+           familyi={P\bibinitperiod\bibinitdelim A\bibinitperiod},
+           given={Esther},
+           giveni={E\bibinitperiod}}}%
+        {{hash=f668263e290bebe71cac5fd2985a3f54}{%
+           family={Pop},
+           familyi={P\bibinitperiod},
+           given={Mihaela},
+           giveni={M\bibinitperiod}}}%
+        {{hash=47bde4d21c3f2171ba0d877eb32dcc64}{%
+           family={Martín-Isla},
+           familyi={M\bibinithyphendelim I\bibinitperiod},
+           given={Carlos},
+           giveni={C\bibinitperiod}}}%
+        {{hash=a8593c87be1687c6b14bacbb85cd6762}{%
+           family={Sermesant},
+           familyi={S\bibinitperiod},
+           given={Maxime},
+           giveni={M\bibinitperiod}}}%
+        {{hash=c1f769b601edc6de11f0229237724ced}{%
+           family={Suinesiaputra},
+           familyi={S\bibinitperiod},
+           given={Avan},
+           giveni={A\bibinitperiod}}}%
+        {{hash=b688bdbfc08a9653c19413b23797c2ae}{%
+           family={Camara},
+           familyi={C\bibinitperiod},
+           given={Oscar},
+           giveni={O\bibinitperiod}}}%
+        {{hash=7afea3dacf80d06a4da14f3689e1b2ae}{%
+           family={Lekadir},
+           familyi={L\bibinitperiod},
+           given={Karim},
+           giveni={K\bibinitperiod}}}%
+        {{hash=c0b6b0d5fc87bf82e539a2ab90358581}{%
+           family={Young},
+           familyi={Y\bibinitperiod},
+           given={Alistair},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Cham}%
+      }
+      \list{publisher}{1}{%
+        {Springer International Publishing}%
+      }
+      \strng{namehash}{e4cebd2bf6bbcb2d55f58a5a9d91e32b}
+      \strng{fullhash}{2766849071ab8ca1424bc3d6f539b471}
+      \strng{bibnamehash}{e4cebd2bf6bbcb2d55f58a5a9d91e32b}
+      \strng{authorbibnamehash}{e4cebd2bf6bbcb2d55f58a5a9d91e32b}
+      \strng{authornamehash}{e4cebd2bf6bbcb2d55f58a5a9d91e32b}
+      \strng{authorfullhash}{2766849071ab8ca1424bc3d6f539b471}
+      \strng{editorbibnamehash}{a7974eb95af36a4a5696604b14f8faf5}
+      \strng{editornamehash}{a7974eb95af36a4a5696604b14f8faf5}
+      \strng{editorfullhash}{05c166ea34c9a22508b7bae70670a076}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We aim at better understanding the mechanisms of ischemia and reperfusion, in the context of acute myocardial infarction. For this purpose, imaging and in particular magnetic resonance imaging are of great value in the clinic, but the richness of the images is currently under exploited. In this paper, we propose to characterize myocardial ischemia and reperfusion patterns across a population beyond the scalar measurements used in the clinic. Specifically, we adapted representation learning techniques to not only characterize the population distribution in terms of scar and microvascular obstruction patterns, but also regarding the appearance of late gadolinium images which reflects tissue heterogeneity. To do so, we implemented a hierarchical manifold learning approach where the embedding from a higher-level content (the images) is guided by one from a lower-level content (the infarct and microvascular obstruction segmentations). We demonstrate its relevance on 1711 late gadolinium enhancement slices from 123 patients with acute ST-elevation myocardial infarction. We designed ways to balance the contribution of each level in the hierarchy, and quantify its impact on the overall distribution and on sample neighborhoods. We notably observe that the obtained latent space is a balanced contribution between the two levels of the hierarchy, and is more robust to challenging images subjected to artifacts or specific lesion patterns.}
+      \field{booktitle}{Statistical {{Atlases}} and {{Computational Models}} of the {{Heart}}. {{Multi-Disease}}, {{Multi-View}}, and {{Multi-Center Right Ventricular Segmentation}} in {{Cardiac MRI Challenge}}}
+      \field{isbn}{978-3-030-93722-5}
+      \field{langid}{english}
+      \field{series}{Lecture {{Notes}} in {{Computer Science}}}
+      \field{title}{Characterizing {{Myocardial Ischemia}} and {{Reperfusion Patterns}} with {{Hierarchical Manifold Learning}}}
+      \field{year}{2022}
+      \field{dateera}{ce}
+      \field{pages}{66\bibrangedash 74}
+      \range{pages}{9}
+      \verb{doi}
+      \verb 10.1007/978-3-030-93722-5_8
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/LFXTMEM3/Freiche et al_2022_Characterizing Myocardial Ischemia and Reperfusion Patterns with Hierarchical.pdf
+      \endverb
+      \keyw{Cardiac imaging,Decision hierarchy,Information fusion,Manifold learning,Myocardial infarction}
+    \endentry
     \entry{gaoHierarchicalManifoldLearning2019}{inproceedings}{}
       \name{author}{3}{}{%
         {{un=0,uniquepart=base,hash=87a29904145b3da300d70ddd3b5eaffa}{%
@@ -514,7 +687,6 @@
       \field{title}{A {{Hierarchical Manifold Learning Framework}} for {{High-Dimensional Neuroimaging Data}}}
       \field{year}{2019}
       \field{dateera}{ce}
-      \true{nocite}
       \field{pages}{631\bibrangedash 643}
       \range{pages}{13}
       \verb{doi}
@@ -586,7 +758,6 @@
       \field{title}{Bayesian {{Data Analysis}}}
       \field{year}{2014}
       \field{dateera}{ce}
-      \true{nocite}
     \endentry
     \entry{gelmanDataAnalysisUsing2007}{book}{}
       \name{author}{2}{}{%
@@ -625,7 +796,85 @@
       \field{title}{Data {{Analysis Using Regression}} and {{Multilevel}}/{{Hierarchical Models}}}
       \field{year}{2007}
       \field{dateera}{ce}
+    \endentry
+    \entry{gerberManifoldModelingBrain2010}{article}{}
+      \name{author}{5}{}{%
+        {{un=0,uniquepart=base,hash=c1dfbb570068c76ed43d9b7e2196ca3a}{%
+           family={Gerber},
+           familyi={G\bibinitperiod},
+           given={Samuel},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9422f55365c856ea9b5efca5adcf764a}{%
+           family={Tasdizen},
+           familyi={T\bibinitperiod},
+           given={Tolga},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=40414565497a4b6377633d986462d119}{%
+           family={Thomas\bibnamedelima Fletcher},
+           familyi={T\bibinitperiod\bibinitdelim F\bibinitperiod},
+           given={P.},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=cd9c7fbafdff4bdd9eff9171a3f45b9c}{%
+           family={Joshi},
+           familyi={J\bibinitperiod},
+           given={Sarang},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=3dc595f74f68cb039ba30e54fe3a5d67}{%
+           family={Whitaker},
+           familyi={W\bibinitperiod},
+           given={Ross},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{7a805cfabc124c363c6eb72bdb23659c}
+      \strng{fullhash}{93c06b0fb2f64272c4252422c454a41e}
+      \strng{bibnamehash}{7a805cfabc124c363c6eb72bdb23659c}
+      \strng{authorbibnamehash}{7a805cfabc124c363c6eb72bdb23659c}
+      \strng{authornamehash}{7a805cfabc124c363c6eb72bdb23659c}
+      \strng{authorfullhash}{93c06b0fb2f64272c4252422c454a41e}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{This paper describes a method for building efficient representations of large sets of brain images. Our hypothesis is that the space spanned by a set of brain images can be captured, to a close approximation, by a low-dimensional, nonlinear manifold. This paper presents a method to learn such a low-dimensional manifold from a given data set. The manifold model is generative—brain images can be constructed from a relatively small set of parameters, and new brain images can be projected onto the manifold. This allows to quantify the geometric accuracy of the manifold approximation in terms of projection distance. The manifold coordinates induce a Euclidean coordinate system on the population data that can be used to perform statistical analysis of the population. We evaluate the proposed method on the OASIS and ADNI brain databases of head MR images in two ways. First, the geometric fit of the method is qualitatively and quantitatively evaluated. Second, the ability of the brain manifold model to explain clinical measures is analyzed by linear regression in the manifold coordinate space. The regression models show that the manifold model is a statistically significant descriptor of clinical parameters.}
+      \field{day}{1}
+      \field{issn}{1361-8415}
+      \field{journaltitle}{Medical Image Analysis}
+      \field{langid}{english}
+      \field{month}{10}
+      \field{number}{5}
+      \field{series}{Special {{Issue}} on the 12th {{International Conference}} on {{Medical Image Computing}} and {{Computer-Assisted Intervention}} ({{MICCAI}}) 2009}
+      \field{shortjournal}{Medical Image Analysis}
+      \field{title}{Manifold Modeling for Brain Population Analysis}
+      \field{urlday}{2}
+      \field{urlmonth}{8}
+      \field{urlyear}{2023}
+      \field{volume}{14}
+      \field{year}{2010}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
       \true{nocite}
+      \field{pages}{643\bibrangedash 653}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1016/j.media.2010.05.008
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/SG44S6T4/Gerber et al_2010_Manifold modeling for brain population analysis.pdf;/Users/rzielinski/Zotero/storage/2Z6EN6ND/S1361841510000617.html
+      \endverb
+      \verb{urlraw}
+      \verb https://www.sciencedirect.com/science/article/pii/S1361841510000617
+      \endverb
+      \verb{url}
+      \verb https://www.sciencedirect.com/science/article/pii/S1361841510000617
+      \endverb
+      \keyw{Brain MRI,Computer aided clinical diagnosis,Manifold learning,Neurological image analysis,Population analysis}
     \endentry
     \entry{greenSilverman1994}{book}{}
       \name{author}{2}{}{%
@@ -664,14 +913,124 @@
       \field{dateera}{ce}
       \true{nocite}
     \endentry
+    \entry{guerreroGroupconstrainedManifoldLearning2017}{article}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=af1a5a60df189e41db23c59d60427897}{%
+           family={Guerrero},
+           familyi={G\bibinitperiod},
+           given={R.},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=2424a677a7171cf1718829dc8a6ca084}{%
+           family={Ledig},
+           familyi={L\bibinitperiod},
+           given={C.},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=74f1fc135e75bf417a0c3194766d5aed}{%
+           family={Schmidt-Richberg},
+           familyi={S\bibinithyphendelim R\bibinitperiod},
+           given={A.},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=6cd28b47e9381dd8eb04a8fa63bcd2c5}{%
+           family={Rueckert},
+           familyi={R\bibinitperiod},
+           given={D.},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{1d7dc7d15fc66a853a558af0ec3189ca}
+      \strng{fullhash}{c0a59d4b1488a742fc86c5f3ad6f9a7a}
+      \strng{bibnamehash}{1d7dc7d15fc66a853a558af0ec3189ca}
+      \strng{authorbibnamehash}{1d7dc7d15fc66a853a558af0ec3189ca}
+      \strng{authornamehash}{1d7dc7d15fc66a853a558af0ec3189ca}
+      \strng{authorfullhash}{c0a59d4b1488a742fc86c5f3ad6f9a7a}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{The exploration of high-dimensional medical imaging datasets often requires the use of dimensionality reduction techniques. Generally, individual instances in longitudinal studies are not independent as several measurements of the same subjects, acquired at several time points, are included. Most non-linear dimensionality reduction techniques, that rely on defining a neighborhood graph to uncover local geometry, neglect potentially valuable grouping information and thus can lead to a poor estimation of the underlying manifold. Incorporating a-priori grouping knowledge of the data can lead to an improved low-dimensional representation. In this work, an approach to leverage such a-priori information is proposed, with the main interest in generating longitudinal biomarkers to assess a subject's risk of developing Alzheimer's disease (AD), and hence estimate time-to-conversion (TTC) and the mini mental state examination (MMSE) of subjects that develop AD. This is achieved via a novel formulation of the Laplacian Eigenmaps and Isomap manifold learning algorithms, that allows the incorporation of group-constraints. The potential of the proposed formulation was demonstrated on a swiss-roll toy example that clearly illustrates the problems faced by traditional techniques when additional structure is observed in the data. A real data experiment showed that the proposed constrained methods yielded improvements of ∼16\% and ∼6\% over the original unconstrained methods in kNN estimation of the TTC and MMSE on the ADNI database.}
+      \field{day}{1}
+      \field{issn}{0031-3203}
+      \field{journaltitle}{Pattern Recognition}
+      \field{langid}{english}
+      \field{month}{3}
+      \field{shortjournal}{Pattern Recognition}
+      \field{shorttitle}{Group-Constrained Manifold Learning}
+      \field{title}{Group-Constrained Manifold Learning: {{Application}} to {{AD}} Risk Assessment}
+      \field{urlday}{17}
+      \field{urlmonth}{1}
+      \field{urlyear}{2023}
+      \field{volume}{63}
+      \field{year}{2017}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{570\bibrangedash 582}
+      \range{pages}{13}
+      \verb{doi}
+      \verb 10.1016/j.patcog.2016.09.023
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/ASUA22G5/Guerrero et al_2017_Group-constrained manifold learning.pdf;/Users/rzielinski/Zotero/storage/5D8LBJB9/S0031320316303016.html
+      \endverb
+      \verb{urlraw}
+      \verb https://www.sciencedirect.com/science/article/pii/S0031320316303016
+      \endverb
+      \verb{url}
+      \verb https://www.sciencedirect.com/science/article/pii/S0031320316303016
+      \endverb
+      \keyw{Alzheimer's disease,Longitudinal,Manifold learning,Neurodegeneration}
+    \endentry
+    \entry{hastieGeneralizedAdditiveModels1990}{book}{}
+      \name{author}{2}{}{%
+        {{un=2,uniquepart=given,hash=6b87f9803ff7198a1b16f2e23ff4c5e8}{%
+           family={Hastie},
+           familyi={H\bibinitperiod},
+           given={T.J.},
+           giveni={T\bibinitperiod},
+           givenun=2}}%
+        {{un=0,uniquepart=base,hash=644e738f30691dfc96d4d31511c70447}{%
+           family={Tibshirani},
+           familyi={T\bibinitperiod},
+           given={R.J.},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {London}%
+      }
+      \list{publisher}{1}{%
+        {Chapman and Hall}%
+      }
+      \strng{namehash}{c38252f7354eb2d75d67863797a2df5b}
+      \strng{fullhash}{c38252f7354eb2d75d67863797a2df5b}
+      \strng{bibnamehash}{c38252f7354eb2d75d67863797a2df5b}
+      \strng{authorbibnamehash}{c38252f7354eb2d75d67863797a2df5b}
+      \strng{authornamehash}{c38252f7354eb2d75d67863797a2df5b}
+      \strng{authorfullhash}{c38252f7354eb2d75d67863797a2df5b}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{number}{43}
+      \field{series}{Monographs on {{Statistics}} and {{Applied Probability}}}
+      \field{title}{Generalized {{Additive Models}}}
+      \field{year}{1990}
+      \field{dateera}{ce}
+    \endentry
     \entry{hastiePrincipalCurves1989}{article}{}
       \name{author}{2}{}{%
-        {{un=0,uniquepart=base,hash=0cb8fe4210baa81c4b0e67913b4d2768}{%
+        {{un=2,uniquepart=given,hash=0cb8fe4210baa81c4b0e67913b4d2768}{%
            family={Hastie},
            familyi={H\bibinitperiod},
            given={Trevor},
            giveni={T\bibinitperiod},
-           givenun=0}}%
+           givenun=2}}%
         {{un=0,uniquepart=base,hash=78839a6a63ee6d2680ebc15a3ef7fc58}{%
            family={Stuetzle},
            familyi={S\bibinitperiod},
@@ -977,6 +1336,57 @@
       \verb https://www.science.org/doi/10.1126/science.290.5500.2323
       \endverb
     \endentry
+    \entry{schulamFrameworkIndividualizingPredictions2015a}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=496d0f7bf1ba5017297a64246331af79}{%
+           family={Schulam},
+           familyi={S\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c78223d83f45649c2f0ebdeb0f0e0b59}{%
+           family={Saria},
+           familyi={S\bibinitperiod},
+           given={Suchi},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Curran Associates, Inc.}%
+      }
+      \strng{namehash}{0245b2fdff08a2e5d58a618f05ebd763}
+      \strng{fullhash}{0245b2fdff08a2e5d58a618f05ebd763}
+      \strng{bibnamehash}{0245b2fdff08a2e5d58a618f05ebd763}
+      \strng{authorbibnamehash}{0245b2fdff08a2e5d58a618f05ebd763}
+      \strng{authornamehash}{0245b2fdff08a2e5d58a618f05ebd763}
+      \strng{authorfullhash}{0245b2fdff08a2e5d58a618f05ebd763}
+      \field{extraname}{1}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{For many complex diseases, there is a wide variety of ways in which an individual can manifest the disease. The challenge of personalized medicine is to develop tools that can accurately predict the trajectory of an individual's disease, which can in turn enable clinicians to optimize treatments. We represent an individual's disease trajectory as a continuous-valued continuous-time function describing the severity of the disease over time. We propose a hierarchical latent variable model that individualizes predictions of disease trajectories. This model shares statistical strength across observations at different resolutions--the population, subpopulation and the individual level. We describe an algorithm for learning population and subpopulation parameters offline, and an online procedure for dynamically learning individual-specific parameters. Finally, we validate our model on the task of predicting the course of interstitial lung disease, a leading cause of death among patients with the autoimmune disease scleroderma. We compare our approach against state-of-the-art and demonstrate significant improvements in predictive accuracy.}
+      \field{booktitle}{Advances in {{Neural Information Processing Systems}}}
+      \field{title}{A {{Framework}} for {{Individualizing Predictions}} of {{Disease Trajectories}} by {{Exploiting Multi-Resolution Structure}}}
+      \field{urlday}{9}
+      \field{urlmonth}{8}
+      \field{urlyear}{2023}
+      \field{volume}{28}
+      \field{year}{2015}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/ZJ9ZSBPR/Schulam_Saria_2015_A Framework for Individualizing Predictions of Disease Trajectories by.pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://proceedings.neurips.cc/paper/2015/hash/285e19f20beded7d215102b49d5c09a0-Abstract.html
+      \endverb
+      \verb{url}
+      \verb https://proceedings.neurips.cc/paper/2015/hash/285e19f20beded7d215102b49d5c09a0-Abstract.html
+      \endverb
+    \endentry
     \entry{schulamIntegrativeAnalysisUsing2016}{article}{}
       \name{author}{2}{}{%
         {{un=0,uniquepart=base,hash=496d0f7bf1ba5017297a64246331af79}{%
@@ -998,6 +1408,7 @@
       \strng{authorbibnamehash}{0245b2fdff08a2e5d58a618f05ebd763}
       \strng{authornamehash}{0245b2fdff08a2e5d58a618f05ebd763}
       \strng{authorfullhash}{0245b2fdff08a2e5d58a618f05ebd763}
+      \field{extraname}{2}
       \field{sortinit}{S}
       \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
       \field{extradatescope}{labelyear}
@@ -1092,6 +1503,56 @@
       \verb{url}
       \verb https://www.science.org/doi/10.1126/science.290.5500.2319
       \endverb
+    \endentry
+    \entry{wangMixedEffectsSmoothing1998}{article}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=8bc2f1f7178e0f3bb07ef0761cf18a2d}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Yuedong},
+           giveni={Y\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{8bc2f1f7178e0f3bb07ef0761cf18a2d}
+      \strng{fullhash}{8bc2f1f7178e0f3bb07ef0761cf18a2d}
+      \strng{bibnamehash}{8bc2f1f7178e0f3bb07ef0761cf18a2d}
+      \strng{authorbibnamehash}{8bc2f1f7178e0f3bb07ef0761cf18a2d}
+      \strng{authornamehash}{8bc2f1f7178e0f3bb07ef0761cf18a2d}
+      \strng{authorfullhash}{8bc2f1f7178e0f3bb07ef0761cf18a2d}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We propose a general family of nonparametric mixed effects models. Smoothing splines are used to model the fixed effects and are estimated by maximizing the penalized likelihood function. The random effects are generic and are modelled parametrically by assuming that the covariance function depends on a parsimonious set of parameters. These parameters and the smoothing parameter are estimated simultaneously by the generalized maximum likelihood method. We derive a connection between a nonparametric mixed effects model and a linear mixed effects model. This connection suggests a way of fitting a nonparametric mixed effects model by using existing programs. The classical two-way mixed models and growth curve models are used as examples to demonstrate how to use smoothing spline analysis-of-variance decompositions to build nonparametric mixed effects models. Similarly to the classical analysis of variance, components of these nonparametric mixed effects models can be interpreted as main effects and interactions. The penalized likelihood estimates of the fixed effects in a two-way mixed model are extensions of James–Stein shrinkage estimates to correlated observations. In an example three nested nonparametric mixed effects models are fitted to a longitudinal data set.}
+      \field{issn}{1467-9868}
+      \field{journaltitle}{Journal of the Royal Statistical Society: Series B (Statistical Methodology)}
+      \field{langid}{english}
+      \field{number}{1}
+      \field{title}{Mixed Effects Smoothing Spline Analysis of Variance}
+      \field{urlday}{9}
+      \field{urlmonth}{8}
+      \field{urlyear}{2023}
+      \field{volume}{60}
+      \field{year}{1998}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{159\bibrangedash 174}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1111/1467-9868.00115
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/QL3QUDC4/Wang_1998_Mixed effects smoothing spline analysis of variance.pdf;/Users/rzielinski/Zotero/storage/22HTLY2W/1467-9868.html
+      \endverb
+      \verb{urlraw}
+      \verb https://onlinelibrary.wiley.com/doi/abs/10.1111/1467-9868.00115
+      \endverb
+      \verb{url}
+      \verb https://onlinelibrary.wiley.com/doi/abs/10.1111/1467-9868.00115
+      \endverb
+      \keyw{Best linear unbiased prediction,Generalized maximum likelihood,James–Stein shrinkage estimates}
     \endentry
     \entry{xieImageRegistrationUsing2004}{article}{}
       \name{author}{2}{}{%

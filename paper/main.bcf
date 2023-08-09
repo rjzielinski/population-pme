@@ -2369,7 +2369,18 @@
     <bcf:citekey order="5" intorder="1">mengPrincipalManifoldEstimation2021</bcf:citekey>
     <bcf:citekey order="6" intorder="1">hastiePrincipalCurves1989</bcf:citekey>
     <bcf:citekey order="7" intorder="1">yueParameterizationWhiteMatter2016</bcf:citekey>
-    <bcf:citekey order="8" intorder="1" nocite="1">*</bcf:citekey>
+    <bcf:citekey order="8" intorder="1">bhatiaHierarchicalManifoldLearning2012</bcf:citekey>
+    <bcf:citekey order="9" intorder="1">freicheCharacterizingMyocardialIschemia2022</bcf:citekey>
+    <bcf:citekey order="10" intorder="1">gaoHierarchicalManifoldLearning2019</bcf:citekey>
+    <bcf:citekey order="11" intorder="1">guerreroGroupconstrainedManifoldLearning2017</bcf:citekey>
+    <bcf:citekey order="12" intorder="1">mengPrincipalManifoldEstimation2021</bcf:citekey>
+    <bcf:citekey order="13" intorder="1">gelmanDataAnalysisUsing2007</bcf:citekey>
+    <bcf:citekey order="14" intorder="1">hastieGeneralizedAdditiveModels1990</bcf:citekey>
+    <bcf:citekey order="15" intorder="1">gelmanBayesianDataAnalysis2014</bcf:citekey>
+    <bcf:citekey order="16" intorder="1">brumbackSmoothingSplineModels1998</bcf:citekey>
+    <bcf:citekey order="17" intorder="1">schulamFrameworkIndividualizingPredictions2015a</bcf:citekey>
+    <bcf:citekey order="18" intorder="1">wangMixedEffectsSmoothing1998</bcf:citekey>
+    <bcf:citekey order="19" intorder="1" nocite="1">*</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="nyt">
