@@ -100,13 +100,33 @@ There have been several approaches taken to address hierarchical structure in ma
 
 This article builds on the principal manifold estimation (PME) algorithm introduced in \cite{mengPrincipalManifoldEstimation2021}, which uses an iterative procedure to specify an embedding mapping from the low-dimensional manifold to a high-dimensional space that takes the form of a smoothing spline. Drawing from literature in hierarchical and additive models, we replace the smoothing spline in the PME algorithm with an additive smoothing spline model (\cite{gelmanDataAnalysisUsing2007}, \cite{hastieGeneralizedAdditiveModels1990}, \cite{gelmanBayesianDataAnalysis2014}). While the specific model structure may change to meet the needs of the application, \cite{brumbackSmoothingSplineModels1998} and \cite{schulamFrameworkIndividualizingPredictions2015a} provide examples of the general model framework used. This ultimately yields a nonlinear dimension reduction algorithm that takes advantage of a statistically principled model to address nesting structures present in the input data. As it is based on the PME framework, the algorithm outputs an explicit representation of the embedding function, making it possible to both generate new data in high-dimensional space using low-dimensional parameters and map new input data to the estimated manifold. Smoothing spline analysis of variance allows the statistical comparison of the estimated manifolds between groups or individuals (\cite{wangMixedEffectsSmoothing1998}).
 
-The following sections are organized as follows: Section 2 reviews additive models, specifies an additive smoothing spline model for use in the analysis of neuroimaging data from the ADNI study, and provides a comprehensive description of the hierarchical PME algorithm developed in this paper. Section 3 applies this method to several simulated datasets using a variety of underlying manifold structures and tests performance on the MNIST dataset. Section 4 demonstrates how the model specified in Section 2 may be used for the estimation of a manifold underlying the surfaces of subcortical structures of participants of the ADNI dataset, while Section 5 provides a concluding discussion of the proposed algorithm and opportunities for further study.
+The following sections are organized as follows: Section 2 specifies an additive smoothing spline model for use in the analysis of neuroimaging data from the ADNI study, and provides a comprehensive description of the hierarchical PME algorithm developed in this paper. Section 3 applies this method to several simulated datasets using a variety of underlying manifold structures and tests performance on the MNIST dataset of handwritten digits. Section 4 demonstrates how the model specified in Section 2 may be used for the estimation of a manifold underlying the surfaces of subcortical structures of participants of the ADNI dataset, while Section 5 provides a concluding discussion of the proposed algorithm and opportunities for further study.
 
 \section{Methods}
 
-\section{Simulations}
+\subsection{Additive Smoothing Spline Model}
 
-\section{Applications}
+We begin this section with a brief review of additive models. Consider a regression scenario where output variable $\mathbf{y} = \left(y_1, \dots, y_n\right)^{T}$ are thought to be influenced by covariate vectors $\mathbf{x}_i = \left(x_{i1}, \dots, x_{ip}\right)$. In this situation, the standard multiple linear regression model assumes that the dependence of $y_i$ on $\mathbf{x}_i$ takes the linear form
+\[%
+  y_i = \alpha + x_{i1}\beta_1 + \dots + x_{ip}\beta_p + \epsilon_i
+,\]%
+where $\epsilon$ has mean 0 and variance $\sigma^2$. Additive models are a direct extension of this model, where the additive structure of the model is retained, but the assumption of linearity is discarded. A simple additive model takes the form
+\[%
+  y_i = \alpha + \sum_{j=1}^{p}f_j(X_{ij}) + \epsilon_i
+,\]%
+where again $\epsilon_i$ has mean 0 and variance $\sigma^2$, but the $f_j$s represent arbitrary functions which are commonly smooth. While the functions in the model above only take as parameters the value of one covariate, with each covariate being represented in the model once, this does not need to be the case. The structure of additive models seeks to balance benefits of interpretability found in additive models with the flexibility of nonlinear, and frequently, nonparametric functional forms. Further information can be found in \cite{hastieGeneralizedAdditiveModels1990}.
+
+With this background in place, we turn to the motivating situation of analyzing the subcortical surfaces of ADNI participants.  
+
+\subsection{Hierarchical Principal Manifold Estimation}
+
+\section{Application to Simulated and MNIST Data}
+
+\subsection{Application to Simulated Data}
+
+\subsection{Application to MNIST Data}
+
+\section{Application to ADNI Data}
 
 \section{Discussion}
 
