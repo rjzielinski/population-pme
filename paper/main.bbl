@@ -992,12 +992,12 @@
            given={T.J.},
            giveni={T\bibinitperiod},
            givenun=2}}%
-        {{un=0,uniquepart=base,hash=644e738f30691dfc96d4d31511c70447}{%
+        {{un=2,uniquepart=given,hash=644e738f30691dfc96d4d31511c70447}{%
            family={Tibshirani},
            familyi={T\bibinitperiod},
            given={R.J.},
            giveni={R\bibinitperiod},
-           givenun=0}}%
+           givenun=2}}%
       }
       \list{location}{1}{%
         {London}%
@@ -1078,6 +1078,62 @@
       \verb{url}
       \verb http://www.tandfonline.com/doi/abs/10.1080/01621459.1989.10478797
       \endverb
+    \endentry
+    \entry{hastieVaryingCoefficientModels1993}{article}{}
+      \name{author}{2}{}{%
+        {{un=2,uniquepart=given,hash=0cb8fe4210baa81c4b0e67913b4d2768}{%
+           family={Hastie},
+           familyi={H\bibinitperiod},
+           given={Trevor},
+           giveni={T\bibinitperiod},
+           givenun=2}}%
+        {{un=2,uniquepart=given,hash=88eea600247d798f8b2ce0b2dc614492}{%
+           family={Tibshirani},
+           familyi={T\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod},
+           givenun=2}}%
+      }
+      \strng{namehash}{5b3eb99eff6117affd95725e5df145bd}
+      \strng{fullhash}{5b3eb99eff6117affd95725e5df145bd}
+      \strng{bibnamehash}{5b3eb99eff6117affd95725e5df145bd}
+      \strng{authorbibnamehash}{5b3eb99eff6117affd95725e5df145bd}
+      \strng{authornamehash}{5b3eb99eff6117affd95725e5df145bd}
+      \strng{authorfullhash}{5b3eb99eff6117affd95725e5df145bd}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We explore a class of regression and generalized regression models in which the coefficients are allowed to vary as smooth functions of other variables. General algorithms are presented for estimating the models flexibly and some examples are given. This class of models ties together generalized additive models and dynamic generalized linear models into one common framework. When applied to the proportional hazards model for survival data, this approach provides a new way of modelling departures from the proportional hazards assumption.}
+      \field{issn}{2517-6161}
+      \field{journaltitle}{Journal of the Royal Statistical Society: Series B (Methodological)}
+      \field{langid}{english}
+      \field{number}{4}
+      \field{title}{Varying-{{Coefficient Models}}}
+      \field{urlday}{10}
+      \field{urlmonth}{8}
+      \field{urlyear}{2023}
+      \field{volume}{55}
+      \field{year}{1993}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{757\bibrangedash 779}
+      \range{pages}{23}
+      \verb{doi}
+      \verb 10.1111/j.2517-6161.1993.tb01939.x
+      \endverb
+      \verb{file}
+      \verb /Users/rzielinski/Zotero/storage/Z962T4LD/j.2517-6161.1993.tb01939.html
+      \endverb
+      \verb{urlraw}
+      \verb https://onlinelibrary.wiley.com/doi/abs/10.1111/j.2517-6161.1993.tb01939.x
+      \endverb
+      \verb{url}
+      \verb https://onlinelibrary.wiley.com/doi/abs/10.1111/j.2517-6161.1993.tb01939.x
+      \endverb
+      \keyw{dynamic generalized linear models,generalized additive models,generalized linear models,regression,smoothing,splines,survival analysis}
     \endentry
     \entry{heManifoldTSpline2006}{inproceedings}{}
       \name{author}{5}{}{%

@@ -1,12 +1,12 @@
 # Fdb version 4
-["biber main"] 1691643136 "main.bcf" "main.bbl" "main" 1691678308 0
-  "./references.bib" 1691634403 41045 d76716b50dc3f73b2fef7bf42d7fd18d ""
-  "main.bcf" 1691678308 109548 4a4547837c0a37aa4e21be05adb9432f "pdflatex"
+["biber main"] 1691725922 "main.bcf" "main.bbl" "main" 1691726880 0
+  "./references.bib" 1691719031 42344 3e04c5e69d600c8dc8ac352a0fa7812b ""
+  "main.bcf" 1691726880 109638 1132d4aca4090e72cd590b1e0e7ebd51 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1691678307 "main.tex" "main.pdf" "main" 1691678308 0
+["pdflatex"] 1691726879 "main.tex" "main.pdf" "main" 1691726880 0
   "/usr/local/texlive/2023/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2023/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2023/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -49,6 +49,7 @@
   "/usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1248133631 32569 5e5ddc8df908dea60932f3c484a54c0d ""
   "/usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb" 1248133631 37944 359e864bd06cde3b1cf57bb20757fb06 ""
   "/usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb" 1248133631 31099 c85edf1dd5b9e826d67c9c7293b6786c ""
+  "/usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb" 1248133631 34694 ad62b13721ee8eda1dcc8993c8bd7041 ""
   "/usr/local/texlive/2023/texmf-dist/tex/context/base/mkii/supp-pdf.mkii" 1461363279 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "/usr/local/texlive/2023/texmf-dist/tex/generic/atbegshi/atbegshi.sty" 1575674566 24708 5584a51a7101caf7e6bbf1fc27d8f7b1 ""
   "/usr/local/texlive/2023/texmf-dist/tex/generic/babel-english/english.ldf" 1496785618 7008 9ff5fdcc865b01beca2b0fe4a46231d4 ""
@@ -210,11 +211,11 @@
   "/usr/local/texlive/2023/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1688758697 4623355 b8cad38412faebe1ce5b780a45db67bd ""
   "/usr/local/texlive/2023/texmf-var/web2c/pdftex/pdflatex.fmt" 1688758495 7883470 97d816d83c4a4b1957a1ec0a61b1442f ""
   "/usr/local/texlive/2023/texmf.cnf" 1678822455 577 1b2b1af17af2508fb20dd85783af4050 ""
-  "main.aux" 1691678308 7401 5a4edf84e1226768684efc97a980fba3 "pdflatex"
-  "main.bbl" 1691643139 89828 06b8af4d1b0b41af738f88d63617b44f "biber main"
-  "main.out" 1691678308 1598 227ecf1d2d64c0fd126f5e61aa542897 "pdflatex"
-  "main.run.xml" 1691678308 2311 e66a0e3ff336a5af941c7fe634558519 "pdflatex"
-  "main.tex" 1691678305 12649 df1abf534997b675cb153e48d1e92a90 ""
+  "main.aux" 1691726880 7648 9c059ef92c37b0475b53d7653bc9facf "pdflatex"
+  "main.bbl" 1691725926 92629 70eecc4b057f2ab5b6a45c8087a75e18 "biber main"
+  "main.out" 1691726880 1598 227ecf1d2d64c0fd126f5e61aa542897 "pdflatex"
+  "main.run.xml" 1691726880 2311 e66a0e3ff336a5af941c7fe634558519 "pdflatex"
+  "main.tex" 1691726878 16429 b15ebad534013f938fe0f33c4ceff5e8 ""
   (generated)
   "main.aux"
   "main.bcf"
