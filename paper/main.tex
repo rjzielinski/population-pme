@@ -8,8 +8,8 @@
 \RequirePackage{graphicx}%% uncomment this for including figures
 
 \usepackage[
-backend=biber,
-style=authoryear
+  backend=biber,
+  style=numeric
 ]{biblatex}
 
 \addbibresource{references.bib}
@@ -126,7 +126,7 @@ Within a segmented structural MRI, the voxels estimated to mark the surface of t
 
 Each function in this additive model represents a different level of nesting in the data, with $f_p(\mathbf{y}, t)$ estimating the embedding at the population level, and $f_g(\mathbf{y}, t)$, $f_i(\mathbf{y}, t)$, and $f_{ij}(\mathbf{y})$ describing deviations from the population estimates specific to the group, individual, and image in question, respectively. As estimating longitudinal changes in the underlying manifold may be of interest, $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$ and $f_i(\mathbf{y}, t)$ are each denoted as varying-coefficient models (\cite{hastieVaryingCoefficientModels1993}). Thus, the model is capable of estimating separate longitudinal changes for population, group, and individual estimates. In cases where longitudinal changes are not of interest, each varying-coefficient model may be constrained to be held constant with respect to time. As the $ij$th image is recorded at a single time point, $f_{ij}(\mathbf{y}, t)$ may not be dependent on time. We specify $f_{ij}(\mathbf{y})$ as a smoothing spline, while the functions $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$, and $f_i(\mathbf{y}, t)$ are each varying-coefficient smoothing spline models, estimated by using a smoothing spline to smooth over smoothing spline coefficients calculated at each time point available in the data.
 
-As mentioned previously, this proposed additive spline model structure has several benefits.
+As mentioned previously, this proposed additive spline model structure has several benefits. First, it maintains interpretability at each level of the model. It is possible to visually inspect the embedding maps of the population and each group and individual to better understand how they interact. Additionally, basing our handling of the data's hierarchical structure on a statistical model allows us to assess statistical properties of the estimated manifold, where less statistically principled approaches make this option difficult.
 
 \subsection{Hierarchical Principal Manifold Estimation}
 
