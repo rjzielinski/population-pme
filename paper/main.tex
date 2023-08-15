@@ -125,7 +125,7 @@ Within a segmented structural MRI, the voxels estimated to mark the surface of t
 The embedding function which maps from the $d$-dimensional manifold to $D$-dimensional ambient space is represented as $\psi(\mathbf{y}_{ijk})$, which can be modeled as 
 
 \begin{equation}
-  \mathbf{x}_{jm} = \psi(\mathbf{y}_{jm}) = f_p(\mathbf{y}_{jm}, t_{j}) + f_{g(j)}(\mathbf{y}_{jm}, t_{j}) + f_{i(j)}(\mathbf{y}_{jm}, t_{j}) + f_j(\mathbf{y}_{jm}) + \epsilon_{jm}. \label{eq:2}
+  \mathbf{x}_{jm} = \psi_j(\mathbf{y}_{jm}, t_j) = f_p(\mathbf{y}_{jm}, t_{j}) + f_{g(j)}(\mathbf{y}_{jm}, t_{j}) + f_{i(j)}(\mathbf{y}_{jm}, t_{j}) + f_j(\mathbf{y}_{jm}) + \epsilon_{jm}. \label{eq:2}
 \end{equation}
 
 Each function in this additive model represents a different level of nesting in the data, with $f_p(\mathbf{y}, t)$ estimating the embedding at the population level, and $f_g(\mathbf{y}, t)$, $f_i(\mathbf{y}, t)$, and $f_{j}(\mathbf{y})$ describing deviations from the population estimates specific to the group, individual, and image in question, respectively. As estimating longitudinal changes in the underlying manifold may be of interest, $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$ and $f_i(\mathbf{y}, t)$ are each denoted as varying-coefficient models, where the coefficients of each function are dependent on time (\cite{hastieVaryingCoefficientModels1993}). Thus, the model is capable of estimating separate longitudinal changes for population, group, and individual estimates. In cases where longitudinal changes are not of interest, each varying-coefficient model may be constrained to be held constant with respect to time. As the $j$th image is recorded at a single time point, $f_{j}(\mathbf{y}, t)$ may not be dependent on time. We specify $f_{j}(\mathbf{y})$ as a smoothing spline, while the functions $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$, and $f_i(\mathbf{y}, t)$ are each varying-coefficient smoothing spline models, estimated by using a smoothing spline to smooth over smoothing spline coefficients calculated at each time point available in the data. 
@@ -279,12 +279,12 @@ The fitting process for the varying-coefficient smoothing spline model is given 
   $\hat{f}(\mathbf{y}, t) = f_{\hat{\gamma}}(\mathbf{y}, t)$, where the form of $\hat{f}(\mathbf{y}, t)$ is given in \ref{eq:9}.
 \end{algorithm}
 
-While the procedure outlined in Algorithm \ref{alg:varying_spline} yields an appropriate estimator when working with unnested data, this approach must be adapted to work within the additive model structure of model \ref{eq:2}. As discussed in \cite{hastieGeneralizedAdditiveModels1990}, the additive model $\psi(\mathbf{y})$ can be estimated using a backfitting procedure, which uses the model's additive nature to iteratively fit each distinct smoothing spline function until convergence. Specifically, we use the fact that, under the model,
+While the procedure outlined in Algorithm \ref{alg:varying_spline} yields an appropriate estimator when working with unnested data, this approach must be adapted to work within the additive model structure of model \ref{eq:2}. As discussed in \cite{hastieGeneralizedAdditiveModels1990}, the additive model $\psi(\mathbf{y}, t)$ can be estimated using a backfitting procedure, which uses the model's additive nature to iteratively fit each distinct smoothing spline function until convergence. Specifically, we use the fact that, under the model,
 
 \[%
   f_p(\mathbf{y}_{jm}, t_{j}) = E\left[\mathbf{x}_{jm} - f_{g(j)}(\mathbf{y}_{jm}, t_{j}) - f_{i(j)}(\mathbf{y}_{jm}, t_{j}) - f_{j}(\mathbf{y}_{jm})\right]
 ,\]%
-with a similar result holding for each of the smooth functions making up the additive model. Thus, the backfitting algorithm to fit the proposed model is given below.
+with a similar result holding for each of the smooth functions making up the additive model. Thus, the backfitting algorithm to fit the proposed model is given in Algorithm \ref{alg:backfitting}.
 
 \begin{algorithm}
 \footnotesize
@@ -314,17 +314,31 @@ with a similar result holding for each of the smooth functions making up the add
     \For{$j = 1, 2, \dots, N$} {
       Estimate $f_{j}^{(n+1)}(\mathbf{y})$ and $\omega_{j}^{(n+1)}$ by solving \ref{eq:4} with inputs $\left\{\mathbf{x}_{jm} - f_{p}^{(n+1)}(\mathbf{y}_{jm}, t_j) - f_{g(j)}^{(n+1)}(\mathbf{y}_{jm}, t_j) - f_{i(j)}^{(n+1)}(\mathbf{y}_{jm}, t_j)\right\}_{m=1}^{M_j}$, $\left\{\mathbf{y}_{jm}\right\}_{m=1}^{M_j}$, $\left\{w_{jm}\right\}_{m = 1}^{M_j}$, $\left\{\lambda_l\right\}_{l=1}^{L}$, $K$\;
     }
-    $n \gets n + 1$
+    $n \gets n + 1$\;
   }
+  $\hat{f}_p \gets f_{p}^{(n)}$, $\left\{\hat{f}_g\right\}_{g = 1}^{G} \gets \left\{f_{g}^{(n)}\right\}_{g = 1}^{G}$, $\left\{\hat{f}_i\right\}_{i=1}^{I} \gets \left\{f_{i}^{(n)}\right\}_{i=1}^{I}$, and $\left\{\hat{f}_j\right\}_{j=1}^{N} \gets \left\{f_j^{(n)}\right\}_{j=1}^{N}$.
 \end{algorithm}
 
 As mentioned previously, this proposed additive spline model structure has several benefits. First, it maintains interpretability at each level of the model. It is possible to visually inspect the embedding maps of the population and each group and individual to better understand how they interact. While the model described here is intended to be applicable to the specific situation involving the modeling of data from the ADNI study, this general modeling approach can be conveniently adapted to a variety of scenarios. Additionally, basing our handling of the data's hierarchical structure on a statistical model allows us to assess statistical properties of the estimated manifold, where less statistically principled approaches make this option difficult. Of particular interest, \cite{wangMixedEffectsSmoothing1998} and \cite{brumbackSmoothingSplineModels1998} explore connections between smoothing spline models and mixed-effects models. The smoothing spline analysis of variance proposed by \cite{wangMixedEffectsSmoothing1998} may be applicable to the model structure proposed here, which would enable a detailed decomposition of the variation in manifold structure by level. For the time being, this extension is left to future work.
 
-A clear concern with the use of this procedure in this case is the number of functions to be fit, which can quickly increase the computational burden of fitting the models. However, the nesting of the different levels of the data helps to limit the number of function combinations that must be fit, helping to keep computational requirements manageable. \cite{brumbackSmoothingSplineModels1998} used restricted maximum likelihood estimation to reach an estimate of their proposed additive spline model, which may potentially provide computational improvements. However, in the case that the model should be modified to meet the needs of a new dataset, the backfitting algorithm will be more easily adaptable. 
+A clear concern with the use of this procedure in this case is the number of functions to be estimated, which can quickly increase the computational burden of fitting the models. However, the nesting of the different levels of the data helps to limit the number of function combinations that must be fit, helping to keep computational requirements manageable. \cite{brumbackSmoothingSplineModels1998} used restricted maximum likelihood estimation to reach an estimate of their proposed additive spline model, which may potentially provide computational improvements. However, in the case that the model should be modified to meet the needs of a new dataset, the backfitting algorithm will be more easily adaptable. 
 
 \subsection{Hierarchical Principal Manifold Estimation}
 
-With the structure of the additive spline model established, we now incorporate it into the larger manifold learning procedure. This procedure is based on the Principal Manifold Estimation (PME) algorithm introduced in \cite{mengPrincipalManifoldEstimation2021}, which iterates between estimating a function to embed observations in $D$-dimensional space and reparameterizing those observations in the $d$-dimensional space to estimate the underlying manifold.
+With the structure of the additive spline model established, we now incorporate it into the larger manifold learning process. This procedure is based on the Principal Manifold Estimation (PME) algorithm introduced in \cite{mengPrincipalManifoldEstimation2021}, which iterates between estimating a function to embed observations in $D$-dimensional space and reparameterizing those observations in the $d$-dimensional space to estimate the underlying manifold. The PME algorithm is largely split into three distinct steps: data reduction, fitting, and tuning. The split between these three steps enforces a process by which candidate functions are fit for each in a vector of smoothing values in the fitting stage, then the tuning step is used to select the smoothing value that results in the lowest error, as measured by mean squared distance,
+\[%
+  \mathcal{D}(\hat{f}) = \frac{1}{N}\sum_{i=1}^{N}\|x_i - \hat{f}_\lambda\left(\pi_{\hat{f}_\lambda}(x_i)\right)\|_{\mathbb{R}^{D}}^2
+,\]%
+where $\hat{f}_\lambda$ represents the estimated embedding map given smoothing parameter $\lambda$, $\pi_{\hat{f}_\lambda}(x)$ denotes the projection index that obtains a $d$-dimensional parameterization of $D$-dimensional input $x$, and $N$ represents the total number of observations in the dataset.
+
+While this approach to tuning the model parameters is beneficial because it allows a complete comparison of all parameter values under consideration, the additive model described in equation \ref{eq:2} requires many more parameters, meaning that taking the same tuning approach would result in the need to find an optimal point in a very high-dimensional space. This would greatly increase the computational complexity of the algorithm, likely to the point of infeasibility in an practical situation. Instead, the proposed algorithm avoids this problem by taking a greedy approach to tuning the model, where the smoothing parameters for each model are chosen individually, rather than simultaneously. The proposed algorithm is given as Algorithm \ref{alg:hpme}.
+
+\begin{algorithm}
+\caption{Backfitting Algorithm for Additive Spline Model}\label{alg:hpme}
+  \KwData{$D$-dimensional output values $\left\{\mathbf{x}_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, $d$-dimensional input values $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, observation times $\left\{t_{j}\right\}_{j=1}^{N}$, group and individual indicator values $\left\{g(j)\right\}_{j=1}^{N}$ and $\left\{i(j)\right\}_{j=1}^{N}$, and $\epsilon$.}
+  \KwResult{Analytic formulas of $\hat{f}_p$, $\left\{\hat{f}_g\right\}_{g=1}^{G}, \left\{\hat{f}_i\right\}_{i=1}^{I}$, and $\left\{\hat{f}_{j}\right\}_{j=1}^{N}$.}
+  
+\end{algorithm}
 
 \section{Application to Simulated and MNIST Data}
 
