@@ -199,7 +199,7 @@ the coefficients that minimize $\left(\mathbf{x}'_t - \mathbf{E}'\mathbf{s}_t - 
 
 The coefficients found at each time point $t$, $\mathbf{s'}_{t}$ and $\mathbf{\alpha'}_{t}$ are concatenated in matrix $\mathbf{\omega}_{t} = \left(\mathbf{s'}_{t}^T, \mathbf{\alpha'}_{t}^T\right)$. This coefficient matrix is then used as the output value in a cubic smoothing spline function using the time points as input values. This function takes the form
 \begin{equation}
-  g_{\gamma}(t) = \sum_{i=1}^{T}\delta_i\|t - t_i\|^{3} + \sum_{p=1}^{2}\tau_p \phi(t)_p. \label{eq:7}
+  g_{\gamma}(t) = \sum_{i=1}^{T}\delta_i\|t - t_i\|^{3} + \sum_{p=1}^{2}\tau_p \phi(t)_p. \label{eq:8}
 \end{equation}
 We define matrix $\mathbf{A}$ as $\mathbf{A}_{qr} = \|t_q - t_r\|^{3}$, matrix $\mathbf{T}$ as $\mathbf{T}_{pr} = \phi_p(t_r)$, $\mathbf{\delta} = \left(\delta_1, \dots, \delta_T\right)^{T}$, and $\mathbf{\tau} = \left(\tau_1, \tau_2\right)^{T}$. Then, the coefficients of $g_{\gamma}(t)$, given a value of $\gamma$, can be found by solving
 \begin{equation}
@@ -218,12 +218,12 @@ We define matrix $\mathbf{A}$ as $\mathbf{A}_{qr} = \|t_q - t_r\|^{3}$, matrix $
     \mathbf{\omega} \\
     \mathbf{0}
   \end{array}
-  \right). \label{eq:8}
+  \right). \label{eq:9}
 \end{equation}
 
 As with the tuning process for $\lambda$, the optimal value of $\gamma$ can be identified using cross-validation, with either leave-one-out or $k$-folds cross-validation being appropriate depending on the number of time points available. With a proper estimate of the optimum $\gamma$, we may denote the coefficients estimated by $g(t)$ as $g(t) = \Omega(t) = \left(\mathbf{s}_{\gamma}(t)^{T}, \mathbf{\alpha}_{\gamma}(t)^{T}\right)^{T}$. Therefore, the varying-coefficient models have the following outputs:
 \begin{equation}
-  f(\mathbf{y}, t) = \sum_{k=1}^{m'}\mathbf{s}_{\gamma}(t)_l \eta_{4-d}\left(\|\mathbf{y} - \mathbf{y'}_k\|\right) + \sum_{p=1}^{d + 1}\mathbf{\alpha}_{\gamma}(t)_p \phi_p(\mathbf{y}). \label{eq:9}
+  f(\mathbf{y}, t) = \sum_{k=1}^{m'}\mathbf{s}_{\gamma}(t)_l \eta_{4-d}\left(\|\mathbf{y} - \mathbf{y'}_k\|\right) + \sum_{p=1}^{d + 1}\mathbf{\alpha}_{\gamma}(t)_p \phi_p(\mathbf{y}). \label{eq:10}
 \end{equation}
 The fitting process for the varying-coefficient smoothing spline model is given formally as Algorithm \ref{alg:varying_spline}.
 
@@ -243,10 +243,29 @@ The fitting process for the varying-coefficient smoothing spline model is given 
     Solve equation \ref{eq:5} to estimate $f_{\lambda_l, t}(\mathbf{y})$ with inputs $\mathbf{x}_t$, $\mathbf{y}_t$, and $w_t$\;
     \For{$u = 1, 2, \dots, U_t$} {
       Solve equation \ref{eq:5} to estimate $f^{(-u)}_{\lambda_l, t}(\mathbf{y})$ with inputs $\mathbf{x}^{(-u)}_t$, $\mathbf{y}^{(-u)}_t$, $w^{(-u)}_t$\;
-      Estimate $MSE(\lambda_{l})_u$
+      Estimate $MSE(\lambda_{l})_u$ using equation \ref{eq:6}\;
     }
+    Set $MSE(\lambda_l) = \frac{1}{U}\sum_{u=1}^{U}MSE(\lambda_l)_u$\;
   }
+  $\lambda_t = \arg \min_{\lambda} MSE(\lambda)$\;
+  $f_t(\mathbf{y}) = f_{\lambda_t}(\mathbf{y})$\;
 }
+
+  Let $m' = \max(m_{ij})$, $\left\{\mathbf{y}'_{k}\right\}_{k=1}^{m'}$ be a grid spanning the range of values of $\left\{\mathbf{y}\right\}$\;
+  \For{$t = 1, 2, \dots, T$} {
+    Compute $\left\{\mathbf{x'}_{k, t}\right\}_{k=1}^{m'} = \left\{f_t(\mathbf{y'}_k)\right\}$\;
+    Solve equation \ref{eq:7} to compute $\mathbf{s'}_t$ and $\mathbf{\alpha'}_t$\;
+    Set $\mathbf{\omega}_t = \left[\mathbf{s'}_t^{T}, \mathbf{\alpha'}_t^{T}\right]$\;
+  }
+  \For{$p = 1, 2, \dots, P$} {
+    Compute $g_{\gamma_l}(t)$ by solving equation \ref{eq:9}\;
+    \For{$t = 1, 2, \dots, T$} {
+      Compute $g_{\gamma_l}^{(t)}$ by solving \ref{eq:9}\;
+    }
+    Estimate $MSE(\gamma_l)$ using \ref{eq:10}\;
+  }
+  $\hat{\gamma} = \arg \min_{\gamma} MSE(\gamma)$\;
+  $\hat{f}(\mathbf{y}, t) = f_{\hat{\gamma}}(\mathbf{y}, t)$, where the form of $\hat{f}(\mathbf{y}, t)$ is given in \ref{eq:11}
 \end{algorithm}
 
 
