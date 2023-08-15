@@ -124,9 +124,9 @@ Within a segmented structural MRI, the voxels estimated to mark the surface of t
 
 The embedding function which maps from the $d$-dimensional manifold to $D$-dimensional ambient space is represented as $\psi(\mathbf{y}_{ijk})$, which can be modeled as 
 
-\[%
-  \mathbf{x}_{jm} = \psi(\mathbf{y}_{jm}) = f_p(\mathbf{y}_{jm}, t_{j}) + f_{g(j)}(\mathbf{y}_{jm}, t_{j}) + f_{i(j)}(\mathbf{y}_{jm}, t_{j}) + f_j(\mathbf{y}_{jm}) + \epsilon_{jm}
-.\]%
+\begin{equation}
+  \mathbf{x}_{jm} = \psi(\mathbf{y}_{jm}) = f_p(\mathbf{y}_{jm}, t_{j}) + f_{g(j)}(\mathbf{y}_{jm}, t_{j}) + f_{i(j)}(\mathbf{y}_{jm}, t_{j}) + f_j(\mathbf{y}_{jm}) + \epsilon_{jm}. \label{eq:2}
+\end{equation}
 
 Each function in this additive model represents a different level of nesting in the data, with $f_p(\mathbf{y}, t)$ estimating the embedding at the population level, and $f_g(\mathbf{y}, t)$, $f_i(\mathbf{y}, t)$, and $f_{j}(\mathbf{y})$ describing deviations from the population estimates specific to the group, individual, and image in question, respectively. As estimating longitudinal changes in the underlying manifold may be of interest, $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$ and $f_i(\mathbf{y}, t)$ are each denoted as varying-coefficient models, where the coefficients of each function are dependent on time (\cite{hastieVaryingCoefficientModels1993}). Thus, the model is capable of estimating separate longitudinal changes for population, group, and individual estimates. In cases where longitudinal changes are not of interest, each varying-coefficient model may be constrained to be held constant with respect to time. As the $j$th image is recorded at a single time point, $f_{j}(\mathbf{y}, t)$ may not be dependent on time. We specify $f_{j}(\mathbf{y})$ as a smoothing spline, while the functions $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$, and $f_i(\mathbf{y}, t)$ are each varying-coefficient smoothing spline models, estimated by using a smoothing spline to smooth over smoothing spline coefficients calculated at each time point available in the data. 
 
@@ -136,7 +136,7 @@ The smoothing spline functions $f(\mathbf{y})$ minimize
 ,\]%
 where $\nabla^{\otimes 2}f$ denotes the Hessian matrix of $f$, and $\lambda$ is given. Thus, $f(\mathbf{y})$ takes the form
 \begin{equation}
-  f_l(\mathbf{y}) = \sum_{j=1}^{N}\sum_{m=1}^{M_j}s_{jm, l} \times \eta_{d}\left(\|\mathbf{y} - \mathbf{y}_{jm}\|\right) + \sum_{p = 1}^{d + 1}\alpha_{p, l} \times \phi_{p}(\mathbf{y}), \quad l = 1, 2, \dots, D, \label{eq:2}
+  f_l(\mathbf{y}) = \sum_{j=1}^{N}\sum_{m=1}^{M_j}s_{jm, l} \times \eta_{d}\left(\|\mathbf{y} - \mathbf{y}_{jm}\|\right) + \sum_{p = 1}^{d + 1}\alpha_{p, l} \times \phi_{p}(\mathbf{y}), \quad l = 1, 2, \dots, D, \label{eq:3}
 \end{equation}
 with $\phi_p(\mathbf{y})$ representing the basis of the linear space of polynomials on $\mathbb{R}^{d}$ with degree $\leq 1$ and $\eta_{d}(y) = y^{4-d}\log y$ when $\log y \neq 0$ and $d$ is even, $\eta_{d}(y) = 0$ when $\log y = 0$ and $d$ is even, and $\eta_{d}(y) = y^{4-d}$ when $d$ is odd. 
 
@@ -166,15 +166,15 @@ With $\upsilon_l$ representing Lagrange multipliers, the solutions for $s_l$ and
     2\mathbf{R}^{T}\mathbf{W}\mathbf{x}_l \\
     \mathbf{0}
   \end{array}
-  \right). \label{eq:3}
+  \right). \label{eq:4}
 \end{equation}
 The optimal value of $\lambda$ can be found using cross-validation, where with images being randomly split into $K$ folds, functions may be evaluated by the mean squared error, written as
 \begin{equation}
-  MSE(\lambda) = \frac{1}{K}\sum_{k=1}^{K}\frac{1}{N_u}\sum_{j=1}^{N_u}\frac{1}{M_j}\sum_{m=1}^{M_j}\|\mathbf{x}_{jm} - f_{\lambda}^{(k)}(\mathbf{y}_{jm})\|^2. \label{eq:4}
+  MSE(\lambda) = \frac{1}{K}\sum_{k=1}^{K}\frac{1}{N_u}\sum_{j=1}^{N_u}\frac{1}{M_j}\sum_{m=1}^{M_j}\|\mathbf{x}_{jm} - f_{\lambda}^{(k)}(\mathbf{y}_{jm})\|^2. \label{eq:5}
 \end{equation}
 Here, $f_{\lambda}^{(k)}(\mathbf{y})$ denotes the estimated spline function given tuning parameter $\lambda$ and with the data for the $k$th fold excluded.
 
-The coefficients and tuning parameter that minimize $\mathcal{K}_{\lambda}(f)$ suffice for estimating $f_{j}(\mathbf{y})$, in which the coefficients are not time-varying. To reach estimates for the varying-coefficient models, equation \ref{eq:3} is solved using the data available at each time point within the relevant study level. To estimate $f_p(\mathbf{y}, t)$, we use $\left\{\mathbf{x}_t\right\}_{t=1}^T$ and $\left\{\mathbf{y}_t\right\}_{t=1}^T$, yielding fitted function $\left\{\hat{f}_t(\mathbf{y})\right\}_{t=1}^T$. Using the maximum and minimum values of $\mathbf{y}_t$ in each dimension, a new $d$-dimensional grid of $M' = \text{max}\left(\left\{M_{j}\right\}_{j = 1}^{N}\right)$ knots, $\left\{\mathbf{y'}_m\right\}_{m=1}^{M'}$, is generated with the knots being evenly spread throughout the parameter space. These parameters serve as common knots that allow the spline coefficients to be compared across time points. They are then used to compute a new set of corresponding outcome values $\left\{\mathbf{x}'_t\right\}_{t=1}^{T}$. The spline functions are reestimated as $\left\{\hat{f}'_t\right\}_{t=1}^{T}$ using $\left\{\mathbf{x}'_t\right\}_{t=1}^{T}$ and $\mathbf{y}'$. These newly generated knots are weighted equally, so an unweighted smoothing spline model is used. Following \cite{greenSilverman1994}, we let
+The coefficients and tuning parameter that minimize $\mathcal{K}_{\lambda}(f)$ suffice for estimating $f_{j}(\mathbf{y})$, in which the coefficients are not time-varying. To reach estimates for the varying-coefficient models, equation \ref{eq:4} is solved using the data available at each time point within the relevant study level. To estimate $f_p(\mathbf{y}, t)$, we use $\left\{\mathbf{x}_t\right\}_{t=1}^T$ and $\left\{\mathbf{y}_t\right\}_{t=1}^T$, yielding fitted function $\left\{\hat{f}_t(\mathbf{y})\right\}_{t=1}^T$. Using the maximum and minimum values of $\mathbf{y}_t$ in each dimension, a new $d$-dimensional grid of $M' = \text{max}\left(\left\{M_{j}\right\}_{j = 1}^{N}\right)$ knots, $\left\{\mathbf{y'}_m\right\}_{m=1}^{M'}$, is generated with the knots being evenly spread throughout the parameter space. These parameters serve as common knots that allow the spline coefficients to be compared across time points. They are then used to compute a new set of corresponding outcome values $\left\{\mathbf{x}'_t\right\}_{t=1}^{T}$. The spline functions are reestimated as $\left\{\hat{f}'_t\right\}_{t=1}^{T}$ using $\left\{\mathbf{x}'_t\right\}_{t=1}^{T}$ and $\mathbf{y}'$. These newly generated knots are weighted equally, so an unweighted smoothing spline model is used. Following \cite{greenSilverman1994}, we let
 
 \begin{itemize}
   \item $\mathbf{E}' = \left(E'_{qr}\right)_{1 \leq q, r, \leq M'}$ defined by $E'_{qr} = \eta_{d}\left(\|\mathbf{y}'_{q} - \mathbf{y}'_{r}\|\right)$.
@@ -198,7 +198,7 @@ Then the coefficients that minimize $\left(\mathbf{x}'_t - \mathbf{E}'\mathbf{s}
     \mathbf{x}'_t \\
     \mathbf{0}
   \end{array}
-  \right). \label{eq:5}
+  \right). \label{eq:6}
 \end{equation}
 
 The coefficients found at each time point $t$, $\mathbf{s'}_{t}$ and $\mathbf{\alpha'}_{t}$ are concatenated in matrix $\mathbf{\omega}_{t} = \left(\mathbf{s'}_{t}^T, \mathbf{\alpha'}_{t}^T\right)$. This coefficient matrix is then used as the output value in a cubic smoothing spline function using the time points as input values. This function takes the form
@@ -223,18 +223,18 @@ We define matrix $\mathbf{A}$ as $\mathbf{A}_{qr} = \|t_q - t_r\|^{3}$, matrix $
     \mathbf{\omega} \\
     \mathbf{0}
   \end{array}
-  \right). \label{eq:6}
+  \right). \label{eq:7}
 \end{equation}
 
 As with the tuning process for $\lambda$, the optimal value of $\gamma$ can be identified using cross-validation, with either leave-one-out or $k$-folds cross-validation being appropriate depending on the number of time points available. If using leave-one-out cross-validation, the mean squared error can be calculated as
 \begin{equation}
-  MSE(\gamma) = \frac{1}{T}\sum_{t=1}^{T}\frac{1}{N_t}\sum_{j=1}^{N_t}\frac{1}{M_j}\sum_{m=1}^{M_j}\|\mathbf{x}_{jm} - f_{\gamma}^{(t)}(\mathbf{y}_{jm}, t_j)\|^2. \label{eq:7}
+  MSE(\gamma) = \frac{1}{T}\sum_{t=1}^{T}\frac{1}{N_t}\sum_{j=1}^{N_t}\frac{1}{M_j}\sum_{m=1}^{M_j}\|\mathbf{x}_{jm} - f_{\gamma}^{(t)}(\mathbf{y}_{jm}, t_j)\|^2. \label{eq:8}
 \end{equation}
 We then let $\hat{\gamma}$ be the value of $\gamma$ that minimizes $MSE(\gamma)$.
 
-With a proper estimate of the $\hat{\gamma}$, we may denote the coefficients estimated by $g(t)$ as $\Omega(t) = \left(\mathbf{s}_{\hat{\gamma}}(t)^{T}, \mathbf{\alpha}_{\hat{\gamma}}(t)^{T}\right)^{T}$. We use these coefficients in equation \ref{eq:2} in place of the constant coefficients. Therefore, the varying-coefficient models have the following outputs:
+With a proper estimate of the $\hat{\gamma}$, we may denote the coefficients of $g(t)$ as $\Omega = \left(\delta^{T}, \tau^{T}\right)$, and those estimated by $g(t)$ as $\omega(t) = \left(\mathbf{s}_{\hat{\gamma}}(t)^{T}, \mathbf{\alpha}_{\hat{\gamma}}(t)^{T}\right)^{T}$. We use these coefficients in equation \ref{eq:3} in place of the constant coefficients. Therefore, the varying-coefficient models have the following outputs:
 \begin{equation}
-  f(\mathbf{y}, t) = \sum_{m=1}^{M'}\mathbf{s}_{\hat{\gamma}, l}(t) \eta_{d}\left(\|\mathbf{y} - \mathbf{y'}_m\|\right) + \sum_{p=1}^{d + 1}\mathbf{\alpha}_{\hat{\gamma}, p, l}(t) \phi_p(\mathbf{y}), \quad l = 1, \dots, D. \label{eq:8}
+  f(\mathbf{y}, t) = \sum_{m=1}^{M'}\mathbf{s}_{\hat{\gamma}, l}(t) \eta_{d}\left(\|\mathbf{y} - \mathbf{y'}_m\|\right) + \sum_{p=1}^{d + 1}\mathbf{\alpha}_{\hat{\gamma}, p, l}(t) \phi_p(\mathbf{y}), \quad l = 1, \dots, D. \label{eq:9}
 \end{equation}
 The fitting process for the varying-coefficient smoothing spline model is given formally as Algorithm \ref{alg:varying_spline}.
 
@@ -246,15 +246,15 @@ The fitting process for the varying-coefficient smoothing spline model is given 
 \begin{algorithm}
 \caption{Varying-Coefficient Smoothing Spline Model}\label{alg:varying_spline}
   \KwData{$D$-dimensional output values $\left\{\mathbf{x}_{jm}\right\}_{j = 1, m = 1}^{N, M_{j}}$, $d$-dimensional input values $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, weights $\left\{w_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, observation times $\left\{t_{j}\right\}_{j=1}^{N}$, candidate tuning parameters $\left\{\lambda_l\right\}_{l=1}^{L}$, $\left\{\gamma_p\right\}_{p=1}^{P}$, and number of cross-validation folds $K$.}
-  \KwResult{Analytic formula of $\hat{f}(\mathbf{y}, t)$ and optimal tuning parameter $\hat{\gamma}$.}
+  \KwResult{Analytic formula of $\hat{f}(\mathbf{y}, t)$, coefficients $\Omega = \left(\mathbf{\delta}^{T}, \mathbf{\tau}^{T}\right)$, and optimal tuning parameter $\hat{\gamma}$.}
 
 \For{$t = 1, 2, \dots, T$} {
   Set $U_t$ equal to the number of images included in the data at time $t$\;
   \For{$l = 1, 2, \dots, L$} {
-    Solve equation \ref{eq:3} to estimate $f_{\lambda_l, t}(\mathbf{y})$ with inputs $\mathbf{x}_t$, $\mathbf{y}_t$, and $w_t$\;
+    Solve equation \ref{eq:4} to estimate $f_{\lambda_l, t}(\mathbf{y})$ with inputs $\mathbf{x}_t$, $\mathbf{y}_t$, and $w_t$\;
     \For{$u = 1, 2, \dots, U_t$} {
-      Solve equation \ref{eq:3} to estimate $f^{(-u)}_{\lambda_l, t}(\mathbf{y})$ with inputs $\mathbf{x}^{(-u)}_t$, $\mathbf{y}^{(-u)}_t$, $w^{(-u)}_t$\;
-      Estimate $MSE(\lambda_{l})_u$ using equation \ref{eq:4}\;
+      Solve equation \ref{eq:4} to estimate $f^{(-u)}_{\lambda_l, t}(\mathbf{y})$ with inputs $\mathbf{x}^{(-u)}_t$, $\mathbf{y}^{(-u)}_t$, $w^{(-u)}_t$\;
+      Estimate $MSE(\lambda_{l})_u$ using equation \ref{eq:5}\;
     }
     Set $MSE(\lambda_l) = \frac{1}{U}\sum_{u=1}^{U}MSE(\lambda_l)_u$\;
   }
@@ -265,69 +265,59 @@ The fitting process for the varying-coefficient smoothing spline model is given 
   Let $M' = \max(M_{j})$, $\left\{\mathbf{y}'_{m}\right\}_{m=1}^{M'}$ be a grid spanning the range of values of $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N, M_j}$\;
   \For{$t = 1, 2, \dots, T$} {
     Compute $\left\{\mathbf{x'}_{m, t}\right\}_{m=1}^{M'} = \left\{f_t(\mathbf{y'}_m)\right\}_{m=1}^{M'}$\;
-    Solve equation \ref{eq:5} to compute $\mathbf{s'}_t$ and $\mathbf{\alpha'}_t$\;
+    Solve equation \ref{eq:6} to compute $\mathbf{s'}_t$ and $\mathbf{\alpha'}_t$\;
     Set $\mathbf{\omega}_t = \left[\mathbf{s'}_t^{T}, \mathbf{\alpha'}_t^{T}\right]$\;
   }
   \For{$p = 1, 2, \dots, P$} {
-    Compute $g_{\gamma_p}(t)$ by solving equation \ref{eq:6}\;
+    Compute $g_{\gamma_p}(t)$ by solving equation \ref{eq:7}\;
     \For{$t = 1, 2, \dots, T$} {
-      Compute $g_{\gamma_p}^{(t)}$ by solving \ref{eq:6}\;
+      Compute $g_{\gamma_p}^{(t)}$ by solving \ref{eq:7}\;
     }
-    Estimate $MSE(\gamma_p)$ using \ref{eq:7}\;
+    Estimate $MSE(\gamma_p)$ using \ref{eq:8}\;
   }
   $\hat{\gamma} = \arg \min_{\gamma} MSE(\gamma)$\;
-  $\hat{f}(\mathbf{y}, t) = f_{\hat{\gamma}}(\mathbf{y}, t)$, where the form of $\hat{f}(\mathbf{y}, t)$ is given in \ref{eq:8}.
+  $\hat{f}(\mathbf{y}, t) = f_{\hat{\gamma}}(\mathbf{y}, t)$, where the form of $\hat{f}(\mathbf{y}, t)$ is given in \ref{eq:9}.
 \end{algorithm}
 
-As mentioned previously, this proposed additive spline model structure has several benefits. First, it maintains interpretability at each level of the model. It is possible to visually inspect the embedding maps of the population and each group and individual to better understand how they interact. While the model described here is intended to be applicable to the specific situation involving the modeling of data from the ADNI study, this general modeling approach can be conveniently adapted to a variety of scenarios. Additionally, basing our handling of the data's hierarchical structure on a statistical model allows us to assess statistical properties of the estimated manifold, where less statistically principled approaches make this option difficult. Of particular interest, \cite{wangMixedEffectsSmoothing1998} and \cite{brumbackSmoothingSplineModels1998} explore connections between smoothing spline models and mixed-effects models. The smoothing spline analysis of variance proposed by \cite{wangMixedEffectsSmoothing1998} may be applicable to the model structure proposed here, which would enable a detailed decomposition of the variation in manifold structure by level. For the time being, this extension is left to future work.
-
-As discussed in \cite{hastieGeneralizedAdditiveModels1990}, the additive model $\psi(\mathbf{y})$ can be estimated using a backfitting procedure, which uses the model's additive nature to iteratively fit each distinct smoothing spline function until convergence. Specifically, we use the fact that, under the model,
+While the procedure outlined in Algorithm \ref{alg:varying_spline} yields an appropriate estimator when working with unnested data, this approach must be adapted to work within the additive model structure of model \ref{eq:2}. As discussed in \cite{hastieGeneralizedAdditiveModels1990}, the additive model $\psi(\mathbf{y})$ can be estimated using a backfitting procedure, which uses the model's additive nature to iteratively fit each distinct smoothing spline function until convergence. Specifically, we use the fact that, under the model,
 
 \[%
-f_p(\mathbf{y}_{ijk}, t_{ij}) = E\left[\mathbf{x}_{ijk} - f_{g(i)}(\mathbf{y}_{ijk}, t_{ij}) - f_{i}(\mathbf{y}_{ijk}, t_{ij}) - f_{ij}(\mathbf{y}_{ijk})\right]
+  f_p(\mathbf{y}_{jm}, t_{j}) = E\left[\mathbf{x}_{jm} - f_{g(j)}(\mathbf{y}_{jm}, t_{j}) - f_{i(j)}(\mathbf{y}_{jm}, t_{j}) - f_{j}(\mathbf{y}_{jm})\right]
 ,\]%
 with a similar result holding for each of the smooth functions making up the additive model. Thus, the backfitting algorithm to fit the proposed model is given below.
 
-\zielinski{The following algorithm is currently used as a placeholder while I work out the specifics.}
-
-\zielinski{Try using a ratio of the norm of the difference in model coefficients and the norm of the old model to measure convergence. This will set the change in the model coefficients (as measured by the norm of the difference vector/matrix) relative to the magnitude of the model coefficients.}
-
 \begin{algorithm}
 \caption{Backfitting Algorithm for Additive Spline Model}\label{alg:backfitting}
-  \KwData{$D$-dimensional output values $\left\{\mathbf{x}_{ijk}\right\}_{i=1, j=1, k=1}^{N, n_i, m_{ij}}$, $d$-dimensional input values $\left\{\mathbf{y}_{ijk}\right\}_{i=1, j=1, k=1}^{N, n_i, m_{ij}}$, and observation times $\left\{t_{ij}\right\}_{i=1, j=1}^{N, n_i}$.}
-  \KwResult{Analytic formulas of $\hat{f}_p$, $\left\{\hat{f}_g\right\}_{g=1}^{G}, \left\{\hat{f}_i\right\}_{i=1}^{N}$, and $\left\{\hat{f}_{ij}\right\}_{i=1, j=1}^{N, n_i}$, and optimal tuning parameters $\hat{\lambda}_p$, $\hat{\gamma}_p$, $\left\{\hat{\lambda}_g\right\}_{g=1}^{G}$, $\left\{\hat{\gamma}\right\}_{g=1}^{G}$, $\left\{\hat{\lambda}_{i}\right\}_{i=1}^{N}$, $\left\{\hat{\gamma}_{i}\right\}_{i=1}^{N}$, $\left\{\hat{\lambda}_{ij}\right\}_{i=1, j=1}^{N, n_i}$.}
+  \KwData{$D$-dimensional output values $\left\{\mathbf{x}_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, $d$-dimensional input values $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, observation times $\left\{t_{j}\right\}_{j=1}^{N}$, group and individual indicator values $\left\{g(j)\right\}_{j=1}^{N}$ and $\left\{i(j)\right\}_{j=1}^{N}$, and $\epsilon$.}
+  \KwResult{Analytic formulas of $\hat{f}_p$, $\left\{\hat{f}_g\right\}_{g=1}^{G}, \left\{\hat{f}_i\right\}_{i=1}^{I}$, and $\left\{\hat{f}_{j}\right\}_{j=1}^{N}$.}
 
-\For{$t = 1, 2, \dots, T$} {
-  Apply HDMDE algorithm with input $\left(\left\{Y_{i, t}\right\}_{i = 1}^{I_t}, N_0, \epsilon, \alpha\right)$ and obtain $N_t$, $\left\{\mu_{j, t}\right\}_{j = 1}^{N_t}$, and $\left\{\theta_{j, t}\right\}_{j = 1}^{N_t}$\;
-}
-
-  Apply Isomap to parameterize $\left\{\mu_{j, t}\right\}_{j = 1, t = 1}^{N_t, T}$ by the $d$-dimensional parameters $\left\{r_{j, t}\right\}_{j = 1, t = 1}^{N_t, T}$. Formally set $\pi_{f_t(0)}(\mu_{j, t}) \gets r_{j, t}$ for $j = 1, 2, \dots, N_t$, $t = 1, 2, \dots, T$\;
-
-  
-\For{t = 1, 2, \dots, T} {
-  Apply modified PME algorithm with $\pi_{f_t(0)}(\mu_{j, N_t, t}) \gets \left\{r_{j, t}\right\}_{j = 1}^{N_t}$ and obtain $f_t$, $\lambda_t^*$, and $\tau_t$\;
-  $\left\{r_{j, t}\right\} \gets \pi_{f_t}(\mu_{j, t})$ for $j = 1, \dots, N_t$ and $X_{j, t} \gets f_t(r_{j, t})$ for $j = 1, \dots, N_t$\;
-}
-
-  Let $N = \max(N_t)$, $\left\{r_i^*\right\}_{i=1}^{N}$ be a grid spanning the range of estimated values of $\left\{r_{i, j}\right\}_{i=1, t=1}^{N_t, T}$\; 
-
-\For{t = 1, 2, \dots, T} {
-  Set $X_{i, t} = f_t(r_{i}^*)$ for $i = 1, \dots, N$\;
-  Compute $f_t^*(r)$ by solving \eqref{eq:13}\;
-  Set $w_t = \frac{\frac{1}{\tau_t}}{\sum_{i=1}^{T}\frac{1}{\tau_i}}$\;
-}
-
-  Define $\boldsymbol{\omega}$ by setting $\boldsymbol{\omega}_t = \left[\boldsymbol{s}_t, \boldsymbol{\alpha}_t\right]$\;
-  \For{l = 1, 2, \dots, L} {
-    Compute $g_{\gamma_l}(t)$ by solving \eqref{eq:16}\;
-    \For{t = 1, 2, \dots, T} {
-      Compute $g_{\gamma_l}^{(t)}$ by solving \eqref{eq:16}\;
-    }
-    Estimate $MSD(\gamma_l)$ using \eqref{eq:18}\;
+  Estimate $f_{p}^{(0)}(\mathbf{y}, t)$ and $\Omega_{p}^{(0)}$ using Algorithm \ref{alg:varying_spline} with inputs $\left\{\mathbf{x}_{jm}\right\}_{j=1, m=1}^{N, M_j}$, $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N, M_j}$, $\left\{w_{jm}\right\}_{j=1, m=1}^{N, M_j}$, $\left\{t_{j}\right\}_{j=1}^{N}$, $\left\{\lambda_l\right\}_{l=1}^{L}$, $\left\{\gamma_p\right\}_{p=1}^{P}$, and $K$\;
+  \For{$g = 1, 2, \dots, G$} {
+    Estimate $f_{g}^{(0)}(\mathbf{y}, t)$ and $\Omega_{g}^{(0)}$ using Algorithm \ref{alg:varying_spline} with inputs $\left\{\mathbf{x}_{jm} - f_{p}^{(0)}(\mathbf{y}_{jm}, t_j)\right\}_{j=1, m=1}^{N_g, M_j}$, $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N_g, M_j}$, $\left\{w_{jm}\right\}_{j=1, m=1}^{N_g, M_j}$, $\left\{t_j\right\}_{j=1}^{N_g}$, $\left\{\lambda_l\right\}_{l=1}^{L}$, $\left\{\gamma_p\right\}_{p=1}^{P}$, $K$\;
   }
-  $\gamma^* = \arg\min_{\gamma}MSD(\gamma)$\;
-  $f^*(t, \boldsymbol{r}) = f_{\gamma^*}(t, \boldsymbol{r})$, where the form of $f^*(t, \boldsymbol{r})$ is given in \eqref{eq:17}
+  \For{$i = 1, 2, \dots, I$} {
+    Estimate $f_{i}^{(0)}(\mathbf{y}, t)$ and $\Omega_{i}^{(0)}$ using Algorithm \ref{alg:varying_spline} with inputs $\left\{\mathbf{x}_{jm} - f_{p}^{(0)}(\mathbf{y}_{jm}, t_j) - f_{g(j)}^{(0)}(\mathbf{y}_{jm}, t_j)\right\}_{j=1, m=1}^{N_i, M_j}$, $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N_i, M_j}$, $\left\{w_{jm}\right\}_{j=1, m=1}^{N_i, M_j}$, $\left\{t_j\right\}_{j=1}^{N_i}$, $\left\{\lambda_l\right\}_{l=1}^{L}$, $\left\{\gamma_p\right\}_{p=1}^{P}$, and $K$\;
+  }
+  \For{$j = 1, 2, \dots, N$} {
+    Estimate $f_{j}^{(0)}(\mathbf{y})$ and $\omega_{j}^{(0)}$ by solving \ref{eq:4} with inputs $\left\{\mathbf{x}_{jm} - f_{p}^{(0)}(\mathbf{y}_{jm}, t_j) - f_{g(j)}^{(0)}(\mathbf{y}_{jm}, t_j) - f_{i(j)}^{(0)}(\mathbf{y}_{jm}, t_j)\right\}_{m=1}^{M_j}$, $\left\{\mathbf{y}_{jm}\right\}_{m=1}^{M_j}$, $\left\{w_{jm}\right\}_{m = 1}^{M_j}$, $\left\{\lambda_l\right\}_{l=1}^{L}$, $K$\;
+  }
+  $n \gets 0$\;
+  \While{$\max\left(\|\Omega_p^{(n)} - \Omega_{p}^{(n-1)}\|, \left\{\|\Omega_{g}^{(n)} - \Omega_{g}^{(n-1)}\|\right\}_{g=1}^{G}, \left\{\|\Omega_{i}^{(n)} - \Omega_{i}^{(n-1)}\|\right\}_{i=1}^{I}, \left\{\|\omega_{j}^{(n)} - \omega_{j}^{(n-1)}\|\right\}_{j=1}^{N}\right) \geq \epsilon$} {
+    Estimate $f_{p}^{(n+1)}(\mathbf{y}, t)$ and $\Omega_{p}^{(n+1)}$ using Algorithm \ref{alg:varying_spline} with inputs $\left\{\mathbf{x}_{jm} - f_{g(j)}^{(n)}(\mathbf{y}_{jm}, t_j) - f_{i(j)}^{(n)}(\mathbf{y}_{jm}, t_j) - f_j^{(n)}(\mathbf{y}_{jm})\right\}_{j=1, m=1}^{N, M_j}$, $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N, M_j}$, $\left\{w_{jm}\right\}_{j=1, m=1}^{N, M_j}$, $\left\{t_{j}\right\}_{j=1}^{N}$, $\left\{\lambda_l\right\}_{l=1}^{L}$, $\left\{\gamma_p\right\}_{p=1}^{P}$, and $K$\;
+    \For{$g = 1, 2, \dots, G$} {
+      Estimate $f_{g}^{(n+1)}(\mathbf{y}, t)$ and $\Omega_{g}^{(n+1)}$ using Algorithm \ref{alg:varying_spline} with inputs $\left\{\mathbf{x}_{jm} - f_{p}^{(n+1)}(\mathbf{y}_{jm}, t_j) - f_{i(j)}^{(n)}(\mathbf{y}_{jm}, t_j) - f_{j}^{(n)}(\mathbf{y}_{jm})\right\}_{j=1, m=1}^{N_g, M_j}$, $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N_g, M_j}$, $\left\{w_{jm}\right\}_{j=1, m=1}^{N_g, M_j}$, $\left\{t_j\right\}_{j=1}^{N_g}$, $\left\{\lambda_l\right\}_{l=1}^{L}$, $\left\{\gamma_p\right\}_{p=1}^{P}$, $K$\;
+    }
+    \For{$i = 1, 2, \dots, I$} {
+      Estimate $f_{i}^{(n+1)}(\mathbf{y}, t)$ and $\Omega_{i}^{(n+1)}$ using Algorithm \ref{alg:varying_spline} with inputs $\left\{\mathbf{x}_{jm} - f_{p}^{(n+1)}(\mathbf{y}_{jm}, t_j) - f_{g(j)}^{(n+1)}(\mathbf{y}_{jm}, t_j) - f_j^{(n)}(\mathbf{y}_{jm})\right\}_{j=1, m=1}^{N_i, M_j}$, $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N_i, M_j}$, $\left\{w_{jm}\right\}_{j=1, m=1}^{N_i, M_j}$, $\left\{t_j\right\}_{j=1}^{N_i}$, $\left\{\lambda_l\right\}_{l=1}^{L}$, $\left\{\gamma_p\right\}_{p=1}^{P}$, and $K$\;
+    }
+    \For{$j = 1, 2, \dots, N$} {
+      Estimate $f_{j}^{(n+1)}(\mathbf{y})$ and $\omega_{j}^{(n+1)}$ by solving \ref{eq:4} with inputs $\left\{\mathbf{x}_{jm} - f_{p}^{(n+1)}(\mathbf{y}_{jm}, t_j) - f_{g(j)}^{(n+1)}(\mathbf{y}_{jm}, t_j) - f_{i(j)}^{(n+1)}(\mathbf{y}_{jm}, t_j)\right\}_{m=1}^{M_j}$, $\left\{\mathbf{y}_{jm}\right\}_{m=1}^{M_j}$, $\left\{w_{jm}\right\}_{m = 1}^{M_j}$, $\left\{\lambda_l\right\}_{l=1}^{L}$, $K$\;
+    }
+    $n \gets n + 1$
+  }
 \end{algorithm}
+
+As mentioned previously, this proposed additive spline model structure has several benefits. First, it maintains interpretability at each level of the model. It is possible to visually inspect the embedding maps of the population and each group and individual to better understand how they interact. While the model described here is intended to be applicable to the specific situation involving the modeling of data from the ADNI study, this general modeling approach can be conveniently adapted to a variety of scenarios. Additionally, basing our handling of the data's hierarchical structure on a statistical model allows us to assess statistical properties of the estimated manifold, where less statistically principled approaches make this option difficult. Of particular interest, \cite{wangMixedEffectsSmoothing1998} and \cite{brumbackSmoothingSplineModels1998} explore connections between smoothing spline models and mixed-effects models. The smoothing spline analysis of variance proposed by \cite{wangMixedEffectsSmoothing1998} may be applicable to the model structure proposed here, which would enable a detailed decomposition of the variation in manifold structure by level. For the time being, this extension is left to future work.
 
 A clear concern with the use of this procedure in this case is the number of functions to be fit, which can quickly increase the computational burden of fitting the models. However, the nesting of the different levels of the data helps to limit the number of function combinations that must be fit, helping to keep computational requirements manageable. \cite{brumbackSmoothingSplineModels1998} used restricted maximum likelihood estimation to reach an estimate of their proposed additive spline model, which may potentially provide computational improvements. However, in the case that the model should be modified to meet the needs of a new dataset, the backfitting algorithm will be more easily adaptable. 
 
