@@ -111,29 +111,31 @@ We begin this section with a brief review of additive models. Consider a regress
   y_i = \alpha + x_{i1}\beta_1 + \dots + x_{ip}\beta_p + \epsilon_i
 ,\]%
 where $\epsilon$ has mean 0 and variance $\sigma^2$. Additive models are a direct extension of this model, where the additive structure of the model is retained, but the assumption of linearity is discarded. A simple additive model takes the form
-\[%
-  y_i = \alpha + \sum_{j=1}^{p}f_j(X_{ij}) + \epsilon_i
-,\]%
-where again $\epsilon_i$ has mean 0 and variance $\sigma^2$, but the $f_j$s represent arbitrary functions which are commonly smooth. While the functions in the model above only take as parameters the value of one covariate, with each covariate being represented in the model once, this does not need to be the case. The structure of additive models seeks to balance benefits of interpretability found in additive models with the flexibility of nonlinear, and frequently, nonparametric functional forms. Further information can be found in \cite{hastieGeneralizedAdditiveModels1990}.
+\begin{equation}
+  y_i = \alpha + \sum_{j=1}^{p}f_j(X_{ij}) + \epsilon_i, \label{eq:1}
+\end{equation}
+where again $\epsilon_i$ has mean 0 and variance $\sigma^2$, but the $f_j$s represent arbitrary functions which are commonly smooth. While the functions in model \ref{eq:1} only take as parameters the value of one covariate, with each covariate being represented in the model once, this does not need to be the case. The structure of additive models seeks to balance benefits of interpretability found in additive models with the flexibility of nonlinear, and frequently, nonparametric functional forms. Further information can be found in \cite{hastieGeneralizedAdditiveModels1990}.
 
 With this background in place, we turn to the motivating situation of analyzing the subcortical surfaces of ADNI participants using MR images, with a focus on the hippocampus. ADNI is a longitudinal observational study, where several imaging modalities are used to record neuroimages from participants over time. Participants can generally be considered to belong to three groups based on cognitive state: elderly healthy controls, those displaying symptoms of mild cognitive impairment, and those diagnosed with AD. In practice, participants may transition between these categorizations as their symptoms progress. However, because patients may be diagnosed with AD at different stages, accurately modeling these transitions is challenging and is beyond the scope of this article. For simplicity, we use the groupings recorded at the time each participant was recruited to the study. 
 
-Individual participants are typically scheduled for imaging at six month intervals, though variability exists in terms of the recorded intervals. Also of note, the numbers of observations contributed by each participant varies, so groups may be unbalanced. We denote the total number of participants as $N$, and use $n_i$ to represent the number of images present for each individual. Meanwhile, $G$ denotes the number of observed groups under consideration.
+Individual participants are typically scheduled for imaging at six month intervals, though variability exists in terms of the recorded intervals. Also of note, the numbers of observations contributed by each participant varies, so groups may be unbalanced. We use $G$ to denote the number of observed groups under consideration, then denote the number of individuals as $N$, the number of images belonging to the $i$th individual as $n_i$, and the number of voxels from the $j$th image of individual $i$ as $m_{ij}$. 
 
-Within a segmented structural MRI, the voxels estimated to mark the surface of the hippocampus can be assumed to lie along a two-dimensional manifold that has been wrapped into the three-dimensional image space. More generally, we let $d$ denote the intrinsic dimension of the low-dimensional manifold, and $D$ represent the dimension of the high-dimensional input space. For the $j$th image from the $i$th individual belonging to group $g$ with $i = 1, \dots, N$, $j = 1, \dots, n_i$, and $g = 1, \dots, G$, we denote the $k$th voxel in the high-dimensional space as $\mathbf{x}_{ijk} \in \mathbb{R}^{3}$, and its associated low-dimensional parameterization as $\mathbf{y}_{ijk} \in \mathbb{R}^2$ and weight $w_{ijk}$. We let $t_{ij}$ denote the time at which the $j$th image for individual $i$ is recorded. The embedding function which maps from the $d$-dimensional manifold to $D$-dimensional ambient space is represented as $\psi(\mathbf{y}_{ijk})$, which can be modeled as \[%
-  \mathbf{x}_{ijk} = \psi(\mathbf{y}_{ijk}) = f_p(\mathbf{y}_{ijk}, t_{ij}) + f_{g(i)}(\mathbf{y}_{ijk}, t_{ij}) + f_i(\mathbf{y}_{ijk}, t_{ij}) + f_{ij}(\mathbf{y}_{ijk}) + \epsilon
-.\]%
+Within a segmented structural MRI, the voxels estimated to mark the surface of the hippocampus can be assumed to lie along a two-dimensional manifold that has been wrapped into the three-dimensional image space. More generally, we let $d$ denote the intrinsic dimension of the low-dimensional manifold, and $D$ represent the dimension of the high-dimensional input space. For the $j$th image from the $i$th individual belonging to group $g$ with $i = 1, \dots, N_g$, $j = 1, \dots, n_i$, and $g = 1, \dots, G$, we denote the $k$th voxel in the $D$-dimensional space as $\mathbf{x}_{ijk} \in \mathbb{R}^{D}$, its associated $d$-dimensional parameterization as $\mathbf{y}_{ijk} \in \mathbb{R}^{d}$, and its weight as $w_{ijk}$. We let $t_{ij}$ denote the time at which the $j$th image for individual $i$ is recorded, with all times measured as the difference between the date the image was taken and the date of the participant's baseline visit. We use $\mathbf{x}_g$, $\mathbf{x}_i$, $\mathbf{x}_{ij}$, and $\mathbf{x}_t$ to denote the input voxels from all images in the $g$th group, $i$th individual, $ij$th image, and $t$th time point, respectively, and use similar notation for all other relevant terms.
 
-Each function in this additive model represents a different level of nesting in the data, with $f_p(\mathbf{y}, t)$ estimating the embedding at the population level, and $f_g(\mathbf{y}, t)$, $f_i(\mathbf{y}, t)$, and $f_{ij}(\mathbf{y})$ describing deviations from the population estimates specific to the group, individual, and image in question, respectively. As estimating longitudinal changes in the underlying manifold may be of interest, $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$ and $f_i(\mathbf{y}, t)$ are each denoted as varying-coefficient models (\cite{hastieVaryingCoefficientModels1993}). Thus, the model is capable of estimating separate longitudinal changes for population, group, and individual estimates. In cases where longitudinal changes are not of interest, each varying-coefficient model may be constrained to be held constant with respect to time. As the $ij$th image is recorded at a single time point, $f_{ij}(\mathbf{y}, t)$ may not be dependent on time. We specify $f_{ij}(\mathbf{y})$ as a smoothing spline, while the functions $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$, and $f_i(\mathbf{y}, t)$ are each varying-coefficient smoothing spline models, estimated by using a smoothing spline to smooth over smoothing spline coefficients calculated at each time point available in the data. 
+The embedding function which maps from the $d$-dimensional manifold to $D$-dimensional ambient space is represented as $\psi(\mathbf{y}_{ijk})$, which can be modeled as 
+\begin{equation}
+  \mathbf{x}_{ijk} = \psi(\mathbf{y}_{ijk}) = f_p(\mathbf{y}_{ijk}, t_{ij}) + f_{g(i)}(\mathbf{y}_{ijk}, t_{ij}) + f_i(\mathbf{y}_{ijk}, t_{ij}) + f_{ij}(\mathbf{y}_{ijk}) + \epsilon. \label{eq:2}
+\end{equation}
+Each function in this additive model represents a different level of nesting in the data, with $f_p(\mathbf{y}, t)$ estimating the embedding at the population level, and $f_g(\mathbf{y}, t)$, $f_i(\mathbf{y}, t)$, and $f_{ij}(\mathbf{y})$ describing deviations from the population estimates specific to the group, individual, and image in question, respectively. As estimating longitudinal changes in the underlying manifold may be of interest, $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$ and $f_i(\mathbf{y}, t)$ are each denoted as varying-coefficient models, where the coefficients of each function are dependent on time (\cite{hastieVaryingCoefficientModels1993}). Thus, the model is capable of estimating separate longitudinal changes for population, group, and individual estimates. In cases where longitudinal changes are not of interest, each varying-coefficient model may be constrained to be held constant with respect to time. As the $ij$th image is recorded at a single time point, $f_{ij}(\mathbf{y}, t)$ may not be dependent on time. We specify $f_{ij}(\mathbf{y})$ as a smoothing spline, while the functions $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$, and $f_i(\mathbf{y}, t)$ are each varying-coefficient smoothing spline models, estimated by using a smoothing spline to smooth over smoothing spline coefficients calculated at each time point available in the data. 
 
 The smoothing spline functions $f_{ij}$ minimize 
-\[%
-  \mathcal{K}_{\lambda}(f_{ij}) = \sum_{l=1}^{D}\left\{\sum_{k=1}^{m_{ij}}w_{ijk}|\mathbf{x}_{ijk, l} - f_{ij, l}(\mathbf{y}_{ijk})|^2 + \lambda\|\nabla^{\bigotimes 2}f_l\|^2\right\}
-,\]%
-where $\nabla^{\bigotimes 2}f$ denotes the Hessian matrix of $f$, and $\lambda$ is given. Thus, $f_{ij}$ takes the form
-\[%
-  f_{ij, l}(\mathbf{y}) = \sum_{k=1}^{m_{ij}} s_{k, l} \times \eta_{4-d}\left(\mathbf{y} - \mathbf{y}_{ijk}\right) + \sum_{p=1}^{d+1} \alpha_{p, l} \times \phi_p(\mathbf{y}), \quad l = 1, 2, \dots, D
-,\]%
+\begin{equation}
+  \mathcal{K}_{\lambda}(f_{ij}) = \sum_{l=1}^{D}\left\{\sum_{k=1}^{m_{ij}}w_{ijk}|\mathbf{x}_{ijk, l} - f_{ij, l}(\mathbf{y}_{ijk})|^2 + \lambda\|\nabla^{\otimes 2}f_l\|^2\right\}, \label{eq:3}
+\end{equation}
+where $\nabla^{\otimes 2}f$ denotes the Hessian matrix of $f$, and $\lambda$ is given. Thus, $f_{ij}$ takes the form
+\begin{equation}
+  f_{ij, l}(\mathbf{y}) = \sum_{k=1}^{m_{ij}} s_{k, l} \times \eta_{4-d}\left(\mathbf{y} - \mathbf{y}_{ijk}\right) + \sum_{p=1}^{d+1} \alpha_{p, l} \times \phi_p(\mathbf{y}), \quad l = 1, 2, \dots, D, \label{eq:4}
+\end{equation}
 with $\phi_p(\mathbf{y})$ representing the basis of the linear space of polynomials on $\mathbb{R}^{d}$ with degree $\leq 1$ and $\eta_{\nu}(\mathbf{y}) = \|\mathbf{y}\|_{\mathbb{R}^{d}}^{\nu}\log\left(\|\mathbf{y}\|_{\mathbb{R}^{d}}\right)$ when $\|\mathbf{y}\|_{\mathbb{R}^{d}} \neq 0$ and $\nu$ is even, $\eta_{\nu}(\mathbf{y}) = 0$ when $\|\mathbf{y}\|_{\mathbb{R}^{d}} = 0$ and $\nu$ is even, and $\eta_{\nu}(\mathbf{y}) = \|\mathbf{y}\|_{\mathbb{R}^{d}}^{\nu}$ when $\nu$ is odd. 
 
 Without accounting for the additive structure of the model, and given $m_{ij}$ input values $\mathbf{y}_{ij}$, weights $\mathbf{w}_{ij}$, and outputs $x_{ij}$, we can estimate $f_{ij}$ by obtaining the values of $s_l \in \mathbb{R}^{m_{ij}}$ and $\alpha_l \in \mathbb{R}^{d + 1}$ for $l = 1, \dots, D$ that minimize $\|\mathbf{W}^{\frac{1}{2}}\left(\mathbf{x}_{ij, l} - \mathbf{E}s_l - \mathbf{R}\alpha_l\right)\|^2_{\mathbb{R}^{m_{ij}}} + \lambda\|\mathbf{E}^{\frac{1}{2}}s_l\|^2_{\mathbb{R}^{m_{ij}}}$ under the constraint that $\mathbf{R}^{T}s_l = 0$, where
@@ -145,8 +147,8 @@ Without accounting for the additive structure of the model, and given $m_{ij}$ i
 
 With $m_l$ representing Lagrange multipliers, the solutions for $s_l$ and $\alpha_l$ can be found by solving
 
-\[%
-  \left(\begin{array}{ccc}
+\begin{equation}
+   \left(\begin{array}{ccc}
     2\mathbf{EWE} + 2\lambda\mathbf{E} & 2\mathbf{EWR} & \mathbf{R} \\
     2\mathbf{R}^{T}\mathbf{WE} & 2\mathbf{R}^{T}\mathbf{WR} & \mathbf{0} \\
     \mathbf{R}^{T} & \mathbf{0} & \mathbf{0}
@@ -162,12 +164,92 @@ With $m_l$ representing Lagrange multipliers, the solutions for $s_l$ and $\alph
     2\mathbf{R}^{T}\mathbf{W}\mathbf{x}_l \\
     \mathbf{0}
   \end{array}
-  \right)
-.\]%
+  \right). \label{eq:5}
+\end{equation}
+The optimal value of $\lambda$ can be found using cross-validation, with the functions being evaluated by the mean squared error, written as
+\begin{equation}
+  MSE(\lambda) = \frac{1}{m_{ij}}\sum_{k=1}^{m_{ij}}\left(\mathbf{x}_{ijk} - f_{ij}(\mathbf{y}_{ijk})\right)^2. \label{eq:6}
+\end{equation}
 
-The optimal value of $\lambda$ can be found using cross-validation. The solutions to this minimization problem suffice for estimating $f_{ij}(\mathbf{y})$, in which the coefficients are not time-varying. To reach estimates for the varying-coefficient models, the above minimization problem is solved for the data available within the relevant grouping at each time point. These estimates are then used to generate a new set of outcome values $\left\{\mathbf{x}'\right\}$ that correspond to a new set of parameters, $\left\{\mathbf{y}'\right\}$, which are evenly spaced throughout the estimated parameter space. The spline function is reestimated $\left\{\mathbf{x}'\right\}$ and $\left\{\mathbf{y}'\right\}$, which serve as common knots that allow the spline coefficients to be compared across time points. 
+The solutions to this minimization problem suffice for estimating $f_{ij}(\mathbf{y})$, in which the coefficients are not time-varying. To reach estimates for the varying-coefficient models, equation \ref{eq:5} is solved using the data available at each time point within the relevant group. To estimate $f_p(\mathbf{y}, t)$, we use $\left\{\mathbf{x}_t\right\}_{t=1}^T$ and $\left\{\mathbf{y}_t\right\}_{t=1}^T$, yielding fitted function $\left\{\hat{f}_t(\mathbf{y})\right\}_{t=1}^T$. Using the maximum and minimum values of $\mathbf{y}_t$ in each dimension, a new $d$-dimensional grid of $m' = \text{max}\left(\left\{m_{ij}\right\}_{i=1, j = 1}^{N, N_i}\right)$ knots, $\left\{\mathbf{y}'\right\}$, is generated with the knots being evenly spread throughout the parameter space. These parameters serve as common knots that allow the spline coefficients to be compared across time points. They are then used to compute a new set of corresponding outcome values $\left\{\mathbf{x}'_t\right\}_{t=1}^{T}$. The spline functions are reestimated as $\left\{\hat{f}'_t\right\}_{t=1}^{T}$ using $\left\{\mathbf{x}'_t\right\}_{t=1}^{T}$ and $\mathbf{y}'$. These newly generated knots are weighted equally, so an unweighted smoothing spline model is used. Following \cite{greenSilverman1994}, with
 
-The coefficients found at each time point $t$, $\mathbf{s}_t$ and $\mathbf{\alpha}_t$ are concatenated in matrix $\mathbf{\omega}_t = \left(\mathbf{s}_t^T, \mathbf{\alpha}_t^T\right)$. This coefficient matrix is then used as the output value in a cubic smoothing spline function using the time points as input values.
+\begin{itemize}
+  \item $\mathbf{E}' = \left(E'_{qr}\right)_{1 \leq q, r, \leq m'}$ defined by $E'_{qr} = \eta_{4-d}\left(\mathbf{y}'_{q} - \mathbf{y}'_{r}\right)$.
+  \item $\mathbf{R}' = \left(R'_{qp}\right)_{1 \leq q \leq m', \ 1 \leq p \leq d + 1}$ is defined by $R'_{qp} = \phi_p(\mathbf{y}'_{q})$
+\end{itemize}
+the coefficients that minimize $\left(\mathbf{x}'_t - \mathbf{E}'\mathbf{s}_t - \mathbf{R}'^{T}\mathbf{\alpha}_t\right)^{T}\left(\mathbf{x}'_t - \mathbf{E}'\mathbf{s}_t - \mathbf{R}'^{T}\mathbf{\alpha}_t\right) + \gamma\mathbf{s}_t^{T}\mathbf{E}'\mathbf{s}_t$ can be found by solving 
+\begin{equation}
+  \left(
+  \begin{array}{cc}
+    \mathbf{E}' + \lambda_{t}\mathbf{I} & \mathbf{R}'^{T} \\
+    \mathbf{R}' & \mathbf{0}
+  \end{array}
+  \right)\left(
+  \begin{array}{c}
+    \mathbf{s}'_t \\
+    \mathbf{\alpha}'_t
+  \end{array}
+  \right) = \left(
+  \begin{array}{c}
+    \mathbf{x}'_t \\
+    \mathbf{0}
+  \end{array}
+  \right). \label{eq:7}
+\end{equation}
+
+The coefficients found at each time point $t$, $\mathbf{s'}_{t}$ and $\mathbf{\alpha'}_{t}$ are concatenated in matrix $\mathbf{\omega}_{t} = \left(\mathbf{s'}_{t}^T, \mathbf{\alpha'}_{t}^T\right)$. This coefficient matrix is then used as the output value in a cubic smoothing spline function using the time points as input values. This function takes the form
+\begin{equation}
+  g_{\gamma}(t) = \sum_{i=1}^{T}\delta_i\|t - t_i\|^{3} + \sum_{p=1}^{2}\tau_p \phi(t)_p. \label{eq:7}
+\end{equation}
+We define matrix $\mathbf{A}$ as $\mathbf{A}_{qr} = \|t_q - t_r\|^{3}$, matrix $\mathbf{T}$ as $\mathbf{T}_{pr} = \phi_p(t_r)$, $\mathbf{\delta} = \left(\delta_1, \dots, \delta_T\right)^{T}$, and $\mathbf{\tau} = \left(\tau_1, \tau_2\right)^{T}$. Then, the coefficients of $g_{\gamma}(t)$, given a value of $\gamma$, can be found by solving
+\begin{equation}
+  \left(
+  \begin{array}{cc}
+    \mathbf{A} + \gamma\mathbf{I} & \mathbf{T}^{T} \\
+    \mathbf{T} & \mathbf{0}
+  \end{array}
+  \right)\left(
+  \begin{array}{c}
+    \mathbf{\delta} \\
+    \mathbf{\tau}
+  \end{array}
+  \right) = \left(
+  \begin{array}{c}
+    \mathbf{\omega} \\
+    \mathbf{0}
+  \end{array}
+  \right). \label{eq:8}
+\end{equation}
+
+As with the tuning process for $\lambda$, the optimal value of $\gamma$ can be identified using cross-validation, with either leave-one-out or $k$-folds cross-validation being appropriate depending on the number of time points available. With a proper estimate of the optimum $\gamma$, we may denote the coefficients estimated by $g(t)$ as $g(t) = \Omega(t) = \left(\mathbf{s}_{\gamma}(t)^{T}, \mathbf{\alpha}_{\gamma}(t)^{T}\right)^{T}$. Therefore, the varying-coefficient models have the following outputs:
+\begin{equation}
+  f(\mathbf{y}, t) = \sum_{k=1}^{m'}\mathbf{s}_{\gamma}(t)_l \eta_{4-d}\left(\|\mathbf{y} - \mathbf{y'}_k\|\right) + \sum_{p=1}^{d + 1}\mathbf{\alpha}_{\gamma}(t)_p \phi_p(\mathbf{y}). \label{eq:9}
+\end{equation}
+The fitting process for the varying-coefficient smoothing spline model is given formally as Algorithm \ref{alg:varying_spline}.
+
+\SetKwComment{Comment}{/* }{ */}
+
+\RestyleAlgo{ruled}
+\LinesNumbered
+
+\begin{algorithm}
+\caption{Varying-Coefficient Smoothing Spline Model}\label{alg:varying_spline}
+  \KwData{$D$-dimensional output values $\left\{\mathbf{x}_{ijk}\right\}_{i=1, j = 1, k = 1}^{N, n_i, m_{ij}}$, $d$-dimensional input values $\left\{\mathbf{y}_{ijk}\right\}_{i=1, j=1, k=1}^{N, n_i, m_{ij}}$, weights $\left\{w_{ijk}\right\}_{i=1, j=1, k=1}^{N, n_i, m_{ij}}$, observation times $\left\{t_{ij}\right\}_{i=1, j=1}^{N, n_i}$, candidate tuning parameters $\left\{\lambda_l\right\}_{l=1}^{L}$, $\left\{\gamma_p\right\}_{p=1}^{P}$.}
+  \KwResult{Analytic formula of $\hat{f}(\mathbf{y}, t)$ and optimal tuning parameter $\hat{\gamma}$.}
+
+\For{$t = 1, 2, \dots, T$} {
+  Set $U_t$ equal to the number of images included in the data at time $t$\;
+  \For{$l = 1, 2, \dots, L$} {
+    Solve equation \ref{eq:5} to estimate $f_{\lambda_l, t}(\mathbf{y})$ with inputs $\mathbf{x}_t$, $\mathbf{y}_t$, and $w_t$\;
+    \For{$u = 1, 2, \dots, U_t$} {
+      Solve equation \ref{eq:5} to estimate $f^{(-u)}_{\lambda_l, t}(\mathbf{y})$ with inputs $\mathbf{x}^{(-u)}_t$, $\mathbf{y}^{(-u)}_t$, $w^{(-u)}_t$\;
+      Estimate $MSE(\lambda_{l})_u$
+    }
+  }
+}
+\end{algorithm}
+
+
 
 As mentioned previously, this proposed additive spline model structure has several benefits. First, it maintains interpretability at each level of the model. It is possible to visually inspect the embedding maps of the population and each group and individual to better understand how they interact. While the model described here is intended to be applicable to the specific situation involving the modeling of data from the ADNI study, this general modeling approach can be conveniently adapted to a variety of scenarios. Additionally, basing our handling of the data's hierarchical structure on a statistical model allows us to assess statistical properties of the estimated manifold, where less statistically principled approaches make this option difficult. Of particular interest, \cite{wangMixedEffectsSmoothing1998} and \cite{brumbackSmoothingSplineModels1998} explore connections between smoothing spline models and mixed-effects models. The smoothing spline analysis of variance proposed by \cite{wangMixedEffectsSmoothing1998} may be applicable to the model structure proposed here, which would enable a detailed decomposition of the variation in manifold structure by level. For the time being, this extension is left to future work.
 
@@ -177,14 +259,6 @@ As discussed in \cite{hastieGeneralizedAdditiveModels1990}, the additive model $
 f_p(\mathbf{y}_{ijk}, t_{ij}) = E\left[\mathbf{x}_{ijk} - f_{g(i)}(\mathbf{y}_{ijk}, t_{ij}) - f_{i}(\mathbf{y}_{ijk}, t_{ij}) - f_{ij}(\mathbf{y}_{ijk})\right]
 ,\]%
 with a similar result holding for each of the smooth functions making up the additive model. Thus, the backfitting algorithm to fit the proposed model is given below.
-
-\RestyleAlgo{ruled}
-\LinesNumbered
-
-\SetKwComment{Comment}{/* }{ */}
-
-\RestyleAlgo{ruled}
-\LinesNumbered
 
 \zielinski{The following algorithm is currently used as a placeholder while I work out the specifics.}
 
