@@ -287,6 +287,7 @@ While the procedure outlined in Algorithm \ref{alg:varying_spline} yields an app
 with a similar result holding for each of the smooth functions making up the additive model. Thus, the backfitting algorithm to fit the proposed model is given below.
 
 \begin{algorithm}
+\footnotesize
 \caption{Backfitting Algorithm for Additive Spline Model}\label{alg:backfitting}
   \KwData{$D$-dimensional output values $\left\{\mathbf{x}_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, $d$-dimensional input values $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, observation times $\left\{t_{j}\right\}_{j=1}^{N}$, group and individual indicator values $\left\{g(j)\right\}_{j=1}^{N}$ and $\left\{i(j)\right\}_{j=1}^{N}$, and $\epsilon$.}
   \KwResult{Analytic formulas of $\hat{f}_p$, $\left\{\hat{f}_g\right\}_{g=1}^{G}, \left\{\hat{f}_i\right\}_{i=1}^{I}$, and $\left\{\hat{f}_{j}\right\}_{j=1}^{N}$.}
