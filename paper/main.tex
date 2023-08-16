@@ -122,11 +122,12 @@ Individual participants are typically scheduled for imaging at six month interva
 
 Within a segmented structural MRI, the voxels estimated to mark the surface of the hippocampus can be assumed to lie along a two-dimensional manifold that has been wrapped into the three-dimensional image space. More generally, we let $d$ denote the intrinsic dimension of the low-dimensional manifold, and $D$ represent the dimension of the high-dimensional input space. For the $j$th image with $j = 1, \dots, N$, we denote the $m$th voxel in the $D$-dimensional space as $\mathbf{x}_{jm} \in \mathbb{R}^{D}$, its associated $d$-dimensional parameterization as $\mathbf{y}_{jm} \in \mathbb{R}^{d}$, and its weight as $w_{jm}$. We use $\mathbf{x}_g$, $\mathbf{x}_i$, $\mathbf{x}_{j}$, and $\mathbf{x}_t$ to denote the input voxels from all images in the $g$th group, $i$th individual, $j$th image, and $t$th time point, respectively, and use similar notation for all other relevant terms.
 
-The embedding function which maps from the $d$-dimensional manifold to $D$-dimensional ambient space is represented as $\psi(\mathbf{y}_{ijk})$, which can be modeled as 
-
+The embedding function which maps from the $d$-dimensional manifold to $D$-dimensional ambient space is represented as $\psi(\mathbf{y}_{jm})$, which can be modeled as 
 \begin{equation}
-  \mathbf{x}_{jm} = \psi_j(\mathbf{y}_{jm}, t_j) = f_p(\mathbf{y}_{jm}, t_{j}) + f_{g(j)}(\mathbf{y}_{jm}, t_{j}) + f_{i(j)}(\mathbf{y}_{jm}, t_{j}) + f_j(\mathbf{y}_{jm}) + \epsilon_{jm}. \label{eq:2}
+  \mathbf{x}_{jm} = \psi(\mathbf{y}_{jm}, t_j) = f_p(\mathbf{y}_{jm}, t_{j}) + f_{g(j)}(\mathbf{y}_{jm}, t_{j}) + f_{i(j)}(\mathbf{y}_{jm}, t_{j}) + f_j(\mathbf{y}_{jm}) + \epsilon_{jm}. \label{eq:2}
 \end{equation}
+The embedding map $\psi(\mathbf{y})$ is associated with a projection index $\kappa_{\psi}(\mathbf{x}): \mathbb{R}^{D} \to \mathbb{R}^{d}$, which, informally, outputs the $d$-dimensional parameterization $\mathbf{y}$ that minimizes $\|\mathbf{x} - \psi(\mathbf{y})\|_{\mathbb{R}^{D}}$ and follows the generalized definition of projection indices given in \cite{mengPrincipalManifoldEstimation2021}.
+
 
 Each function in this additive model represents a different level of nesting in the data, with $f_p(\mathbf{y}, t)$ estimating the embedding at the population level, and $f_g(\mathbf{y}, t)$, $f_i(\mathbf{y}, t)$, and $f_{j}(\mathbf{y})$ describing deviations from the population estimates specific to the group, individual, and image in question, respectively. As estimating longitudinal changes in the underlying manifold may be of interest, $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$ and $f_i(\mathbf{y}, t)$ are each denoted as varying-coefficient models, where the coefficients of each function are dependent on time (\cite{hastieVaryingCoefficientModels1993}). Thus, the model is capable of estimating separate longitudinal changes for population, group, and individual estimates. In cases where longitudinal changes are not of interest, each varying-coefficient model may be constrained to be held constant with respect to time. As the $j$th image is recorded at a single time point, $f_{j}(\mathbf{y}, t)$ may not be dependent on time. We specify $f_{j}(\mathbf{y})$ as a smoothing spline, while the functions $f_p(\mathbf{y}, t)$, $f_g(\mathbf{y}, t)$, and $f_i(\mathbf{y}, t)$ are each varying-coefficient smoothing spline models, estimated by using a smoothing spline to smooth over smoothing spline coefficients calculated at each time point available in the data. 
 
@@ -289,7 +290,7 @@ with a similar result holding for each of the smooth functions making up the add
 \begin{algorithm}
 \footnotesize
 \caption{Backfitting Algorithm for Additive Spline Model}\label{alg:backfitting}
-  \KwData{$D$-dimensional output values $\left\{\mathbf{x}_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, $d$-dimensional input values $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, observation times $\left\{t_{j}\right\}_{j=1}^{N}$, group and individual indicator values $\left\{g(j)\right\}_{j=1}^{N}$ and $\left\{i(j)\right\}_{j=1}^{N}$, and $\epsilon$.}
+  \KwData{$D$-dimensional output values $\left\{\mathbf{x}_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, $d$-dimensional input values $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N, M_{j}}$, observation times $\left\{t_{j}\right\}_{j=1}^{N}$, weights $\left\{w_{jm}\right\}_{j=1, m=1}^{N, M_j}$, group and individual indicator values $\left\{g(j)\right\}_{j=1}^{N}$ and $\left\{i(j)\right\}_{j=1}^{N}$, candidate tuning parameters $\left\{\lambda_l\right\}_{l=1}^{L}$ and $\left\{\gamma_p\right\}_{p=1}^{P}$, $\epsilon$ and $K$.}
   \KwResult{Analytic formulas of $\hat{f}_p$, $\left\{\hat{f}_g\right\}_{g=1}^{G}, \left\{\hat{f}_i\right\}_{i=1}^{I}$, and $\left\{\hat{f}_{j}\right\}_{j=1}^{N}$.}
 
   Estimate $f_{p}^{(0)}(\mathbf{y}, t)$ and $\Omega_{p}^{(0)}$ using Algorithm \ref{alg:varying_spline} with inputs $\left\{\mathbf{x}_{jm}\right\}_{j=1, m=1}^{N, M_j}$, $\left\{\mathbf{y}_{jm}\right\}_{j=1, m=1}^{N, M_j}$, $\left\{w_{jm}\right\}_{j=1, m=1}^{N, M_j}$, $\left\{t_{j}\right\}_{j=1}^{N}$, $\left\{\lambda_l\right\}_{l=1}^{L}$, $\left\{\gamma_p\right\}_{p=1}^{P}$, and $K$\;
@@ -339,9 +340,21 @@ Like the PME algorithm, the fitting step uses an iterative approach to alternate
 
 \begin{algorithm}
 \caption{Hierarchical Principal Manifold Estimation Algorithm}\label{alg:hpme}
-  \KwData{Data points $\left\{\mathbf{x}_{jm}\right\}_{j=1, m=1}^{N, M_j}$ in $\mathbb{R}^{D}$; a positive integer $N_0 < \sum_{j=1}^{N}M_j$; $\alpha, \epsilon, \epsilon^{*} \in (0, 1)$; candidate tuning parameters $\left\{\lambda_l\right\}_{l=1}^{L}, \left\{\gamma_p\right\}_{p=1}^{P}$; $itr \geq 1$, which is the maximum number of iterations allowed.}
+  \KwData{Data points $\left\{\mathbf{v}_{jm}\right\}_{j=1, m=1}^{N, M'_j}$ in $\mathbb{R}^{D}$; group and individual indicator values $\left\{g(j)\right\}_{j=1}^{N}$ and $\left\{i(j)\right\}_{j=1}^{N}$; a positive integer $N_0 < \min\left(\left\{M'_j\right\}_{j=1}^{N}\right)$; $\alpha, \epsilon, \epsilon^{*} \in (0, 1)$; candidate tuning parameters $\left\{\lambda_l\right\}_{l=1}^{L}, \left\{\gamma_p\right\}_{p=1}^{P}$; $itr \geq 1$, which is the maximum number of iterations allowed.}
   \KwResult{Analytic formulas of $\hat{f}_p$, $\left\{\hat{f}_g\right\}_{g=1}^{G}, \left\{\hat{f}_i\right\}_{i=1}^{I}$, and $\left\{\hat{f}_{j}\right\}_{j=1}^{N}$, .}
-  
+  \textbf{Initialization}: Apply PME with input $\left(\left\{\mathbf{v}_{1m}\right\}_{m=1}^{M'_1}, N_0, \alpha, \epsilon, \epsilon^{*}, \left\{\lambda_l\right\}_{l=1}^{L}, itr\right)$ and obtain $f^{(1)}$\;
+  $\psi^{(1)} \gets f^{(1)}$\;
+  \textbf{Data Reduction}: Apply HDMDE algorithm with inputs $\left(\left\{\left\{\mathbf{v}_{jm}\right\}_{m=1}^{M_j}\right\}_{j=1}^{N}, N_0, \epsilon, \alpha\right)$ and obtain $\left\{M_j\right\}_{j=1}^{N}$, $\left\{\mathbf{x}_{jm}\right\}_{j=1, m=1}^{N, M_j}$, and $\left\{w_{jm}\right\}_{j=1, m=1}^{N, M_j}$\;
+  \textbf{Parameterization}: Use the projection index of $\psi^{(1)}$, $\kappa_{\psi^{(1)}}$, to parameterize $\left\{\mathbf{x}_{jm}\right\}_{j=1, m=1}^{N, M_j}$ by $d$-dimensional parameters $\left\{y_{jm}\right\}_{j=1, m=1}^{N, M_j}$\;
+  $\mathcal{E} \gets 2 \times \epsilon^{*}$, $n \gets 1$, and $\mathcal{D}(\psi^{(1)}) \gets \sum_{j=1}^{N}\sum_{m=1}^{M_j}w_{jm}\|\mathbf{x}_{jm} - \psi^{(1)}\left(\kappa_{\psi^{(1)}}(\mathbf{x}_{jm})\right)\|_{\mathbb{R}^{D}}^2$\;
+  \While{$\mathcal{E} \geq \epsilon^{*}$ and $n < itr$} {
+    Compute $f_{p}^{(n + 1)}$, $\left\{f_{g}^{(n + 1)}\right\}_{g = 1}^{G}$, $\left\{f_{i}^{(n + 1)}\right\}_{i=1}^{I}$, and $\left\{f_{j}^{(n+1)}\right\}_{j=1}^{N}$ by using Algorithm \ref{alg:backfitting} with inputs $\left\{\mathbf{x}_{jm}\right\}_{j=1, m=1}^{N, M_j}$, $\left\{\kappa_{\psi^{(n)}}(\mathbf{x}_{jm})\right\}_{j=1, m=1}^{N, M_j}$, $\left\{t_j\right\}_{j=1}^{N}$, $\left\{w_{jm}\right\}_{j=1, m=1}^{N, M_j}$, $\left\{g(j)\right\}_{j=1}^{N}$, $\left\{i(j)\right\}_{j=1}^{N}$, $\left\{\lambda_l\right\}_{l=1}^{L}$, $\left\{\gamma_p\right\}_{p=1}^{P}$, $\epsilon$, and $K$\;
+    $\left\{\psi^{(n+1)}(\mathbf{y}, t) \gets f_{p}^{(n + 1)}(\mathbf{y}, t) + f_{g(j)}^{(n+1)}(\mathbf{y}, t) + f_{i(j)}^{(n + 1)}(\mathbf{y}, t) + f_{j}^{(n+1)}(\mathbf{y})\right\}_{j=1}^{N}$\;
+    $\mathcal{D}(\psi^{n+1}) \gets \sum_{j=1}^{N}\sum_{m=1}^{M_j}w_{jm}\|\mathbf{x}_{jm} - \psi^{n + 1}\left(\kappa_{\psi^{n+1}}(\mathbf{x}_{jm})\right)\|_{\mathbb{R}^{D}}^2$\;
+    $\mathcal{E} \gets |\mathcal{D}(\psi^{(n+1)}) - \mathcal{D}(\psi^{(n)})| / \mathcal{D}(\psi^{(n)})$\;
+    $n \gets n + 1$\;
+  }
+  $\hat{f}_p \gets f_{p}^{(n)}$, $\left\{\hat{f}_{g} \gets f_{g}^{(n)}\right\}_{g=1}^{G}$, $\left\{\hat{f}_{i} \gets f_{i}^{(n)}\right\}_{i=1}^{I}$, $\left\{\hat{f}_j \gets f_{j}^{(n)}\right\}_{j=1}^{N}$.
 \end{algorithm}
 
 \section{Application to Simulated and MNIST Data}
