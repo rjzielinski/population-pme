@@ -502,6 +502,7 @@ for (dir_idx in 1:length(processed_dirs)) {
 
       scan_info <- scan_info |>
         mutate(
+          scan_id = scan_id,
           lhipp_vol = temp_lhipp_vol,
           rhipp_vol = temp_rhipp_vol,
           lthal_vol = temp_lthal_vol,
