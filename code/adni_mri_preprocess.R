@@ -349,12 +349,12 @@ for (dir_idx in 1:length(processed_dirs)) {
         }
       }
       rhipp_temp <- cbind(
-        scan_id
+        scan_id,
         rhipp_idx %*% diag(pixdim(as.nifti(temp_rhipp))[2:4]),
         temp_rhipp[rhipp_idx]
       )
       rhipp_surface_temp <- cbind(
-        scan_id
+        scan_id,
         rhipp_idx[surface, ] %*% diag(pixdim(as.nifti(temp_rhipp))[2:4]),
         temp_rhipp[rhipp_idx[surface, ]]
       )
