@@ -236,8 +236,6 @@ for (dir_idx in 1:length(processed_dirs)) {
     scan_info <- scan_info[scan_id, ]
 
     if (file.exists(paste0(scan_dirs[scan_idx], "_all_fast_origsegs.nii.gz"))) {
-      img_id <- c(img_id, scan_id)
-      img_date <- c(img_date, floor_date(scan_dates[scan_idx], unit = "day"))
       temp_segs <- readnii(paste0(scan_dirs[scan_idx], "_all_fast_origsegs.nii.gz"))
       seg_vols <- fslstats(
         paste0(scan_dirs[scan_idx], "_all_fast_origsegs.nii.gz"),
