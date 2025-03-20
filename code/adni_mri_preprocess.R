@@ -27,8 +27,8 @@ ncores <- parallel::detectCores() - 1
 cl <- parallel::makeCluster(ncores, type = "FORK")
 doParallel::registerDoParallel(cl = cl)
 
-# foreach (dir_idx = 1:length(sub_dirs)) %dopar% {
-foreach(dir_idx = 1:8) %dopar% {
+foreach (dir_idx = 1:length(sub_dirs), .errorhandling = "pass") %dopar% {
+# foreach(dir_idx = 1:64) %dopar% {
   img_dirs <- list.files(sub_dirs[dir_idx], recursive = TRUE, full.names = TRUE) %>%
     gsub(pattern = "([^/]+$)", replacement = "") %>%
     unique()
