@@ -1,4 +1,4 @@
-fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
+fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds, lambda = exp(-20:5)) {
   k <- length(unique(folds))
   coefs <- list()
   d <- ncol(params)
