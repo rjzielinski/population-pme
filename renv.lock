@@ -1420,7 +1420,7 @@
       "RemoteRepo": "pme",
       "RemoteUsername": "rjzielinski",
       "RemoteRef": "HEAD",
-      "RemoteSha": "f1bf7341012281c1ff856421cde3efdb38568c60",
+      "RemoteSha": "b0c3a0d12c18d07b21ed9069a5421d6f785b425c",
       "Requirements": [
         "BH",
         "MASS",
@@ -1438,7 +1438,7 @@
         "vctrs",
         "vegan"
       ],
-      "Hash": "8f791dd089ef18317898bd9bdd28bf0b"
+      "Hash": "4fc66b736224323e6bd1582425a51e2e"
     },
     "png": {
       "Package": "png",
