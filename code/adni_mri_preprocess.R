@@ -9,7 +9,7 @@ library(tidyverse)
 library(lubridate)
 # library(ANTsRCore)
 
-sub_dirs <- list.dirs("data/adni", recursive = FALSE)
+sub_dirs <- list.dirs("data/ADNI", recursive = FALSE)
 
 nii_scans <- list()
 
