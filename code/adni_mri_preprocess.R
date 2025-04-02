@@ -1,3 +1,4 @@
+library(doSNOW)
 library(oro.dicom)
 library(oro.nifti)
 library(neurobase)
