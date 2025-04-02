@@ -14,8 +14,8 @@ source("code/functions/calculate_pme_reconstructions.R")
 SSD_ratio_threshold <- 5
 verbose <- TRUE
 
-lhipp_surface <- read_csv("data/adni_fsl_lhipp_surface.csv")
-adni_info <- read_csv("data/adni_fsl_info.csv")
+lhipp_surface <- read_csv("data_old/adni_fsl_lhipp_surface.csv")
+adni_info <- read_csv("data_old/adni_fsl_info.csv")
 
 lhipp_surface <- lhipp_surface |>
   mutate(
@@ -288,15 +288,16 @@ count <- 1
 SSD_ratio <- 10 * epsilon
 
 additive_model <- list()
-additive_model[[1]] <- init_additive_mod_pt1
-additive_model[[2]] <- init_additive_mod_pt2
+additive_model$partition1 <- init_additive_mod_pt1
+additive_model$partition2 <- init_additive_mod_pt2
+additive_model$SSD <- c(SSD)
 
 while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (max_iter - 1))) {
   SSD_prev <- SSD
   additive_model_old <- additive_model
   params_prev <- params
 
-  additive_model[[1]] <- fit_adni_additive_model(
+  additive_model$partition1 <- fit_adni_additive_model(
     x = lhipp_x[[1]],
     params = params[[1]],
     weights = lhipp_weights[[1]],
@@ -309,7 +310,7 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
     epsilon = 0.01,
     max_iter = 250
   )
-  additive_model[[2]] <- fit_adni_additive_model(
+  additive_model$partition2 <- fit_adni_additive_model(
     x = lhipp_x[[2]],
     params = params[[2]],
     weights = lhipp_weights[[2]],
@@ -328,10 +329,10 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
     ~ projection_pme(
       lhipp_x[[1]][.x, ],
       function(x) {
-        additive_model[[1]]$population_embedding$embedding_map(x) +
-          additive_model[[1]]$group_embeddings[[group_vecs[[1]][.x]]]$embedding_map(x) +
-          additive_model[[1]]$id_embeddings[[id_vecs[[1]][.x]]]$embedding_map(x) +
-          additive_model[[1]]$img_embeddings[[img_vecs[[1]][.x]]]$embedding_map(x)
+        additive_model$partition1$population_embedding$embedding_map(x) +
+          additive_model$partition1$group_embeddings[[group_vecs[[1]][.x]]]$embedding_map(x) +
+          additive_model$partition1$id_embeddings[[id_vecs[[1]][.x]]]$embedding_map(x) +
+          additive_model$partition1$img_embeddings[[img_vecs[[1]][.x]]]$embedding_map(x)
       },
       params_prev[[1]][.x, ]
     )
@@ -342,10 +343,10 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
     ~ projection_pme(
       lhipp_x[[2]][.x, ],
       function(x) {
-        additive_model[[2]]$population_embedding$embedding_map(x) +
-          additive_model[[2]]$group_embeddings[[group_vecs[[2]][.x]]]$embedding_map(x) +
-          additive_model[[2]]$id_embeddings[[id_vecs[[2]][.x]]]$embedding_map(x) +
-          additive_model[[2]]$img_embeddings[[img_vecs[[2]][.x]]]$embedding_map(x)
+        additive_model$partition2$population_embedding$embedding_map(x) +
+          additive_model$partition2$group_embeddings[[group_vecs[[2]][.x]]]$embedding_map(x) +
+          additive_model$partition2$id_embeddings[[id_vecs[[2]][.x]]]$embedding_map(x) +
+          additive_model$partition2$img_embeddings[[img_vecs[[2]][.x]]]$embedding_map(x)
       },
       params_prev[[2]][.x, ]
     )
@@ -358,10 +359,10 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
     1:nrow(lhipp_x[[1]]),
     ~ dist_euclidean(
       lhipp_x[[1]][.x, ],
-      additive_model[[1]]$population_embedding$embedding_map(params[[1]][.x, ]) +
-        additive_model[[1]]$group_embeddings[[group_vecs[[1]][.x]]]$embedding_map(params[[1]][.x, ]) +
-        additive_model[[1]]$id_embeddings[[id_vecs[[1]][.x]]]$embedding_map(params[[1]][.x, ]) +
-        additive_model[[1]]$img_embeddings[[img_vecs[[1]][.x]]]$embedding_map(params[[1]][.x, ])
+      additive_model$partition1$population_embedding$embedding_map(params[[1]][.x, ]) +
+        additive_model$partition1$group_embeddings[[group_vecs[[1]][.x]]]$embedding_map(params[[1]][.x, ]) +
+        additive_model$partition1$id_embeddings[[id_vecs[[1]][.x]]]$embedding_map(params[[1]][.x, ]) +
+        additive_model$partition1$img_embeddings[[img_vecs[[1]][.x]]]$embedding_map(params[[1]][.x, ])
     )^2
   ) %>%
     reduce(c) %>%
@@ -370,10 +371,10 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
     1:nrow(lhipp_x[[2]]),
     ~ dist_euclidean(
       lhipp_x[[2]][.x, ],
-      additive_model[[2]]$population_embedding$embedding_map(params[[2]][.x, ]) +
-        additive_model[[2]]$group_embeddings[[group_vecs[[2]][.x]]]$embedding_map(params[[2]][.x, ]) +
-        additive_model[[2]]$id_embeddings[[id_vecs[[2]][.x]]]$embedding_map(params[[2]][.x, ]) +
-        additive_model[[2]]$img_embeddings[[img_vecs[[2]][.x]]]$embedding_map(params[[2]][.x, ])
+      additive_model$partition2$population_embedding$embedding_map(params[[2]][.x, ]) +
+        additive_model$partition2$group_embeddings[[group_vecs[[2]][.x]]]$embedding_map(params[[2]][.x, ]) +
+        additive_model$partition2$id_embeddings[[id_vecs[[2]][.x]]]$embedding_map(params[[2]][.x, ]) +
+        additive_model$partition2$img_embeddings[[img_vecs[[2]][.x]]]$embedding_map(params[[2]][.x, ])
     )^2
   ) %>%
     reduce(c) %>%
@@ -383,6 +384,7 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
 
   SSD_ratio <- abs(SSD - SSD_prev) / SSD_prev
   count <- count + 1
+  additive_model$SSD[count] <- SSD
 
   if (verbose == TRUE) {
     print_SSD(SSD, SSD_ratio, count)
@@ -390,71 +392,94 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
 }
 
 nearest_cluster_full <- vector()
-input_red <- unique(mnist_train5)
+nearest_clusters <- matrix(
+  nrow = nrow(lhipp_surface_inputs),
+  ncol = ncol(lhipp_x[[1]])
+)
+nearest_params <- matrix(
+  nrow = nrow(lhipp_surface_inputs),
+  ncol = ncol(params[[1]])
+)
 pb <- progress_bar$new(
-  total = nrow(input_red),
+  total = nrow(lhipp_surface_inputs),
   format = "[:bar] :percent eta: :eta",
   clear = FALSE
 )
-for (i in 1:nrow(input_red)) {
+
+for (i in seq_len(nrow(lhipp_surface_inputs))) {
   pb$tick()
+  temp_clusters <- lhipp_x[[lhipp_partition[i]]][
+    (group_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_groups[i])) & 
+    (id_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_ids[i])) &
+      (img_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_scans[i])),
+  ]
+  temp_params <- params[[lhipp_partition[i]]][
+    (group_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_groups[i])) & 
+    (id_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_ids[i])) &
+      (img_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_scans[i])),
+  ]
   distances <- map(
-    1:nrow(params),
+    seq_len(nrow(temp_clusters)),
     ~ dist_euclidean(
-      input_red[i, -1],
-      additive_model$population_embedding$embedding_map(params[.x, ]) +
-        additive_model$id_embeddings[[input_red[i, 1]]]$embedding_map(params[.x, ])
+      lhipp_surface_inputs[i, -1],
+      temp_clusters[.x, ]
     )
-  ) %>%
+  ) |>
     reduce(c)
   nearest_cluster_full[i] <- which.min(distances)
+  nearest_clusters[i, ] <- unlist(temp_clusters[which.min(distances), ])
+  nearest_params[i, ] <- unlist(temp_params[which.min(distances), ])
 }
 
-input_df_names <- c("id", "x", "y")
-mnist_train5_df <- data.frame(mnist_train5)
-input_red_df <- data.frame(input_red)
-names(mnist_train5_df) <- input_df_names
-names(input_red_df) <- input_df_names
-input_red_df$cluster <- nearest_cluster_full
+lhipp_params <- map(
+  seq_len(nrow(lhipp_surface_inputs)),
+  ~ projection_pme(
+    unlist(lhipp_surface_inputs[.x, -1]),
+    function(x) {
+      additive_model[[lhipp_partition[.x]]]$population_embedding$embedding_map(x) +
+    additive_model[[lhipp_partition[.x]]]$group_embeddings[[as.numeric(lhipp_groups[.x])]]$embedding_map(x) +
+    additive_model[[lhipp_partition[.x]]]$id_embeddings[[as.numeric(lhipp_ids[.x])]]$embedding_map(x) +
+    additive_model[[lhipp_partition[.x]]]$img_embeddings[[as.numeric(lhipp_scans[.x])]]$embedding_map(x)
+    },
+    nearest_params[.x, ]
+  ),
+  .progress = TRUE
+) |>
+  reduce(rbind)
 
-mnist_train5_df <- full_join(mnist_train5_df, input_red_df, by = c("id", "x", "y"))
-mnist_train5_mat <- as.matrix(mnist_train5_df)
-
-mnist_params <- map(
-    1:nrow(mnist_train5_mat),
-    ~ {
-      print(.x)
-      projection_pme(
-        mnist_train5_mat[.x, 2:3],
-        function(x) {
-          additive_model$population_embedding$embedding_map(x) +
-            additive_model$id_embeddings[[mnist_train5_mat[.x, 1]]]$embedding_map(x)
-        },
-        params[mnist_train5_mat[.x, 4], ]
-      )
-    }
-  ) %>%
-    reduce(rbind) %>%
-    matrix(nrow = nrow(mnist_train5_mat))
+lhipp_projections <- map(
+  seq_len(nrow(lhipp_surface_inputs)),
+  ~ additive_model[[lhipp_partition[.x]]]$population_embedding$embedding_map(lhipp_params[.x, ]) +
+    additive_model[[lhipp_partition[.x]]]$group_embeddings[[as.numeric(lhipp_groups[.x])]]$embedding_map(lhipp_params[.x, ]) +
+    additive_model[[lhipp_partition[.x]]]$id_embeddings[[as.numeric(lhipp_ids[.x])]]$embedding_map(lhipp_params[.x, ]) +
+    additive_model[[lhipp_partition[.x]]]$img_embeddings[[as.numeric(lhipp_scans[.x])]]$embedding_map(lhipp_params[.x, ]),
+  .progress = TRUE
+) |>
+  reduce(rbind)
 
 hpme_msd <- map(
-  1:nrow(mnist_train5_mat),
+  seq_len(nrow(lhipp_surface_inputs)),
   ~ {
-    print(.x)
     dist_euclidean(
-      mnist_train5_mat[.x, 2:3],
-      additive_model$population_embedding$embedding_map(mnist_params[.x, ]) +
-        additive_model$id_embeddings[[mnist_train5_mat[.x, 1]]]$embedding_map(mnist_params[.x, ])
+      lhipp_surface_inputs[.x, -1],
+      lhipp_projections[.x, ]
     )^2
   }
 ) %>%
   reduce(c) %>%
   mean()
 
-mnist_train5_out <- list(
-  data = mnist_train5,
+lhipp_test_out <- list(
+  data = lhipp_surface,
+  data_red = list(
+    x = lhipp_x,
+    weights = lhipp_weights,
+    groups = group_vecs,
+    ids = id_vecs,
+    imgs = img_vecs
+  ),
   model = additive_model,
-  params = params
+  params = lhipp_params,
+  msd = hpme_msd
 )
-
-saveRDS(mnist_train5_out, "mnist_train5_result.RDS")
+saveRDS(additive_model, "output/test_lhipp_additive_model.RDS")
