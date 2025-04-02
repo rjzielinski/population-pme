@@ -1,4 +1,5 @@
 fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, scans, times, epsilon = 0.05, max_iter = 100) {
+  require(pme, quietly = TRUE)
   D <- ncol(x)
   d <- ncol(params)
 
@@ -384,12 +385,6 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     epsilon_hat <- mse_ratio
     print(
       paste0(
-        "Maximum relative coefficient difference: ",
-        as.character(round(epsilon_hat, 3))
-      )
-    )
-    print(
-      paste0(
         "Estimated mean squared error: ",
         as.character(round(mse, 5)),
         "; Relative change in mean squared error: ",
@@ -403,7 +398,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     scan_set <- scans == unique(scans)[img_idx]
     group_idx <- which(unique(groups) == unique(groups[scan_set]))
     id_idx <- which(unique(ids) == unique(ids[scan_set]))
-    full_embeddings[[id_idx]] <- function(parameters) {
+    full_embeddings[[img_idx]] <- function(parameters) {
       population_embedding$embedding_map(parameters) +
         group_embeddings[[group_idx]]$embedding_map(parameters) +
         id_embeddings[[id_idx]]$embedding_map(parameters) +
