@@ -25,10 +25,15 @@ mni_nifti <- readNIfTI(
 )
 
 ncores <- parallel::detectCores() / 2
-cl <- parallel::makeCluster(ncores, type = "FORK")
+cl <- parallel::makeCluster(ncores)
 registerDoSNOW(cl = cl)
 
-foreach (dir_idx = 1:length(sub_dirs), .errorhandling = "pass") %dopar% {
+foreach (
+  dir_idx = 1:length(sub_dirs), 
+  .packages = c("oro.dicom", "oro.nifti", "neurobase", "fslr", "magrittr"),
+  .export = c("sub_dirs", "nii_scans"),
+  .errorhandling = "pass"
+) %dopar% {
 # foreach(dir_idx = 1:64) %dopar% {
   img_dirs <- list.files(sub_dirs[dir_idx], recursive = TRUE, full.names = TRUE) %>%
     gsub(pattern = "([^/]+$)", replacement = "") %>%
