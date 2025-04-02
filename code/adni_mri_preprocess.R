@@ -25,7 +25,7 @@ mni_nifti <- readNIfTI(
 
 ncores <- parallel::detectCores() / 2
 cl <- parallel::makeCluster(ncores, type = "FORK")
-doParallel::registerDoParallel(cl = cl)
+registerDoSNOW(cl = cl)
 
 foreach (dir_idx = 1:length(sub_dirs), .errorhandling = "pass") %dopar% {
 # foreach(dir_idx = 1:64) %dopar% {
