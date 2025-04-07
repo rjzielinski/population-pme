@@ -1,3 +1,8 @@
+newtemp <- "~/tmp/rcall"
+dir.create(newtemp, recursive = TRUE)
+Sys.setenv(TMPDIR = tools::file_path_as_absolute(newtemp))
+unlink(tempdir(), recursive = TRUE)
+
 library(doSNOW)
 library(oro.dicom)
 library(oro.nifti)
@@ -28,7 +33,7 @@ ncores <- parallel::detectCores() / 2
 cl <- parallel::makeCluster(ncores)
 registerDoSNOW(cl = cl)
 
-foreach (
+error_list <- foreach (
   dir_idx = 1:length(sub_dirs), 
   .packages = c("oro.dicom", "oro.nifti", "neurobase", "fslr", "magrittr"),
   .export = c("sub_dirs", "nii_scans"),
@@ -60,3 +65,12 @@ foreach (
 }
 
 parallel::stopCluster(cl = cl)
+
+run_include <- vector(mode = "logical", length = length(error_list))
+for (i in seq_along(error_list)) {
+  if (class(error_list[[i]]) == "numeric") {
+    run_include[i] <- TRUE
+  } else {
+    run_include[i] <- FALSE
+  }
+}
