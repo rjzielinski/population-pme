@@ -15,11 +15,9 @@ library(tidyverse)
 library(lubridate)
 # library(ANTsRCore)
 
-sub_dirs <- list.dirs("data/ADNI", recursive = FALSE)
-
-nii_scans <- list()
-
-processed_scans <- list()
+img_dirs <- list.files("data/ADNI", recursive = TRUE, full.names = TRUE) %>%
+  gsub(pattern = "([^/]+$)", replacement = "") %>%
+  unique()
 
 hipp_mask <- readNIfTI(
   paste0(fsl_dir(), "/data/standard/MNI152_T1_1mm_Hipp_mask_dil8.nii.gz")
@@ -34,43 +32,36 @@ cl <- parallel::makeCluster(ncores)
 registerDoSNOW(cl = cl)
 
 error_list <- foreach (
-  dir_idx = 1:length(sub_dirs), 
+  img_idx = seq_along(img_dirs), 
   .packages = c("oro.dicom", "oro.nifti", "neurobase", "fslr", "magrittr"),
-  .export = c("sub_dirs", "nii_scans"),
+  .export = c("img_dirs"),
   .errorhandling = "pass"
 ) %dopar% {
 # foreach(dir_idx = 1:64) %dopar% {
-  img_dirs <- list.files(sub_dirs[dir_idx], recursive = TRUE, full.names = TRUE) %>%
-    gsub(pattern = "([^/]+$)", replacement = "") %>%
-    unique()
+  proc_dir <- paste0(
+    "data/adni_processed_fsl", 
+    gsub(pattern = "data/ADNI", replacement = "", img_dirs[img_idx])
+  )
+  if (file.exists(paste0(proc_dir, "/_all_fast_origsegs.nii.gz"))) {
+    seg_error <- FALSE
+  } else {
+    all_slices <- readDICOM(img_dirs[img_idx])
+    nii <- dicom2nifti(all_slices)
 
-  nii_scans[[dir_idx]] <- list()
-
-  for (img_idx in 1:length(img_dirs)) {
-    proc_dir <- paste0("data/adni_processed_fsl", gsub(pattern = "data/ADNI", replacement = "", img_dirs[img_idx]))
-    if (file.exists(paste0(proc_dir, "/_all_fast_origsegs.nii.gz"))) {
-      next
-    } else {
-      all_slices <- readDICOM(img_dirs[img_idx])
-      nii <- dicom2nifti(all_slices)
-
-      run_first_all(
-        nii,
-        oprefix = proc_dir,
-        verbose = FALSE,
-        opts = "-d"
-      )
-    }
+    first_out <- run_first_all(
+      nii,
+      oprefix = proc_dir,
+      verbose = FALSE,
+      opts = "-d"
+    )
+    seg_error <- is.null(first_out$segmentation)
   }
+  seg_error
 }
 
 parallel::stopCluster(cl = cl)
 
-run_include <- vector(mode = "logical", length = length(error_list))
-for (i in seq_along(error_list)) {
-  if (class(error_list[[i]]) == "numeric") {
-    run_include[i] <- TRUE
-  } else {
-    run_include[i] <- FALSE
-  }
-}
+error_list <- reduce(error_list, c)
+segmentation_errors <- img_dirs[error_list]
+
+saveRDS(segmentation_errors, "data/segmentation_errors.rds")
