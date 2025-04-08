@@ -15,6 +15,8 @@ library(tidyverse)
 library(lubridate)
 # library(ANTsRCore)
 
+skip_imgs <- c("I436253")
+
 img_dirs <- list.files("data/ADNI", recursive = TRUE, full.names = TRUE) %>%
   gsub(pattern = "([^/]+$)", replacement = "") %>%
   unique()
@@ -27,8 +29,8 @@ mni_nifti <- readNIfTI(
   paste0(fsl_dir(), "/data/standard/MNI152_T1_1mm.nii.gz")
 )
 
-ncores <- parallel::detectCores() / 2
-cl <- parallel::makeCluster(ncores)
+ncores <- parallel::detectCores()
+cl <- parallel::makeCluster(ncores / 2)
 registerDoSNOW(cl = cl)
 
 error_list <- foreach (
@@ -38,12 +40,15 @@ error_list <- foreach (
   .errorhandling = "pass"
 ) %dopar% {
 # foreach(dir_idx = 1:64) %dopar% {
+  img_val <- str_split(img_dirs[img_idx], "/")[[1]][6]
   proc_dir <- paste0(
     "data/adni_processed_fsl", 
     gsub(pattern = "data/ADNI", replacement = "", img_dirs[img_idx])
   )
   if (file.exists(paste0(proc_dir, "/_all_fast_origsegs.nii.gz"))) {
     seg_error <- FALSE
+  } else if (img_val %in% skip_imgs) {
+    seg_error <- TRUE
   } else {
     all_slices <- readDICOM(img_dirs[img_idx])
     nii <- dicom2nifti(all_slices)
