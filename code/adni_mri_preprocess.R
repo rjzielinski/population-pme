@@ -3,11 +3,12 @@ dir.create(newtemp, recursive = TRUE)
 Sys.setenv(TMPDIR = tools::file_path_as_absolute(newtemp))
 unlink(tempdir(), recursive = TRUE)
 
+library(divest)
 library(doFuture)
 library(foreach)
 library(fslr)
-library(oro.dicom)
-library(oro.nifti)
+# library(oro.dicom)
+# library(oro.nifti)
 library(neurobase)
 library(progressr)
 # library(extrantsr)
@@ -35,8 +36,7 @@ ncores <- parallel::detectCores()
 plan(multisession, workers = ncores / 2)
 
 segment_imgs <- function(img_dirs) {
-  options(warn = 1)
-  # p <- progressor(along = img_dirs)
+  p <- progressor(along = img_dirs)
   error_list <- foreach (
       img_idx = seq_along(img_dirs), 
       # .packages = c("oro.dicom", "oro.nifti", "neurobase", "fslr", "magrittr"),
@@ -45,7 +45,6 @@ segment_imgs <- function(img_dirs) {
     ) %dofuture% {
 # foreach(dir_idx = 1:64) %dopar% {
       img_val <- str_split(img_dirs[img_idx], "/")[[1]][6]
-      print(img_idx)
       proc_dir <- paste0(
         "data/adni_processed_fsl", 
         gsub(pattern = "data/ADNI", replacement = "", img_dirs[img_idx])
@@ -55,8 +54,9 @@ segment_imgs <- function(img_dirs) {
       } else if (img_val %in% skip_imgs) {
         seg_error <- TRUE
       } else {
-        all_slices <- readDICOM(img_dirs[img_idx])
-        nii <- dicom2nifti(all_slices)
+        # all_slices <- readDICOM(img_dirs[img_idx])
+        # nii <- dicom2nifti(all_slices)
+        nii <- readDicom(img_dirs[img_idx], interactive = FALSE, verbosity = -1)
 
         first_out <- run_first_all(
           nii,
@@ -64,7 +64,7 @@ segment_imgs <- function(img_dirs) {
           verbose = FALSE,
           opts = "-d"
         )
-#         p(sprintf("img: %s", img_val))
+        p(sprintf("img: %s", img_val))
         seg_error <- is.null(first_out$segmentation)
       }
       seg_error
