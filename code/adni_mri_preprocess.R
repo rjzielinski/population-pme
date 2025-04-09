@@ -3,17 +3,19 @@ dir.create(newtemp, recursive = TRUE)
 Sys.setenv(TMPDIR = tools::file_path_as_absolute(newtemp))
 unlink(tempdir(), recursive = TRUE)
 
-library(doSNOW)
+library(doFuture)
+library(foreach)
+library(fslr)
 library(oro.dicom)
 library(oro.nifti)
 library(neurobase)
-library(fslr)
+library(progressr)
 # library(extrantsr)
 library(stringr)
-library(foreach)
 library(tidyverse)
 library(lubridate)
 # library(ANTsRCore)
+handlers(global = TRUE)
 
 skip_imgs <- c("I436253")
 
@@ -30,41 +32,47 @@ mni_nifti <- readNIfTI(
 )
 
 ncores <- parallel::detectCores()
-cl <- parallel::makeCluster(ncores / 2)
-registerDoSNOW(cl = cl)
+plan(multisession, workers = ncores / 2)
 
-error_list <- foreach (
-  img_idx = seq_along(img_dirs), 
-  .packages = c("oro.dicom", "oro.nifti", "neurobase", "fslr", "magrittr"),
-  .export = c("img_dirs"),
-  .errorhandling = "pass"
-) %dopar% {
+segment_imgs <- function(img_dirs) {
+  options(warn = 1)
+  # p <- progressor(along = img_dirs)
+  error_list <- foreach (
+      img_idx = seq_along(img_dirs), 
+      # .packages = c("oro.dicom", "oro.nifti", "neurobase", "fslr", "magrittr"),
+      # .export = c("img_dirs"),
+      .errorhandling = "pass"
+    ) %dofuture% {
 # foreach(dir_idx = 1:64) %dopar% {
-  img_val <- str_split(img_dirs[img_idx], "/")[[1]][6]
-  proc_dir <- paste0(
-    "data/adni_processed_fsl", 
-    gsub(pattern = "data/ADNI", replacement = "", img_dirs[img_idx])
-  )
-  if (file.exists(paste0(proc_dir, "/_all_fast_origsegs.nii.gz"))) {
-    seg_error <- FALSE
-  } else if (img_val %in% skip_imgs) {
-    seg_error <- TRUE
-  } else {
-    all_slices <- readDICOM(img_dirs[img_idx])
-    nii <- dicom2nifti(all_slices)
+      img_val <- str_split(img_dirs[img_idx], "/")[[1]][6]
+      print(img_idx)
+      proc_dir <- paste0(
+        "data/adni_processed_fsl", 
+        gsub(pattern = "data/ADNI", replacement = "", img_dirs[img_idx])
+      )
+      if (file.exists(paste0(proc_dir, "/_all_fast_origsegs.nii.gz"))) {
+        seg_error <- FALSE
+      } else if (img_val %in% skip_imgs) {
+        seg_error <- TRUE
+      } else {
+        all_slices <- readDICOM(img_dirs[img_idx])
+        nii <- dicom2nifti(all_slices)
 
-    first_out <- run_first_all(
-      nii,
-      oprefix = proc_dir,
-      verbose = FALSE,
-      opts = "-d"
-    )
-    seg_error <- is.null(first_out$segmentation)
-  }
-  seg_error
+        first_out <- run_first_all(
+          nii,
+          oprefix = proc_dir,
+          verbose = FALSE,
+          opts = "-d"
+        )
+#         p(sprintf("img: %s", img_val))
+        seg_error <- is.null(first_out$segmentation)
+      }
+      seg_error
+    }
+  return(error_list)
 }
 
-parallel::stopCluster(cl = cl)
+error_list <- segment_imgs(img_dirs)
 
 error_list <- reduce(error_list, c)
 segmentation_errors <- img_dirs[error_list]
