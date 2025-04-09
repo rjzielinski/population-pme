@@ -18,7 +18,7 @@ library(lubridate)
 # library(ANTsRCore)
 handlers(global = TRUE)
 
-skip_imgs <- c("I436253")
+skip_imgs <- c("I436253", "I59843")
 
 img_dirs <- list.files("data/ADNI", recursive = TRUE, full.names = TRUE) %>%
   gsub(pattern = "([^/]+$)", replacement = "") %>%
@@ -33,7 +33,7 @@ mni_nifti <- readNIfTI(
 )
 
 ncores <- parallel::detectCores()
-plan(multisession, workers = ncores / 2)
+plan(cluster, workers = ncores / 2)
 
 segment_imgs <- function(img_dirs) {
   p <- progressor(along = img_dirs)
