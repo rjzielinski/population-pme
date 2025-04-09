@@ -1,87 +1,93 @@
-%\documentclass[12pt]{amsart}
-\documentclass[11pt,reqno]{article}
-%\usepackage{cases}
-
-%\RequirePackage[numbers]{natbib}
-%\RequirePackage[authoryear]{natbib}%% uncomment this for author-year citations
-\RequirePackage[colorlinks,citecolor=blue,urlcolor=blue]{hyperref}%% uncomment this for coloring bibliography citations and linked URLs
-\RequirePackage{graphicx}%% uncomment this for including figures
-
-\usepackage[
-  backend=biber,
-  style=authoryear
-]{biblatex}
-
-\addbibresource{references.bib}
-
-\usepackage{setspace}
+\documentclass[12pt]{article}
+\usepackage{algorithm2e}
+\usepackage{amscd}
+\usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{amscd}
 \usepackage{amsthm}
-\usepackage{amsfonts}
-\usepackage{mathrsfs}
-\usepackage{graphicx}
-\graphicspath{{figures/}}
-\usepackage[perpage,symbol*]{footmisc}
-\usepackage{float}
-\usepackage{hyperref}
-\usepackage{color}  
-\usepackage{tikz}
-\usepackage{caption}
-\usepackage{subcaption}
-
-\usepackage{algorithm2e}
-
-%\usepackage{natbib}
-%\bibliographystyle{abbrvnat}
-%\setcitestyle{authoryear,open={(},close={)}}
 \usepackage{authblk}
-
-\usepackage{csquotes}
 \usepackage[english]{babel}
+\usepackage{bm}
+\usepackage{caption}
+\usepackage{color}
+\usepackage{float}
+\usepackage[perpage, symbol*]{footmisc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumerate}
+\usepackage{mathrsfs}
+\usepackage{natbib}
+\usepackage{setspace}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usepackage{url}
 
-\renewcommand{\baselinestretch}{1.0}
-\setlength{\oddsidemargin}{-0.5cm}
-\setlength{\evensidemargin}{-0.5cm}
-\renewcommand{\topmargin}{-2cm}
-\renewcommand{\oddsidemargin}{0mm}
-\renewcommand{\evensidemargin}{0mm}
-\renewcommand{\textwidth}{180mm}
-\renewcommand{\textheight}{240mm}
+\newcommand{\blind}{1}
+\graphicspath{{figures/}}
+
+\addtolength{\oddsidemargin}{-.5in}%
+\addtolength{\evensidemargin}{-1in}%
+\addtolength{\textwidth}{1in}%
+\addtolength{\textheight}{1.7in}%
+\addtolength{\topmargin}{-1in}%
+
+\pdfminorversion=4
 
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \newcommand{\T}{\intercal}
-\newcommand{\commentout}[1]{}
-
-\newcommand{\kmedit}[1]{{\color{purple}  #1}}
-\newcommand{\meng}[1]{{\color{purple} \sf $\clubsuit\clubsuit\clubsuit$ Kun Meng: [#1]}}
-\newcommand{\Meng}[1]{\margMa{(Kun Meng) #1}}
-
-\newcommand{\zielinski}[1]{{\color{blue} \sf $\spadesuit\spadesuit\spadesuit$ Rob Zielinski: [#1]}}
 
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
 
+\setcitestyle{aysep={}}
+
 \begin{document}
 
-\title{Hierarchical Principal Manifold Estimation}
-\author[1]{Robert Zielinski}
-\author[2]{Kun Meng}
-\author[1]{Ani Eloyan}
-\affil[1]{Department of Biostatistics, Brown University}
-\affil[2]{Division of Applied Mathematics, Brown University}
+\def\spacingset#1{\renewcommand{\baselinestretch}%
+{#1}\small\normalsize} \spacingset{1}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\maketitle
+\if1\blind
+{
+  \title{\bf A Principal Manifold-based Framework for Comparisons of Group-Level Manifold Estimates}
+  \author{
+    Robert Zielinski\hspace{.2cm}\\
+    Department of Biostatistics, Brown University\\
+    Kun Meng \\
+    Division of Applied Mathematics, Brown University\\
+    and \\
+    Ani Eloyan \\
+    Department of Biostatistics, Brown University\\
+    for the Alzheimer's Disease Neuroimaging Initiative\thanks{Data used in preparation of this article were obtained from the Alzheimer's Disease Neuroimaging Initiative (ADNI) database (adni.loni.usc.edu). As such, the investigators within the ADNI contributed to the design and implementation of ADNI and/or provided data but did not participate in analysis or writing of this report. A complete listing of ADNI investigators can be found at \href{http://adni.loni.usc.edu/wp-content/uploads/how_to_apply/ADNI_Acknowledgement_List.pdf}{\texttt{http://adni.loni.usc.edu/wp-content/uploads/how\_to\_apply/ADNI\_Acknowledgement\_List.pdf}}}}
+  \maketitle
+} \fi
 
-\doublespacing
+\if0\blind
+{
+  \bigskip
+  \bigskip
+  \bigskip
+  \begin{center}
+    {\LARGE\bf A Principal Manifold-based Framework for Comparisons of Group-Level Manifold Estimates}
+\end{center}
+  \medskip
+} \fi
 
-\section*{Abstract} \label{s:abstract}
+\bigskip
+\begin{abstract}
+Structural magnetic resonance imaging (MRI) data is frequently used to detect and monitor the progression of neurodegenerative conditions, such as Alzheimer's disease (AD). While 
+\end{abstract}
 
+\noindent%
+{\it Keywords:}  Alzheimer's disease, smoothing spline, magnetic resonance imaging
+\vfill
+
+\newpage
+\spacingset{1.9}
 \section{Introduction} \label{s:hpme_intro}
 
 Neurodegenerative diseases such as Alzheimer's disease (AD) and Parkinson's disease are highly complex, chronic conditions that exhibit substantial heterogeneity between patients. To enable researchers to identify potential biomarkers of progression for these conditions, large multi-site longitudinal observational studies have been conducted that collect information from a wide range of participants over long durations across several modalities, including neuroimaging (\cite{muellerWaysEarlyDiagnosis2005}, \cite{marekParkinsonProgressionMarker2011}). Neuroimaging data in particular have been shown to be sensitive to developments in the early stages of disease progression, often before diagnosis occurs (\cite{jackHypotheticalModelDynamic2010}).
@@ -122,7 +128,7 @@ Within a segmented structural MRI, the voxels estimated to mark the surface of t
 
 The embedding function which maps from the $d$-dimensional manifold to $D$-dimensional ambient space is represented as $\psi(\mathbf{y}_{jq})$, which can be modeled as 
 \begin{equation}
-  \mathbf{x}_{jq} = \psi(\mathbf{y}_{jq}, t_j) = f_p(\mathbf{y}_{jq}, t_{j}) + f_{g(j)}(\mathbf{y}_{jq}, t_{j}) + f_{i(j)}(\mathbf{y}_{jq}, t_{j}) + f_j(\mathbf{y}_{jq}) + \epsilon_{jq}. \label{eq:2}
+  \mathbf{x}_{jq} = \psi(\mathbf{y}_{jq}, t_j) = f_p(\mathbf{y}_{jq}, t_{j}) + f_{g(j)}(\mathbf{y}_{jq}, t_{j}) + f_{i(j)}(\mathbf{y}_{jq}, t_{j}) + f_j(\mathbf{y}_{jq}) + \epsilon_{jq}j. \label{eq:2}
 \end{equation}
 The embedding map $\psi(\mathbf{y})$ is associated with a projection index $\kappa_{\psi}(\mathbf{x}): \mathbb{R}^{D} \to \mathbb{R}^{d}$, which, informally, outputs the $d$-dimensional parameterization $\mathbf{y}$ that minimizes $\|\mathbf{x} - \psi(\mathbf{y})\|_{\mathbb{R}^{D}}$ and follows the generalized definition of projection indices given in \cite{mengPrincipalManifoldEstimation2021}.
 
@@ -380,9 +386,8 @@ Further work will be dedicated to testing the proposed approach in several setti
 
 \newpage
 
-\nocite{*}
-%\bibliographystyle{plain}
-%\bibliography{references}
-\printbibliography
+\bibliographystyle{jasa}
+\bibliography{references}
+
 
 \end{document}
