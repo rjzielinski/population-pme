@@ -24,7 +24,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     weights,
     lambda,
     scan_folds[scans],
-    parallel = "multicore"
+    parallel = "multisession"
   )
 
   print("Initializing Group models")
@@ -67,7 +67,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
         group_weights,
         lambda,
         id_folds[group_ids],
-        parallel = "multicore"
+        parallel = "multisession"
       )
 
       list(
@@ -282,7 +282,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       weights,
       lambda,
       scan_folds[scans],
-      parallel = "multicore"
+      parallel = "multisession"
     )
 
     avail_cores <- min(length(unique(groups)), cores - k)
@@ -319,7 +319,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
           group_weights,
           lambda,
           id_folds[group_ids],
-          parallel = "multicore"
+          parallel = "multisession"
         )
 
         list(
@@ -387,7 +387,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
           id_weights,
           lambda,
           scan_fold_vals,
-          parallel = "multicore"
+          parallel = "multisession"
         )
 
         list(
