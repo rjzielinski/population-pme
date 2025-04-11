@@ -37,44 +37,56 @@ plan(multisession, workers = ncores / 2)
 
 segment_imgs <- function(img_dirs) {
   p <- progressor(along = img_dirs)
-  error_list <- foreach (
-      img_idx = seq_along(img_dirs), 
-      # .packages = c("oro.dicom", "oro.nifti", "neurobase", "fslr", "magrittr"),
-      # .export = c("img_dirs"),
-      .errorhandling = "pass"
-    ) %dofuture% {
+  foreach (
+    img_idx = seq_along(img_dirs), 
+    # .packages = c("oro.dicom", "oro.nifti", "neurobase", "fslr", "magrittr"),
+    # .export = c("img_dirs"),
+    .errorhandling = "pass"
+  ) %dofuture% {
 # foreach(dir_idx = 1:64) %dopar% {
-      img_val <- str_split(img_dirs[img_idx], "/")[[1]][6]
-      proc_dir <- paste0(
-        "data/adni_processed_fsl", 
-        gsub(pattern = "data/ADNI", replacement = "", img_dirs[img_idx])
-      )
-      if (file.exists(paste0(proc_dir, "/_all_fast_origsegs.nii.gz"))) {
-        seg_error <- FALSE
-      } else if (img_val %in% skip_imgs) {
-        seg_error <- TRUE
-      } else {
-        # all_slices <- readDICOM(img_dirs[img_idx])
-        # nii <- dicom2nifti(all_slices)
-        nii <- readDicom(img_dirs[img_idx], interactive = FALSE, verbosity = -1)
+    img_val <- str_split(img_dirs[img_idx], "/")[[1]][6]
+    proc_dir <- paste0(
+      "data/adni_processed_fsl", 
+      gsub(pattern = "data/ADNI", replacement = "", img_dirs[img_idx])
+    )
+    if (file.exists(paste0(proc_dir, "/_all_fast_origsegs.nii.gz"))) {
+    } else if (img_val %in% skip_imgs) {
+    } else {
+      # all_slices <- readDICOM(img_dirs[img_idx])
+      # nii <- dicom2nifti(all_slices)
+      nii <- readDicom(img_dirs[img_idx], interactive = FALSE, verbosity = -1)
 
-        first_out <- run_first_all(
-          nii,
-          oprefix = proc_dir,
-          verbose = FALSE,
-          opts = "-d"
-        )
-        p(sprintf("img: %s", img_val))
-        seg_error <- is.null(first_out$segmentation)
-      }
-      seg_error
+      run_first_all(
+        nii,
+        oprefix = proc_dir,
+        verbose = FALSE,
+        opts = "-d"
+      )
+      
+      p(sprintf("img: %s", img_val))
+      gc()
     }
-  return(error_list)
+    NULL
+  }
+  return(NULL)
 }
 
-error_list <- segment_imgs(img_dirs)
+segment_imgs(img_dirs)
 
-error_list <- reduce(error_list, c)
+processed_dirs <- gsub(
+  pattern = "data/ADNI", 
+  replacement = "data/adni_processed_fsl", 
+  img_dirs
+)
+error_list <- map(
+  processed_dirs,
+  ~ ifelse(
+    file.exists(paste0(.x, "/_all_fast_origsegs.nii.gz")),
+    FALSE,
+    TRUE
+  )
+) |>
+  reduce(c)
 segmentation_errors <- img_dirs[error_list]
 
 saveRDS(segmentation_errors, "data/segmentation_errors.rds")
