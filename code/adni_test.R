@@ -487,9 +487,8 @@ lhipp_projections_pop <- map(
   seq_len(nrow(lhipp_surface_inputs)),
   ~ additive_model[[lhipp_partition[.x]]]$population_embedding$embedding_map(lhipp_params[.x, ]),
   .progress = TRUE
-  ) |>
+) |>
   reduce(rbind)
-)
 
 hpme_msd <- map(
   seq_len(nrow(lhipp_surface_inputs)),
