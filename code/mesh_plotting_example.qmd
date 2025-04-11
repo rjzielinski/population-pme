@@ -1,0 +1,130 @@
+---
+title: "plotly mesh plotting example"
+author: "Rob Zielinski"
+date: "04/07/2025"
+---
+
+
+```{r}
+library(alphashape3d)
+library(doParallel)
+library(foreach)
+library(Morpho)
+library(plotly)
+library(pme)
+library(progress)
+library(rgl)
+library(Rfast)
+library(tidyverse)
+
+source("code/functions/fit_weighted_spline.R")
+source("code/functions/print_SSD.R")
+source("code/functions/fit_adni_additive_model.R")
+source("code/functions/plot_id_pred.R")
+source("code/functions/calculate_pme_reconstructions.R")
+
+SSD_ratio_threshold <- 5
+verbose <- TRUE
+
+lhipp_surface <- read_csv("data_old/adni_fsl_lhipp_surface.csv")
+adni_info <- read_csv("data_old/adni_fsl_info.csv")
+
+lhipp_surface <- lhipp_surface |>
+  mutate(
+    date = decimal_date(date),
+    Group = gsub("EMCI", "MCI", Group),
+    Group = gsub("LMCI", "MCI", Group),
+  )
+
+lhipp_surface_centers <- lhipp_surface |>
+  group_by(subid, date, scan_id) |>
+  summarize(
+    mean_x = mean(x),
+    mean_y = mean(y),
+    mean_z = mean(z),
+    max_x = max(abs(x - mean_x)),
+    max_y = max(abs(y - mean_y)),
+    max_z = max(abs(z - mean_z))
+  )
+
+lhipp_bl <- lhipp_surface |>
+  group_by(subid) |>
+  arrange(date) |>
+  summarize(
+    date_bl = first(date),
+    max_date = max(date)
+  ) |>
+  mutate(duration = max_date - date_bl)
+
+lhipp_surface <- lhipp_surface |>
+  full_join(lhipp_surface_centers, by = c("subid", "date", "scan_id")) |>
+  full_join(lhipp_bl, by = "subid") |>
+  mutate(
+    x = (x - mean_x) / max_x,
+    y = (y - mean_y) / max_y,
+    z = (z - mean_z) / max_z,
+    time_from_bl = date - date_bl,
+    partition = ifelse(x > 0, 1, 2)
+  )
+
+lhipp_test <- lhipp_surface |>
+  filter(image_id == "I13721") |>
+  select(x, y, z) |>
+  as.matrix()
+
+ash <- ashape3d(
+  lhipp_test,
+  alpha = 0.25,
+  pert = TRUE
+)
+test_mesh <- as.mesh3d(ash)
+```
+
+
+```{r}
+plot_ly(
+  x = test_mesh$vb[1, ],
+  y = test_mesh$vb[2, ],
+  z = test_mesh$vb[3, ],
+  i = test_mesh$it[1, ] - 1,
+  j = test_mesh$it[2, ] - 1,
+  k = test_mesh$it[3, ] - 1,
+  type = "mesh3d"
+) |>
+  layout(scene = list(aspectmode = "data"))
+```
+
+
+```{r}
+plot_ly(
+  x = lhipp_test[, 1],
+  y = lhipp_test[, 2],
+  z = lhipp_test[, 3],
+  type = "scatter3d",
+  mode = "markers",
+  marker = list(size = 3)
+)
+```
+
+
+```{r}
+data(nose)##load data
+##warp a mesh onto another landmark configuration:
+longnose.mesh <- tps3d(shortnose.mesh, shortnose.lm, longnose.lm,threads=1)
+## Not run: 
+mD <- meshDist(longnose.mesh, shortnose.mesh)
+##now change the color ramp
+render(mD,rampcolors = c("white","red"))
+
+## End(Not run)
+#use unsigned distances and a ramp from blue to red
+#color distances < 0.01 green:
+## Not run: 
+meshDist(
+  longnose.mesh, 
+  shortnose.mesh, 
+  rampcolors = c("blue", "red"),
+  sign=FALSE, 
+  tol=0.5
+)
+```
