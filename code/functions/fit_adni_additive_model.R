@@ -1,4 +1,5 @@
-fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, scans, times, epsilon = 0.05, max_iter = 100) {
+fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, scans, times, epsilon = 0.05, max_iter = 100, cores = 1) {
+  require(future, quietly = TRUE)
   require(pme, quietly = TRUE)
   D <- ncol(x)
   d <- ncol(params)
@@ -6,7 +7,6 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   groups <- as.factor(groups)
   ids = as.factor(ids)
   scans <- as.factor(scans)
-
 
   fold_vec_full <- rep(1:k, ceiling(length(unique(scans)) / k))
   scan_folds <- fold_vec_full[
@@ -17,13 +17,14 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     )
   ]
 
-  print("Initializing population model")
+  print("Initializing Population model")
   init_population_embedding <- fit_weighted_spline(
     x,
     params,
     weights,
     lambda,
-    scan_folds[scans]
+    scan_folds[scans],
+    parallel = "multicore"
   )
 
   print("Initializing Group models")
@@ -31,39 +32,58 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   group_x <- list()
   group_params <- list()
   group_weights <- list()
-  group_coefs <- list()
+
+  avail_cores <- min(length(unique(groups)), cores - k)
+  plan(multisession, workers = avail_cores)
+  group_out <- list()
+  for (group_idx in seq_along(unique(groups))) {
+    group_out[[group_idx]] <- future({
+      group_set <- groups == unique(groups)[group_idx]
+      group_x <- x[group_set, ]
+      group_params <- params[group_set, ]
+      group_weights <- weights[group_set]
+      group_ids <- droplevels(ids[group_set])
+      if (length(unique(group_ids)) < k) {
+        temp_k <- length(unique(group_ids))
+      } else {
+        temp_k <- k
+      }
+      id_fold_vec <- rep(1:temp_k, ceiling(length(unique(group_ids)) / temp_k))
+      id_folds <- id_fold_vec[
+        sample(
+          unique(group_ids),
+          length(unique(group_ids)),
+          replace = FALSE
+        )
+      ]
+      group_preds <- map(
+        1:nrow(group_params),
+        ~ init_population_embedding$embedding_map(group_params[.x, ])
+      ) %>%
+        reduce(rbind)
+      init_group_embeddings <- fit_weighted_spline(
+        group_x - group_preds,
+        group_params,
+        group_weights,
+        lambda,
+        id_folds[group_ids],
+        parallel = "multicore"
+      )
+
+      list(
+        embeddings = init_group_embeddings,
+        group_x = group_x,
+        group_params = group_params,
+        group_weights = group_weights
+      )
+    }, seed = TRUE)
+  }
 
   for (group_idx in seq_along(unique(groups))) {
-    group_set <- groups == unique(groups)[group_idx]
-    group_x[[group_idx]] <- x[group_set,]
-    group_params[[group_idx]] <- params[group_set,] 
-    group_weights[[group_idx]] <- weights[group_set]
-    group_ids <- droplevels(ids[group_set])
-    if (length(unique(group_ids)) < k) {
-      temp_k <- length(unique(group_ids))
-    } else {
-      temp_k <- k
-    }
-    id_fold_vec <- rep(1:temp_k, ceiling(length(unique(group_ids)) / temp_k))
-    id_folds <- id_fold_vec[
-      sample(
-        unique(group_ids),
-        length(unique(group_ids)),
-        replace = FALSE
-      )
-    ]
-    group_preds <- map(
-      1:nrow(group_params[[group_idx]]),
-      ~ init_population_embedding$embedding_map(group_params[[group_idx]][.x, ])
-    ) %>%
-      reduce(rbind)
-    init_group_embeddings[[group_idx]] <- fit_weighted_spline(
-      group_x[[group_idx]] - group_preds,
-      group_params[[group_idx]],
-      group_weights[[group_idx]],
-      lambda,
-      id_folds[group_ids]
-    )
+    init_group_embeddings[[group_idx]] <- value(group_out[[group_idx]])$embeddings
+    group_x[[group_idx]] <- value(group_out[[group_idx]])$group_x
+    group_params[[group_idx]] <- value(group_out[[group_idx]])$group_params
+    group_weights[[group_idx]] <- value(group_out[[group_idx]])$group_weights
   }
 
   print("Initializing ID models")
@@ -71,53 +91,72 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   id_x <- list()
   id_params <- list()
   id_weights <- list()
-  id_coefs <- list()
+
+  avail_cores <- min(length(unique(ids)), cores - k)
+  plan(multisession, workers = avail_cores)
+  id_out <- list()
   for (id_idx in 1:length(unique(ids))) {
-    id_set <- ids == unique(ids)[id_idx]
-    id_group  <- which(unique(groups) == unique(groups[id_set]))
-    id_x[[id_idx]] <- x[id_set, ]
-    id_params[[id_idx]] <- params[id_set, ]
-    id_weights[[id_idx]] <- weights[id_set]
-    id_scans <- droplevels(scans[id_set])
-    if (length(unique(id_scans)) < k) {
-      temp_k <- length(unique(id_scans))
-    } else {
-      temp_k <- k
-    }
-    scan_fold_vec <- rep(1:temp_k, ceiling(length(unique(id_scans)) / temp_k))
-    scan_folds <- scan_fold_vec[
-      sample(
-        unique(id_scans),
-        length(unique(id_scans)),
-        replace = FALSE
-      )
-    ]
-    scan_fold_vals <- scan_folds[id_scans]
-    if (length(unique(id_scans)) == 1) {
-      scan_fold_vec <- rep(1:k, ceiling(nrow(id_x[[id_idx]]) / k))
-      scan_fold_vals <- scan_fold_vec[
+    id_out[[id_idx]] <- future({
+      id_set <- ids == unique(ids)[id_idx]
+      id_group  <- which(unique(groups) == unique(groups[id_set]))
+      id_x <- x[id_set, ]
+      id_params <- params[id_set, ]
+      id_weights <- weights[id_set]
+      id_scans <- droplevels(scans[id_set])
+      if (length(unique(id_scans)) < k) {
+        temp_k <- length(unique(id_scans))
+      } else {
+        temp_k <- k
+      }
+      scan_fold_vec <- rep(1:temp_k, ceiling(length(unique(id_scans)) / temp_k))
+      scan_folds <- scan_fold_vec[
         sample(
-          1:nrow(id_x[[id_idx]]),
-          nrow(id_x[[id_idx]]),
+          unique(id_scans),
+          length(unique(id_scans)),
           replace = FALSE
         )
       ]
-    }
-    id_preds <- map(
-      1:nrow(id_params[[id_idx]]),
-      ~ (
-       init_population_embedding$embedding_map(id_params[[id_idx]][.x, ]) +
-       init_group_embeddings[[id_group]]$embedding_map(id_params[[id_idx]][.x, ])
+      scan_fold_vals <- scan_folds[id_scans]
+      if (length(unique(id_scans)) == 1) {
+        scan_fold_vec <- rep(1:k, ceiling(nrow(id_x) / k))
+        scan_fold_vals <- scan_fold_vec[
+          sample(
+            1:nrow(id_x),
+            nrow(id_x),
+            replace = FALSE
+          )
+        ]
+      }
+      id_preds <- map(
+        1:nrow(id_params),
+        ~ (
+        init_population_embedding$embedding_map(id_params[.x, ]) +
+        init_group_embeddings[[id_group]]$embedding_map(id_params[.x, ])
+        )
+      ) %>%
+        reduce(rbind)
+      init_id_embeddings <- fit_weighted_spline(
+        id_x - id_preds,
+        id_params,
+        id_weights,
+        lambda,
+        scan_fold_vals
       )
-    ) %>%
-      reduce(rbind)
-    init_id_embeddings[[id_idx]] <- fit_weighted_spline(
-      id_x[[id_idx]] - id_preds,
-      id_params[[id_idx]],
-      id_weights[[id_idx]],
-      lambda,
-      scan_fold_vals
-    )
+
+      list(
+        embeddings = init_id_embeddings,
+        id_x = id_x,
+        id_params = id_params,
+        id_weights = id_weights
+      )
+    }, seed = TRUE)
+  }
+
+  for (id_idx in seq_along(unique(ids))) {
+    init_id_embeddings[[id_idx]] <- value(id_out[[id_idx]])$embeddings
+    id_x[[id_idx]] <- value(id_out[[id_idx]])$id_x
+    id_params[[id_idx]] <- value(id_out[[id_idx]])$id_params
+    id_weights[[id_idx]] <- value(id_out[[id_idx]])$id_weights
   }
 
   print("Initializing Image models")
@@ -125,50 +164,71 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   img_x <- list()
   img_params <- list()
   img_weights <- list()
-  img_coefs <- list()
   mean_x <- list()
+
+  avail_cores <- min(length(unique(scans)), cores)
+  plan(multisession, workers = avail_cores)
+  img_out <- list()
   for (img_idx in seq_along(unique(scans))) {
-    img_set <- scans == unique(scans)[img_idx]
-    img_group  <- which(unique(groups) == unique(groups[img_set]))
-    img_id <- which(unique(ids) == unique(ids[img_set]))
-    img_x[[img_idx]] <- x[img_set, ]
-    img_params[[img_idx]] <- params[img_set, ]
-    img_weights[[img_idx]] <- weights[img_set]
-    obs_fold_vec <- rep(1:k, ceiling(sum(img_set) / k))
-    obs_folds <- obs_fold_vec[
-      sample(
-        1:sum(img_set),
-        sum(img_set),
-        replace = FALSE
+    img_out[[img_idx]] <- future({
+      img_set <- scans == unique(scans)[img_idx]
+      img_group  <- which(unique(groups) == unique(groups[img_set]))
+      img_id <- which(unique(ids) == unique(ids[img_set]))
+      img_x <- x[img_set, ]
+      img_params <- params[img_set, ]
+      img_weights <- weights[img_set]
+      obs_fold_vec <- rep(1:k, ceiling(sum(img_set) / k))
+      obs_folds <- obs_fold_vec[
+        sample(
+          1:sum(img_set),
+          sum(img_set),
+          replace = FALSE
+        )
+      ]
+      img_preds <- map(
+        1:nrow(img_params),
+        ~ (
+          init_population_embedding$embedding_map(img_params[.x, ]) +
+          init_group_embeddings[[img_group]]$embedding_map(img_params[.x, ]) +
+          init_id_embeddings[[img_id]]$embedding_map(img_params[.x, ])
+        )
+      ) %>%
+        reduce(rbind)
+      init_img_embeddings <- fit_weighted_spline(
+        img_x - img_preds,
+        img_params,
+        img_weights,
+        lambda,
+        obs_folds
       )
-    ]
-    img_preds <- map(
-      1:nrow(img_params[[img_idx]]),
-      ~ (
-       init_population_embedding$embedding_map(img_params[[img_idx]][.x, ]) +
-       init_group_embeddings[[img_group]]$embedding_map(img_params[[img_idx]][.x, ]) +
-       init_id_embeddings[[img_id]]$embedding_map(img_params[[img_idx]][.x, ])
+      mean_x <- map(
+        1:nrow(img_params),
+        ~ (
+          init_population_embedding$embedding_map(img_params[.x, ]) +
+          init_group_embeddings[[img_group]]$embedding_map(img_params[.x, ]) +
+          init_id_embeddings[[img_id]]$embedding_map(img_params[.x, ]) +
+          init_img_embeddings$embedding_map(img_params[.x, ])
+        )
+      ) %>%
+        reduce(rbind) %>%
+        colMeans()
+
+      list(
+        embeddings = init_img_embeddings,
+        img_x = img_x,
+        img_params = img_params,
+        img_weights = img_weights,
+        mean_x = mean_x
       )
-    ) %>%
-      reduce(rbind)
-    init_img_embeddings[[img_idx]] <- fit_weighted_spline(
-      img_x[[img_idx]] - img_preds,
-      img_params[[img_idx]],
-      img_weights[[img_idx]],
-      lambda,
-      obs_folds
-    )
-    mean_x[[img_idx]] <- map(
-      1:nrow(img_params[[img_idx]]),
-      ~ (
-        init_population_embedding$embedding_map(img_params[[img_idx]][.x, ]) +
-        init_group_embeddings[[img_group]]$embedding_map(img_params[[img_idx]][.x, ]) +
-        init_id_embeddings[[img_id]]$embedding_map(img_params[[img_idx]][.x, ]) +
-        init_img_embeddings[[img_idx]]$embedding_map(img_params[[img_idx]][.x, ])
-      )
-    ) %>%
-      reduce(rbind) %>%
-      colMeans()
+    }, seed = TRUE)
+  }
+
+  for (img_idx in seq_along(unique(scans))) {
+    init_img_embeddings[[img_idx]] <- value(img_out[[img_idx]])$embeddings
+    img_x[[img_idx]] <- value(img_out[[img_idx]])$img_x
+    img_params[[img_idx]] <- value(img_out[[img_idx]])$img_params
+    img_weights[[img_idx]] <- value(img_out[[img_idx]])$img_weights
+    mean_x[[img_idx]] <- value(img_out[[img_idx]])$mean_x
   }
 
   epsilon_hat <- 2 * epsilon
@@ -221,138 +281,194 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       params,
       weights,
       lambda,
-      scan_folds[scans]
+      scan_folds[scans],
+      parallel = "multicore"
     )
 
+    avail_cores <- min(length(unique(groups)), cores - k)
+    plan(multisession, workers = avail_cores)
+    group_out <- list()
     for (group_idx in seq_along(unique(groups))) {
-      group_set <- groups == unique(groups)[group_idx]
-      group_x[[group_idx]] <- x[group_set, ]
-      group_params[[group_idx]] <- params[group_set, ]
-      group_weights[[group_idx]] <- weights[group_set]
-      group_ids <- droplevels(ids[group_set])
-      if (length(unique(group_ids)) < k) {
-        temp_k <- length(unique(group_ids))
-      } else {
-        temp_k <- k
-      }
-      id_fold_vec <- rep(1:temp_k, ceiling(length(unique(group_ids)) / temp_k))
-      id_folds <- id_fold_vec[
-        sample(
-          unique(group_ids),
-          length(unique(group_ids)),
-          replace = FALSE
-        )
-      ]
-      group_preds <- map(
-        1:nrow(group_params[[group_idx]]),
-        ~ (
-          population_embedding$embedding_map(group_params[[group_idx]][.x, ]) +
-          id_embeddings[[ids[group_set][.x]]]$embedding_map(group_params[[group_idx]][.x, ]) +
-          img_embeddings[[scans[group_set][.x]]]$embedding_map(group_params[[group_idx]][.x, ])
-        )
-      ) %>%
-        reduce(rbind)
-      group_embeddings[[group_idx]] <- fit_weighted_spline(
-        group_x[[group_idx]] - group_preds,
-        group_params[[group_idx]],
-        group_weights[[group_idx]],
-        lambda,
-        id_folds[group_ids]
-      )
-    }
-
-
-    for (id_idx in 1:length(unique(ids))) {
-      id_set <- ids == unique(ids)[id_idx]
-      id_group  <- which(unique(groups) == unique(groups[id_set]))
-      id_x[[id_idx]] <- x[id_set, ]
-      id_params[[id_idx]] <- params[id_set, ]
-      id_weights[[id_idx]] <- weights[id_set]
-      id_scans <- droplevels(scans[id_set])
-      if (length(unique(id_scans)) < k) {
-        temp_k <- length(unique(id_scans))
-      } else {
-        temp_k <- k
-      }
-      scan_fold_vec <- rep(1:temp_k, ceiling(length(unique(id_scans)) / temp_k))
-      scan_folds <- scan_fold_vec[
-        sample(
-          unique(id_scans),
-          length(unique(id_scans)),
-          replace = FALSE
-        )
-      ]
-      scan_fold_vals <- scan_folds[id_scans]
-      if (length(unique(id_scans)) == 1) {
-        scan_fold_vec <- rep(1:k, ceiling(nrow(id_x[[id_idx]]) / k))
-        scan_fold_vals <- scan_fold_vec[
+      group_out[[group_idx]] <- future({
+        group_set <- groups == unique(groups)[group_idx]
+        group_x <- x[group_set, ]
+        group_params <- params[group_set, ]
+        group_weights <- weights[group_set]
+        group_ids <- droplevels(ids[group_set])
+        if (length(unique(group_ids)) < k) {
+          temp_k <- length(unique(group_ids))
+        } else {
+          temp_k <- k
+        }
+        id_fold_vec <- rep(1:temp_k, ceiling(length(unique(group_ids)) / temp_k))
+        id_folds <- id_fold_vec[
           sample(
-            1:nrow(id_x[[id_idx]]),
-            nrow(id_x[[id_idx]]),
+            unique(group_ids),
+            length(unique(group_ids)),
             replace = FALSE
           )
         ]
-      }
-      id_preds <- map(
-        1:nrow(id_params[[id_idx]]),
-        ~ (
-          population_embedding$embedding_map(id_params[[id_idx]][.x, ]) +
-          group_embeddings[[id_group]]$embedding_map(id_params[[id_idx]][.x, ]) +
-          img_embeddings[[scans[id_set][.x]]]$embedding_map(id_params[[id_idx]][.x, ])
+        group_preds <- map(
+          1:nrow(group_params),
+          ~ population_embedding$embedding_map(group_params[.x, ])
+        ) %>%
+          reduce(rbind)
+        group_embeddings <- fit_weighted_spline(
+          group_x - group_preds,
+          group_params,
+          group_weights,
+          lambda,
+          id_folds[group_ids],
+          parallel = "multicore"
         )
-      ) %>%
-        reduce(rbind)
-      id_embeddings[[id_idx]] <- fit_weighted_spline(
-        id_x[[id_idx]] - id_preds,
-        id_params[[id_idx]],
-        id_weights[[id_idx]],
-        lambda,
-        scan_fold_vals
-      )
+
+        list(
+          embeddings = group_embeddings,
+          group_x = group_x,
+          group_params = group_params,
+          group_weights = group_weights
+        )
+      }, seed = TRUE)
+    }
+
+    for (group_idx in seq_along(unique(groups))) {
+      group_embeddings[[group_idx]] <- value(group_out[[group_idx]])$embeddings
+      group_x[[group_idx]] <- value(group_out[[group_idx]])$group_x
+      group_params[[group_idx]] <- value(group_out[[group_idx]])$group_params
+      group_weights[[group_idx]] <- value(group_out[[group_idx]])$group_weights
+    }
+
+    avail_cores <- min(length(unique(ids)), cores - k)
+    plan(multisession, workers = avail_cores)
+    id_out <- list()
+    for (id_idx in 1:length(unique(ids))) {
+      id_out[[id_idx]] <- future({
+        id_set <- ids == unique(ids)[id_idx]
+        id_group  <- which(unique(groups) == unique(groups[id_set]))
+        id_x <- x[id_set, ]
+        id_params <- params[id_set, ]
+        id_weights <- weights[id_set]
+        id_scans <- droplevels(scans[id_set])
+        if (length(unique(id_scans)) < k) {
+          temp_k <- length(unique(id_scans))
+        } else {
+          temp_k <- k
+        }
+        scan_fold_vec <- rep(1:temp_k, ceiling(length(unique(id_scans)) / temp_k))
+        scan_folds <- scan_fold_vec[
+          sample(
+            unique(id_scans),
+            length(unique(id_scans)),
+            replace = FALSE
+          )
+        ]
+        scan_fold_vals <- scan_folds[id_scans]
+        if (length(unique(id_scans)) == 1) {
+          scan_fold_vec <- rep(1:k, ceiling(nrow(id_x) / k))
+          scan_fold_vals <- scan_fold_vec[
+            sample(
+              1:nrow(id_x),
+              nrow(id_x),
+              replace = FALSE
+            )
+          ]
+        }
+        id_preds <- map(
+          1:nrow(id_params),
+          ~ (
+          population_embedding$embedding_map(id_params[.x, ]) +
+          group_embeddings[[id_group]]$embedding_map(id_params[.x, ])
+          )
+        ) %>%
+          reduce(rbind)
+        id_embeddings <- fit_weighted_spline(
+          id_x - id_preds,
+          id_params,
+          id_weights,
+          lambda,
+          scan_fold_vals,
+          parallel = "multicore"
+        )
+
+        list(
+          embeddings = id_embeddings,
+          id_x = id_x,
+          id_params = id_params,
+          id_weights = id_weights
+        )
+      }, seed = TRUE)
+    }
+
+    for (id_idx in seq_along(unique(ids))) {
+      id_embeddings[[id_idx]] <- value(id_out[[id_idx]])$embeddings
+      id_x[[id_idx]] <- value(id_out[[id_idx]])$id_x
+      id_params[[id_idx]] <- value(id_out[[id_idx]])$id_params
+      id_weights[[id_idx]] <- value(id_out[[id_idx]])$id_weights
+    }
+
+    avail_cores <- min(length(unique(scans)), cores)
+    plan(multisession, workers = avail_cores)
+    img_out <- list()
+    for (img_idx in seq_along(unique(scans))) {
+      img_out[[img_idx]] <- future({
+        img_set <- scans == unique(scans)[img_idx]
+        img_group  <- which(unique(groups) == unique(groups[img_set]))
+        img_id <- which(unique(ids) == unique(ids[img_set]))
+        img_x <- x[img_set, ]
+        img_params <- params[img_set, ]
+        img_weights <- weights[img_set]
+        obs_fold_vec <- rep(1:k, ceiling(sum(img_set) / k))
+        obs_folds <- obs_fold_vec[
+          sample(
+            1:sum(img_set),
+            sum(img_set),
+            replace = FALSE
+          )
+        ]
+        img_preds <- map(
+          1:nrow(img_params),
+          ~ (
+            population_embedding$embedding_map(img_params[.x, ]) +
+            group_embeddings[[img_group]]$embedding_map(img_params[.x, ]) +
+            id_embeddings[[img_id]]$embedding_map(img_params[.x, ])
+          )
+        ) %>%
+          reduce(rbind)
+        img_embeddings <- fit_weighted_spline(
+          img_x - img_preds,
+          img_params,
+          img_weights,
+          lambda,
+          obs_folds
+        )
+        mean_x <- map(
+          1:nrow(img_params),
+          ~ (
+            population_embedding$embedding_map(img_params[.x, ]) +
+            group_embeddings[[img_group]]$embedding_map(img_params[.x, ]) +
+            id_embeddings[[img_id]]$embedding_map(img_params[.x, ]) +
+            img_embeddings$embedding_map(img_params[.x, ])
+          )
+        ) %>%
+          reduce(rbind) %>%
+          colMeans()
+
+        list(
+          embeddings = img_embeddings,
+          img_x = img_x,
+          img_params = img_params,
+          img_weights = img_weights,
+          mean_x = mean_x
+        )
+      }, seed = TRUE)
     }
 
     for (img_idx in seq_along(unique(scans))) {
-      img_set <- scans == unique(scans)[img_idx]
-      img_group  <- which(unique(groups) == unique(groups[img_set]))
-      img_id <- which(unique(ids) == unique(ids[img_set]))
-      img_x[[img_idx]] <- x[img_set, ]
-      img_params[[img_idx]] <- params[img_set, ]
-      img_weights[[img_idx]] <- weights[img_set]
-      obs_fold_vec <- rep(1:k, ceiling(sum(img_set) / k))
-      obs_folds <- obs_fold_vec[
-        sample(
-          1:sum(img_set),
-          sum(img_set),
-          replace = FALSE
-        )
-      ]
-      img_preds <- map(
-        1:nrow(img_params[[img_idx]]),
-        ~ (
-          population_embedding$embedding_map(img_params[[img_idx]][.x, ]) +
-          group_embeddings[[img_group]]$embedding_map(img_params[[img_idx]][.x, ]) +
-          id_embeddings[[img_id]]$embedding_map(img_params[[img_idx]][.x, ])
-        )
-      ) %>%
-        reduce(rbind)
-      img_embeddings[[img_idx]] <- fit_weighted_spline(
-        img_x[[img_idx]] - img_preds,
-        img_params[[img_idx]],
-        img_weights[[img_idx]],
-        lambda,
-        obs_folds
-      )
-      mean_x[[img_idx]] <- map(
-        1:nrow(img_params[[img_idx]]),
-        ~ (
-          population_embedding$embedding_map(img_params[[img_idx]][.x, ]) +
-          group_embeddings[[img_group]]$embedding_map(img_params[[img_idx]][.x, ]) +
-          id_embeddings[[img_id]]$embedding_map(img_params[[img_idx]][.x, ]) +
-          img_embeddings[[img_idx]]$embedding_map(img_params[[img_idx]][.x, ])
-        )
-      ) %>%
-        reduce(rbind) %>%
-        colMeans()
+      img_embeddings[[img_idx]] <- value(img_out[[img_idx]])$embeddings
+      img_x[[img_idx]] <- value(img_out[[img_idx]])$img_x
+      img_params[[img_idx]] <- value(img_out[[img_idx]])$img_params
+      img_weights[[img_idx]] <- value(img_out[[img_idx]])$img_weights
+      mean_x[[img_idx]] <- value(img_out[[img_idx]])$mean_x
     }
 
     n <- n + 1
