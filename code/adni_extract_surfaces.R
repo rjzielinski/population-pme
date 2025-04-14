@@ -3,6 +3,7 @@ library(oro.nifti)
 library(neurobase)
 library(fslr)
 # library(extrantsr)
+library(progressr)
 library(stringr)
 library(foreach)
 library(tidyverse)
@@ -29,8 +30,8 @@ adni_info <- adni_info  |>
   ) |>
   arrange(subid, date)
 
-patnos <- list.dirs("data/adni_processed_fsl", recursive = FALSE, full.names = FALSE)
-processed_dirs <- list.dirs("data/adni_processed_fsl", recursive = FALSE)
+patnos <- list.dirs("data/adni_processed_fsl_pt", recursive = FALSE, full.names = FALSE)
+processed_dirs <- list.dirs("data/adni_processed_fsl_pt", recursive = FALSE)
 
 lhipp <- tibble(
   subid = character(),
@@ -155,16 +156,11 @@ image_info <- tibble(
 )
 
 
-mprage_names <- c("MP-RAGE", "MPRAGE", "MP-RAGE_REPEAT", "MPRAGE_REPEAT")
-for (dir_idx in 1:length(processed_dirs)) {
+mprage_names <- c("MP-RAGE", "MPRAGE", "MP-RAGE_REPEAT", "MPRAGE_REPEAT", "MPRAGE_Repeat")
+with_progress({
+for (dir_idx in seq_along(processed_dirs)) {
   print(patnos[dir_idx])
-  scan_dates <- list.dirs(
-    paste0(processed_dirs[dir_idx], "/", mprage_names),
-    full.names = FALSE,
-    recursive = FALSE
-  )
-  scan_dates <- ymd_hms(scan_dates)
-  # scan_dates <- floor_date(scan_dates, unit = "day")
+    # scan_dates <- floor_date(scan_dates, unit = "day")
 
   scan_dirs <- list.files(
     paste0(processed_dirs[dir_idx], "/", mprage_names),
@@ -173,17 +169,27 @@ for (dir_idx in 1:length(processed_dirs)) {
   ) %>%
     gsub(pattern = "([^/]+$)", replacement = "") %>%
     unique()
+
+  scan_dates <- map(
+    scan_dirs,
+    ~ str_split(.x, "/")[[1]][5]
+  ) |>
+    reduce(c)
+  scan_ids <- map(
+    scan_dirs,
+    ~ str_split(.x, "/")[[1]][6]
+  ) |>
+    reduce(c)
+  scan_dates <- ymd_hms(scan_dates)
+
   for (scan_idx in 1:length(scan_dirs)) {
     print(scan_dates[scan_idx])
     scan_info <- adni_info |>
       filter(
         subid == patnos[dir_idx],
-        date == floor_date(scan_dates[scan_idx], unit = "day")
+        # date == floor_date(scan_dates[scan_idx], unit = "day")
+        image_id == scan_ids[scan_idx]
       )
-
-    scan_matches <- which(floor_date(scan_dates[scan_idx], unit = "day") == floor_date(scan_dates, unit = "day"))
-    scan_id  <- which(scan_idx == scan_matches)
-    scan_info <- scan_info[scan_id, ]
 
     if (file.exists(paste0(scan_dirs[scan_idx], "_all_fast_origsegs.nii.gz"))) {
       temp_segs <- readnii(paste0(scan_dirs[scan_idx], "_all_fast_origsegs.nii.gz"))
@@ -462,6 +468,7 @@ for (dir_idx in 1:length(processed_dirs)) {
     }
   }
 }
+})
 
 write_csv(image_info, "data/adni_fsl_info.csv")
 
