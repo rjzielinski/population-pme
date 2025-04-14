@@ -18,7 +18,7 @@ library(lubridate)
 # library(ANTsRCore)
 handlers(global = TRUE)
 
-skip_imgs <- c("I436253", "I59843")
+skip_imgs <- c("I436253", "I59843", "I272379", "I135611")
 
 img_dirs <- list.files("data/ADNI", recursive = TRUE, full.names = TRUE) %>%
   gsub(pattern = "([^/]+$)", replacement = "") %>%
@@ -50,7 +50,9 @@ segment_imgs <- function(img_dirs) {
       gsub(pattern = "data/ADNI", replacement = "", img_dirs[img_idx])
     )
     if (file.exists(paste0(proc_dir, "/_all_fast_origsegs.nii.gz"))) {
+      p(sprintf("img: %s", img_val))
     } else if (img_val %in% skip_imgs) {
+      p(sprintf("img: %s", img_val))
     } else {
       # all_slices <- readDICOM(img_dirs[img_idx])
       # nii <- dicom2nifti(all_slices)
