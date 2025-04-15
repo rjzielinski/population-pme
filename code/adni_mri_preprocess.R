@@ -12,6 +12,7 @@ library(oro.dicom)
 library(oro.nifti)
 library(neurobase)
 library(progressr)
+library(purrr)
 library(readr)
 library(stringr)
 library(tibble)
@@ -54,21 +55,13 @@ adni_info <- adni_info |>
   arrange(subid, date)
 
 
-ncores <- parallel::detectCores()
-plan(cluster, workers = ncores)
+# plan(cluster, workers = ncores)
+plan(multisession)
 
 segment_imgs <- function(img_dirs) {
   p <- progressor(along = img_dirs)
 
-  image_info <- tibble(
-    image_id = character(),
-    lhipp_vol = numeric(),
-    rhipp_vol = numeric(),
-    lthal_vol = numeric(),
-    rthal_vol = numeric()
-  )
-
-  foreach(
+  image_info <- foreach(
     img_idx = seq_along(img_dirs),
     .errorhandling = "pass"
   ) %dofuture% {
@@ -152,7 +145,6 @@ segment_imgs <- function(img_dirs) {
         lthal_vol = lthal_vol,
         rthal_vol = rthal_vol
       )
-      image_info <- bind_rows(image_info, scan_info)
 
       if (file.exists(paste0(proc_dir, "lhipp.csv"))) {
         NULL
@@ -384,12 +376,20 @@ segment_imgs <- function(img_dirs) {
     }
 
     p(sprintf("img: %s", img_val))
+    scan_info
   }
-
-  image_info
 }
 
 image_info <- segment_imgs(img_dirs)
+
+info_present <- map(
+  image_info,
+  ~ !(is.null(.x) | "simpleError" %in% class(.x))
+) |>
+  reduce(c)
+image_info <- image_info[info_present] |>
+  reduce(bind_rows)
+
 
 adni_info <- full_join(
   adni_info,
