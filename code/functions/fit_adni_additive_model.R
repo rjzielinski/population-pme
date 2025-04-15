@@ -34,7 +34,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   group_weights <- list()
 
   avail_cores <- min(length(unique(groups)), cores - k)
-  plan(multisession, workers = avail_cores)
+  # plan(multisession, workers = avail_cores)
+  plan(sequential)
   group_out <- list()
   for (group_idx in seq_along(unique(groups))) {
     group_out[[group_idx]] <- future({
@@ -67,7 +68,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
         group_weights,
         lambda,
         id_folds[group_ids],
-        parallel = "multisession"
+        parallel = "multicore"
       )
 
       list(
@@ -92,7 +93,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   id_params <- list()
   id_weights <- list()
 
-  avail_cores <- min(length(unique(ids)), cores - k)
+  # avail_cores <- min(length(unique(ids)), cores - k)
+  avail_cores <- cores
   plan(multisession, workers = avail_cores)
   id_out <- list()
   for (id_idx in 1:length(unique(ids))) {
@@ -286,7 +288,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     )
 
     avail_cores <- min(length(unique(groups)), cores - k)
-    plan(multisession, workers = avail_cores)
+    # plan(multisession, workers = avail_cores)
+    plan(sequential)
     group_out <- list()
     for (group_idx in seq_along(unique(groups))) {
       group_out[[group_idx]] <- future({
@@ -338,7 +341,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       group_weights[[group_idx]] <- value(group_out[[group_idx]])$group_weights
     }
 
-    avail_cores <- min(length(unique(ids)), cores - k)
+    # avail_cores <- min(length(unique(ids)), cores - k)
+    avail_cores <- cores
     plan(multisession, workers = avail_cores)
     id_out <- list()
     for (id_idx in 1:length(unique(ids))) {
@@ -386,8 +390,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
           id_params,
           id_weights,
           lambda,
-          scan_fold_vals,
-          parallel = "multisession"
+          scan_fold_vals
+          # parallel = "multisession"
         )
 
         list(
