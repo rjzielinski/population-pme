@@ -71,27 +71,32 @@ lhipp_partition <- lhipp_surface$partition
 
 lhipp_init_data <- list()
 lhipp_init_data[[1]] <- lhipp_surface_inputs[
-  (lhipp_groups == lhipp_groups[1]) & 
-  (lhipp_ids == lhipp_ids[1]) & 
-  (lhipp_scans == lhipp_scans[1]) & 
-  (lhipp_partition == 1), ]
+  (lhipp_groups == lhipp_groups[1]) &
+    (lhipp_ids == lhipp_ids[1]) &
+    (lhipp_scans == lhipp_scans[1]) &
+    (lhipp_partition == 1),
+]
 lhipp_init_data[[2]] <- lhipp_surface_inputs[
-  (lhipp_groups == lhipp_groups[1]) & 
-  (lhipp_ids == lhipp_ids[1]) & 
-  (lhipp_scans == lhipp_scans[1]) & 
-  (lhipp_partition == 2), ]
+  (lhipp_groups == lhipp_groups[1]) &
+    (lhipp_ids == lhipp_ids[1]) &
+    (lhipp_scans == lhipp_scans[1]) &
+    (lhipp_partition == 2),
+]
 
 plan(multicore, workers = 2)
 init_pme_wrapper <- list()
 for (i in seq_len(2)) {
-  init_pme_wrapper[[i]] <- future({
-    pme(
-      lhipp_init_data[[i]][, -1],
-      d = 2, 
-      print_plots = FALSE, 
-      verbose = FALSE 
-    )
-  }, seed = TRUE)
+  init_pme_wrapper[[i]] <- future(
+    {
+      pme(
+        lhipp_init_data[[i]][, -1],
+        d = 2,
+        print_plots = FALSE,
+        verbose = FALSE
+      )
+    },
+    seed = TRUE
+  )
 }
 
 lhipp_init_pme <- map(
@@ -103,52 +108,57 @@ plan(multicore, workers = cores - 1)
 lhipp_reduced <- list()
 scan_list <- unique(lhipp_scans)
 for (scan_idx in seq_along(scan_list)) {
-  lhipp_reduced[[scan_idx]] <- future({
-    scan_indices <- lhipp_scans == scan_list[scan_idx]
-    group_val <- unique(lhipp_groups[scan_indices])
-    id_val <- unique(lhipp_ids[scan_indices])
+  lhipp_reduced[[scan_idx]] <- future(
+    {
+      scan_indices <- lhipp_scans == scan_list[scan_idx]
+      group_val <- unique(lhipp_groups[scan_indices])
+      id_val <- unique(lhipp_ids[scan_indices])
 
-    scan_data_pt1 <- lhipp_surface_inputs[
-      (lhipp_groups == group_val) & 
-      (lhipp_ids == id_val) & 
-      (lhipp_scans == scan_list[scan_idx]) & 
-      (lhipp_partition == 1), ]
-    scan_time <- scan_data_pt1[1, 1]
-    scan_data_pt1 <- scan_data_pt1[, -1]
+      scan_data_pt1 <- lhipp_surface_inputs[
+        (lhipp_groups == group_val) &
+          (lhipp_ids == id_val) &
+          (lhipp_scans == scan_list[scan_idx]) &
+          (lhipp_partition == 1),
+      ]
+      scan_time <- scan_data_pt1[1, 1]
+      scan_data_pt1 <- scan_data_pt1[, -1]
 
-    scan_data_pt2 <- lhipp_surface_inputs[
-      (lhipp_groups == group_val) & 
-      (lhipp_ids == id_val) & 
-      (lhipp_scans == scan_list[scan_idx]) & 
-      (lhipp_partition == 2), -1]
+      scan_data_pt2 <- lhipp_surface_inputs[
+        (lhipp_groups == group_val) &
+          (lhipp_ids == id_val) &
+          (lhipp_scans == scan_list[scan_idx]) &
+          (lhipp_partition == 2), -1
+      ]
 
-    scan_red_pt1 <- hdmde(scan_data_pt1, 10, 0.05, 100)
-    scan_red_pt2 <- hdmde(scan_data_pt2, 10, 0.05, 100)
+      scan_red_pt1 <- hdmde(scan_data_pt1, 10, 0.05, 100)
+      scan_red_pt2 <- hdmde(scan_data_pt2, 10, 0.05, 100)
 
-    scan_x_pt1 <- scan_red_pt1$mu
-    scan_x_pt2 <- scan_red_pt2$mu
-    scan_weights_pt1 <- scan_red_pt1$theta_hat
-    scan_weights_pt2 <- scan_red_pt2$theta_hat
-    n_pt1 <- nrow(scan_x_pt1)
-    n_pt2 <- nrow(scan_x_pt2)
+      scan_x_pt1 <- scan_red_pt1$mu
+      scan_x_pt2 <- scan_red_pt2$mu
+      scan_weights_pt1 <- scan_red_pt1$theta_hat
+      scan_weights_pt2 <- scan_red_pt2$theta_hat
+      n_pt1 <- nrow(scan_x_pt1)
+      n_pt2 <- nrow(scan_x_pt2)
 
-    list(
-      lhipp_x_pt1 = scan_x_pt1,
-      lhipp_x_pt2 = scan_x_pt2,
-      lhipp_weights_pt1 = scan_weights_pt1,
-      lhipp_weights_pt2 = scan_weights_pt2,
-      group_vec_pt1 = rep(group_val, n_pt1),
-      group_vec_pt2 = rep(group_val, n_pt2),
-      id_vec_pt1 = rep(id_val, n_pt1),
-      id_vec_pt2 = rep(id_val, n_pt2),
-      scan_vec_pt1 = rep(scan_list[scan_idx], n_pt1),
-      scan_vec_pt2 = rep(scan_list[scan_idx], n_pt2),
-      lhipp_time_pt1 = rep(scan_time, n_pt1),
-      lhipp_time_pt2 = rep(scan_time, n_pt2)
-    )
-  }, seed = TRUE)
+      list(
+        lhipp_x_pt1 = scan_x_pt1,
+        lhipp_x_pt2 = scan_x_pt2,
+        lhipp_weights_pt1 = scan_weights_pt1,
+        lhipp_weights_pt2 = scan_weights_pt2,
+        group_vec_pt1 = rep(group_val, n_pt1),
+        group_vec_pt2 = rep(group_val, n_pt2),
+        id_vec_pt1 = rep(id_val, n_pt1),
+        id_vec_pt2 = rep(id_val, n_pt2),
+        scan_vec_pt1 = rep(scan_list[scan_idx], n_pt1),
+        scan_vec_pt2 = rep(scan_list[scan_idx], n_pt2),
+        lhipp_time_pt1 = rep(scan_time, n_pt1),
+        lhipp_time_pt2 = rep(scan_time, n_pt2)
+      )
+    },
+    seed = TRUE
+  )
 }
-  
+
 group_vecs <- list(list(), list())
 id_vecs <- list(list(), list())
 img_vecs <- list(list(), list())
@@ -214,7 +224,7 @@ init_additive_mod_pt1 <- fit_adni_additive_model(
   times = lhipp_times[[1]],
   epsilon = 0.01,
   max_iter = 250,
-  cores = cores - 1
+  cores = cores
 )
 init_additive_mod_pt2 <- fit_adni_additive_model(
   x = lhipp_x[[2]],
@@ -235,14 +245,14 @@ lambda <- exp(-20:5)
 k <- 5
 id_fold_vec <- rep(1:k, ceiling(length(unique(lhipp_ids)) / k))
 id_folds <- id_fold_vec[sample(
-  1:length(unique(lhipp_ids)),
+  seq_along(unique(lhipp_ids)),
   length(unique(lhipp_ids)),
   replace = FALSE
 )]
 
 img_fold_vec <- rep(1:k, ceiling(length(unique(lhipp_scans)) / k))
 img_folds <- img_fold_vec[sample(
-  1:length(unique(lhipp_scans)),
+  seq_along(unique(lhipp_scans)),
   length(unique(lhipp_scans)),
   replace = FALSE
 )]
@@ -252,7 +262,7 @@ max_iter <- 250
 
 params <- list()
 params[[1]] <- map(
-  1:nrow(lhipp_x[[1]]),
+  seq_len(nrow(lhipp_x[[1]])),
   ~ projection_pme(
     lhipp_x[[1]][.x, ],
     function(x) {
@@ -266,7 +276,7 @@ params[[1]] <- map(
 ) %>%
   reduce(rbind)
 params[[2]] <- map(
-  1:nrow(lhipp_x[[2]]),
+  seq_len(nrow(lhipp_x[[2]])),
   ~ projection_pme(
     lhipp_x[[2]][.x, ],
     function(x) {
@@ -281,7 +291,7 @@ params[[2]] <- map(
   reduce(rbind)
 
 SSD_pt1 <- map(
-  1:nrow(lhipp_x[[1]]),
+  seq_len(nrow(lhipp_x[[1]])),
   ~ dist_euclidean(
     lhipp_x[[1]][.x, ],
     init_additive_mod_pt1$population_embedding$embedding_map(params[[1]][.x, ]) +
@@ -293,7 +303,7 @@ SSD_pt1 <- map(
   reduce(c) %>%
   sum()
 SSD_pt2 <- map(
-  1:nrow(lhipp_x[[2]]),
+  seq_len(nrow(lhipp_x[[2]])),
   ~ dist_euclidean(
     lhipp_x[[2]][.x, ],
     init_additive_mod_pt2$population_embedding$embedding_map(params[[2]][.x, ]) +
@@ -352,7 +362,7 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
   )
 
   params[[1]] <- map(
-    1:nrow(lhipp_x[[1]]),
+    seq_len(nrow(lhipp_x[[1]])),
     ~ projection_pme(
       lhipp_x[[1]][.x, ],
       function(x) {
@@ -366,7 +376,7 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
   ) %>%
     reduce(rbind)
   params[[2]] <- map(
-    1:nrow(lhipp_x[[2]]),
+    seq_len(nrow(lhipp_x[[2]])),
     ~ projection_pme(
       lhipp_x[[2]][.x, ],
       function(x) {
@@ -383,7 +393,7 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
 
 
   SSD_pt1 <- map(
-    1:nrow(lhipp_x[[1]]),
+    seq_len(nrow(lhipp_x[[1]])),
     ~ dist_euclidean(
       lhipp_x[[1]][.x, ],
       additive_model$partition1$population_embedding$embedding_map(params[[1]][.x, ]) +
@@ -395,7 +405,7 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
     reduce(c) %>%
     sum()
   SSD_pt2 <- map(
-    1:nrow(lhipp_x[[2]]),
+    seq_len(nrow(lhipp_x[[2]])),
     ~ dist_euclidean(
       lhipp_x[[2]][.x, ],
       additive_model$partition2$population_embedding$embedding_map(params[[2]][.x, ]) +
@@ -436,13 +446,13 @@ pb <- progress_bar$new(
 for (i in seq_len(nrow(lhipp_surface_inputs))) {
   pb$tick()
   temp_clusters <- lhipp_x[[lhipp_partition[i]]][
-    (group_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_groups[i])) & 
-    (id_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_ids[i])) &
+    (group_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_groups[i])) &
+      (id_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_ids[i])) &
       (img_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_scans[i])),
   ]
   temp_params <- params[[lhipp_partition[i]]][
-    (group_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_groups[i])) & 
-    (id_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_ids[i])) &
+    (group_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_groups[i])) &
+      (id_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_ids[i])) &
       (img_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_scans[i])),
   ]
   distances <- map(
@@ -464,9 +474,9 @@ lhipp_params <- map(
     unlist(lhipp_surface_inputs[.x, -1]),
     function(x) {
       additive_model[[lhipp_partition[.x]]]$population_embedding$embedding_map(x) +
-    additive_model[[lhipp_partition[.x]]]$group_embeddings[[as.numeric(lhipp_groups[.x])]]$embedding_map(x) +
-    additive_model[[lhipp_partition[.x]]]$id_embeddings[[as.numeric(lhipp_ids[.x])]]$embedding_map(x) +
-    additive_model[[lhipp_partition[.x]]]$img_embeddings[[as.numeric(lhipp_scans[.x])]]$embedding_map(x)
+        additive_model[[lhipp_partition[.x]]]$group_embeddings[[as.numeric(lhipp_groups[.x])]]$embedding_map(x) +
+        additive_model[[lhipp_partition[.x]]]$id_embeddings[[as.numeric(lhipp_ids[.x])]]$embedding_map(x) +
+        additive_model[[lhipp_partition[.x]]]$img_embeddings[[as.numeric(lhipp_scans[.x])]]$embedding_map(x)
     },
     nearest_params[.x, ]
   ),
