@@ -8,7 +8,7 @@ library(Rfast)
 library(tidyverse)
 
 options(future.globals.maxSize = 32 * 1024^3)
-cores <- detectCores() / 2
+cores <- detectCores() - 1
 
 source("code/functions/fit_weighted_spline.R")
 source("code/functions/print_SSD.R")
