@@ -101,12 +101,13 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   id_weights <- list()
 
   avail_cores <- min(length(unique(ids)), cores %/% k)
-  plan(
-    list(
-      tweak(multisession, workers = avail_cores),
-      tweak(multisession, workers = min(cores, k))
-    )
-  )
+  # plan(
+  #   list(
+  #     tweak(multisession, workers = cores),
+  #     tweak(multisession, workers = min(cores, k))
+  #   )
+  # )
+  plan(list(tweak(multisession, workers = cores), sequential))
   id_out <- list()
   for (id_idx in seq_along(unique(ids))) {
     id_out[[id_idx]] <- future(
@@ -183,12 +184,13 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   mean_x <- list()
 
   avail_cores <- min(length(unique(scans)), cores %/% k)
-  plan(
-    list(
-      tweak(multisession, workers = avail_cores),
-      tweak(multisession, workers = min(cores, k))
-    )
-  )
+  # plan(
+  #   list(
+  #     tweak(multisession, workers = avail_cores),
+  #     tweak(multisession, workers = min(cores, k))
+  #   )
+  # )
+  plan(list(tweak(multisession, workers = cores), sequential))
   img_out <- list()
   for (img_idx in seq_along(unique(scans))) {
     img_out[[img_idx]] <- future(
@@ -373,12 +375,13 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     }
 
     avail_cores <- min(length(unique(ids)), cores %/% k)
-    plan(
-      list(
-        tweak(multisession, workers = avail_cores),
-        tweak(multisession, workers = min(cores, k))
-      )
-    )
+    # plan(
+    #   list(
+    #     tweak(multisession, workers = avail_cores),
+    #     tweak(multisession, workers = min(cores, k))
+    #   )
+    # )
+    plan(list(tweak(multisession, workers = cores), sequential))
     id_out <- list()
     for (id_idx in seq_along(unique(ids))) {
       id_out[[id_idx]] <- future(
@@ -448,12 +451,13 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     }
 
     avail_cores <- min(length(unique(scans)), cores %/% k)
-    plan(
-      list(
-        tweak(multisession, workers = avail_cores),
-        tweak(multisession, workers = min(cores, k))
-      )
-    )
+    # plan(
+    #   list(
+    #     tweak(multisession, workers = avail_cores),
+    #     tweak(multisession, workers = min(cores, k))
+    #   )
+    # )
+    plan(list(tweak(multisession, workers = cores), sequential))
     img_out <- list()
     for (img_idx in seq_along(unique(scans))) {
       img_out[[img_idx]] <- future(
