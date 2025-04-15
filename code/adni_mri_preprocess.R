@@ -20,7 +20,7 @@ library(tidyverse)
 library(lubridate)
 handlers(global = TRUE)
 
-skip_imgs <- c("I436253", "I59843", "I272379", "I135611", "I48503", "I77171")
+skip_imgs <- c("I436253", "I59843", "I272379", "I135611", "I48503", "I77171", "I154113", "I74064", "I32485")
 
 img_dirs <- list.files("data/ADNI", recursive = TRUE, full.names = TRUE) %>%
   gsub(pattern = "([^/]+$)", replacement = "") %>%
