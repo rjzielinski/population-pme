@@ -35,12 +35,13 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   group_weights <- list()
 
   avail_cores <- min(length(unique(groups)), cores %/% k)
-  plan(
-    list(
-      tweak(multisession, workers = avail_cores),
-      tweak(multisession, workers = min(cores, k))
-    )
-  )
+  # plan(
+  #   list(
+  #     tweak(multisession, workers = avail_cores),
+  #     tweak(multisession, workers = min(cores, k))
+  #   )
+  # )
+  plan(multisession)
   group_out <- list()
   for (group_idx in seq_along(unique(groups))) {
     group_out[[group_idx]] <- future(
@@ -107,7 +108,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   #     tweak(multisession, workers = min(cores, k))
   #   )
   # )
-  plan(list(tweak(multisession, workers = cores), sequential))
+  # plan(list(tweak(multisession, workers = cores), sequential))
+  plan(multisession)
   id_out <- list()
   for (id_idx in seq_along(unique(ids))) {
     id_out[[id_idx]] <- future(
@@ -190,7 +192,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   #     tweak(multisession, workers = min(cores, k))
   #   )
   # )
-  plan(list(tweak(multisession, workers = cores), sequential))
+  # plan(list(tweak(multisession, workers = cores), sequential))
+  plan(multisession)
   img_out <- list()
   for (img_idx in seq_along(unique(scans))) {
     img_out[[img_idx]] <- future(
@@ -315,12 +318,13 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     )
 
     avail_cores <- min(length(unique(groups)), cores %/% k)
-    plan(
-      list(
-        tweak(multisession, workers = avail_cores),
-        tweak(multisession, workers = min(cores, k))
-      )
-    )
+    # plan(
+    #   list(
+    #    tweak(multisession, workers = avail_cores),
+    #     tweak(multisession, workers = min(cores, k))
+    #   )
+    # )
+    plan(multisession)
     group_out <- list()
     for (group_idx in seq_along(unique(groups))) {
       group_out[[group_idx]] <- future(
@@ -381,7 +385,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     #     tweak(multisession, workers = min(cores, k))
     #   )
     # )
-    plan(list(tweak(multisession, workers = cores), sequential))
+    # plan(list(tweak(multisession, workers = cores), sequential))
+    plan(multisession)
     id_out <- list()
     for (id_idx in seq_along(unique(ids))) {
       id_out[[id_idx]] <- future(
@@ -457,7 +462,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     #     tweak(multisession, workers = min(cores, k))
     #   )
     # )
-    plan(list(tweak(multisession, workers = cores), sequential))
+    # plan(list(tweak(multisession, workers = cores), sequential))
+    plan(multisession)
     img_out <- list()
     for (img_idx in seq_along(unique(scans))) {
       img_out[[img_idx]] <- future(

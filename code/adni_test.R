@@ -83,7 +83,7 @@ lhipp_init_data[[2]] <- lhipp_surface_inputs[
     (lhipp_partition == 2),
 ]
 
-plan(multicore, workers = 2)
+plan(multisession, workers = 2)
 init_pme_wrapper <- list()
 for (i in seq_len(2)) {
   init_pme_wrapper[[i]] <- future(
@@ -104,7 +104,7 @@ lhipp_init_pme <- map(
   ~ value(.x)
 )
 
-plan(multicore, workers = cores - 1)
+plan(multisession, workers = cores - 1)
 lhipp_reduced <- list()
 scan_list <- unique(lhipp_scans)
 for (scan_idx in seq_along(scan_list)) {
