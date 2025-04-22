@@ -8,6 +8,8 @@ library(Rfast)
 library(tidyverse)
 
 options(future.globals.maxSize = 32 * 1024^3)
+options(renv.config.sandbox.enabled = FALSE)
+options(renv.config.auto.snapshot = FALSE)
 cores <- detectCores() - 1
 
 source("code/functions/fit_weighted_spline.R")
@@ -222,7 +224,7 @@ init_additive_mod_pt1 <- fit_adni_additive_model(
   ids = id_vecs[[1]],
   scans = img_vecs[[1]],
   times = lhipp_times[[1]],
-  epsilon = 0.01,
+  epsilon = 0.05,
   max_iter = 250,
   cores = cores
 )
@@ -236,7 +238,7 @@ init_additive_mod_pt2 <- fit_adni_additive_model(
   ids = id_vecs[[2]],
   scans = img_vecs[[2]],
   times = lhipp_times[[2]],
-  epsilon = 0.01,
+  epsilon = 0.05,
   max_iter = 250,
   cores = cores - 1
 )
@@ -342,7 +344,7 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
     ids = id_vecs[[1]],
     scans = img_vecs[[1]],
     times = lhipp_times[[1]],
-    epsilon = 0.01,
+    epsilon = 0.05,
     max_iter = 250,
     cores = cores - 1
   )
@@ -356,7 +358,7 @@ while ((SSD_ratio > epsilon) & (SSD_ratio <= SSD_ratio_threshold) & (count <= (m
     ids = id_vecs[[2]],
     scans = img_vecs[[2]],
     times = lhipp_times[[2]],
-    epsilon = 0.01,
+    epsilon = 0.05,
     max_iter = 250,
     cores = cores - 1
   )
