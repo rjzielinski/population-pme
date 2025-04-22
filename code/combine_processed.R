@@ -24,18 +24,26 @@ file_names <- c(
 
 for (file_name in file_names) {
   print(paste("Processing", file_name, "files..."))
-  with_progress({
-    df <- combine_csvs(
-      list.files(
-        "data/adni_processed_fsl",
-        pattern = paste0(file_name, ".csv"),
-        full.names = TRUE,
-        recursive = TRUE
-      )
-    )
-  })
+  file_vector <- list.files(
+    "data/adni_processed_fsl",
+    pattern = paste0(file_name, ".csv"),
+    full.names = TRUE,
+    recursive = TRUE
+  )
 
-  write_csv(df, paste0("data/", file_name, "_fsl.csv"))
-  rm(df)
-  gc()
+  full_name <- paste0("data/", file_name, "_fsl.csv")
+  all_files <- paste(file_vector, collapse = " ")
+  command_string <- paste(
+    "head -n 1", 
+    file_vector[1], 
+    ">", 
+    full_name, 
+    "&& tail -n+2 -q", 
+    all_files, 
+    ">>", 
+    full_name, 
+    sep = " "
+  )
+
+  system(command_string)
 }
