@@ -32,18 +32,24 @@ for (file_name in file_names) {
   )
 
   full_name <- paste0("data/", file_name, "_fsl.csv")
-  all_files <- paste(file_vector, collapse = " ")
-  command_string <- paste(
+  command_string1 <- paste(
     "head -n 1", 
     file_vector[1], 
     ">", 
-    full_name, 
-    "&& tail -n+2 -q", 
-    all_files, 
-    ">>", 
-    full_name, 
+    full_name,
     sep = " "
-  )
+  ) 
 
-  system(command_string)
+  system(command_string1)
+
+  for (f_name in file_vector) {
+    command_string_f <- paste(
+      "tail -n+2 -q", 
+      f_name, 
+      ">>", 
+      full_name, 
+      sep = " "
+    )
+    system(command_string_f)
+  }
 }
