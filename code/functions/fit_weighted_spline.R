@@ -40,9 +40,10 @@ fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
             ncol(train_params),
             ncol(train_x)
           )
+          eta_val <- etaFunc(parameters, train_params, 4 - d)
           fold_embedding <- function(parameters) {
             as.vector(
-              (t(coefs[[smoothing_idx]][[k_idx]][seq_len(nrow(train_x)), ]) %*% etaFunc(parameters, train_params, 4 - d)) +
+              (t(coefs[[smoothing_idx]][[k_idx]][seq_len(nrow(train_x)), ]) %*% eta_val) +
                 (t(coefs[[smoothing_idx]][[k_idx]][(nrow(train_x) + 1):(nrow(train_x) + d + 1), ]) %*% matrix(c(1, parameters), ncol = 1))
             )
           }
@@ -81,9 +82,11 @@ fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
     ncol(params),
     ncol(x)
   )
+
+  eta_final <- etaFunc(parameters, params, 4 - d)
   embedding_map <- function(parameters) {
     as.vector(
-      (t(opt_coefs[seq_len(nrow(x)), ]) %*% etaFunc(parameters, params, 4 - d)) +
+      (t(opt_coefs[seq_len(nrow(x)), ]) %*% eta_final) +
         (t(opt_coefs[(nrow(x) + 1):(nrow(x) + d + 1), ]) %*% matrix(c(1, parameters), ncol = 1))
     )
   }
