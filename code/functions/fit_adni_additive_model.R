@@ -349,12 +349,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     reduce(c) %>%
     mean()
 
-  print(
-    paste0(
-      "Initialization complete. Estimated mean squared error - ",
-      as.character(round(mse, 5)),
-    )
-  )
+  print("Initialization Complete")
 
   while ((epsilon_hat > epsilon) & (n <= max_iter)) {
     daemons(0)
