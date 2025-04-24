@@ -2,6 +2,16 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   require(mirai, quietly = TRUE)
   require(pme, quietly = TRUE)
   require(purrr, quietly = TRUE)
+
+  # daemons(cores, seed = TRUE)
+  # everywhere(library(pme))
+  # everywhere(library(tidyverse))
+  # everywhere(source("code/functions/fit_weighted_spline.R"))
+  # everywhere(source("code/functions/fit_adni_additive_model.R"))
+  # everywhere(source("code/functions/print_SSD.R"))
+
+  avail_cores <- cores %/% k
+
   D <- ncol(x)
   d <- ncol(params)
 
@@ -18,6 +28,10 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     )
   ]
 
+  daemons(cores, seed = TRUE)
+  everywhere(library(pme))
+  everywhere(library(tidyverse))
+  everywhere(source("code/functions/fit_weighted_spline.R"))
   print("Initializing Population model")
   init_population_embedding <- fit_weighted_spline(
     x,
@@ -33,10 +47,21 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   group_params <- list()
   group_weights <- list()
 
+  daemons(0)
+  daemons(min(avail_cores, length(unique(groups))), seed = TRUE)
+  everywhere(library(mirai))
+  everywhere(library(pme))
+  everywhere(library(tidyverse))
+  everywhere(source("code/functions/fit_weighted_spline.R")) 
+  
   group_out <- list()
   for (group_idx in seq_along(unique(groups))) {
     group_out[[group_idx]] <- mirai(
       {
+        daemons(k, seed = TRUE)
+        everywhere(library(pme))
+        everywhere(library(tidyverse))
+        # everywhere(source("code/functions/fit_weighted_spline.R"))  
         group_set <- groups == unique(groups)[group_idx]
         group_x <- x[group_set, ]
         group_params <- params[group_set, ]
@@ -68,6 +93,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
           id_folds[group_ids]
         )
 
+        daemons(0)
+
         list(
           embeddings = init_group_embeddings,
           group_x = group_x,
@@ -95,16 +122,29 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     group_weights[[group_idx]] <- group_out[[group_idx]][]$group_weights
   }
 
+  
   print("Initializing ID models")
   init_id_embeddings <- list()
   id_x <- list()
   id_params <- list()
   id_weights <- list()
 
+  daemons(0)
+  daemons(min(avail_cores, length(unique(ids))), seed = TRUE)
+  everywhere(library(mirai))
+  everywhere(library(pme))
+  everywhere(library(tidyverse))
+  everywhere(source("code/functions/fit_weighted_spline.R")) 
+   
+
   id_out <- list()
   for (id_idx in seq_along(unique(ids))) {
     id_out[[id_idx]] <- mirai(
       {
+        daemons(k, seed = TRUE)
+        everywhere(library(pme))
+        everywhere(library(tidyverse)) 
+
         id_set <- ids == unique(ids)[id_idx]
         id_group <- which(unique(groups) == unique(groups[id_set]))
         id_x <- x[id_set, ]
@@ -151,6 +191,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
           scan_fold_vals
         )
 
+        daemons(0)
+
         list(
           embeddings = init_id_embeddings,
           id_x = id_x,
@@ -186,10 +228,23 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   img_weights <- list()
   mean_x <- list()
 
+  daemons(0)
+  daemons(min(avail_cores, length(unique(scans))), seed = TRUE)
+  everywhere(library(mirai))
+  everywhere(library(pme))
+  everywhere(library(tidyverse))
+  everywhere(source("code/functions/fit_weighted_spline.R")) 
+   
+
   img_out <- list()
   for (img_idx in seq_along(unique(scans))) {
     img_out[[img_idx]] <- mirai(
       {
+        daemons(k, seed = TRUE)
+        everywhere(library(pme))
+        everywhere(library(tidyverse)) 
+         
+
         img_set <- scans == unique(scans)[img_idx]
         img_group <- which(unique(groups) == unique(groups[img_set]))
         img_id <- which(unique(ids) == unique(ids[img_set]))
@@ -231,6 +286,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
         ) %>%
           reduce(rbind) %>%
           colMeans()
+
+        daemons(0)
 
         list(
           embeddings = init_img_embeddings,
@@ -287,6 +344,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     mean()
 
   while ((epsilon_hat > epsilon) & (n <= max_iter)) {
+    daemons(0)
     print(paste0("Starting iteration ", as.character(n + 1)))
     population_embedding_old <- population_embedding
     group_embeddings_old <- group_embeddings
@@ -311,6 +369,11 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       )
     ]
 
+    daemons(cores, seed = TRUE)
+    everywhere(library(pme))
+    everywhere(library(tidyverse))
+    everywhere(source("code/functions/fit_weighted_spline.R")) 
+
     population_embedding <- fit_weighted_spline(
       x - x_pred_nopop,
       params,
@@ -319,10 +382,20 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       scan_folds[scans]
     )
 
+    daemons(0)
+    daemons(min(avail_cores, length(unique(groups))), seed = TRUE)
+    everywhere(library(mirai))
+    everywhere(library(pme))
+    everywhere(library(tidyverse))
+    everywhere(source("code/functions/fit_weighted_spline.R")) 
+
     group_out <- list()
     for (group_idx in seq_along(unique(groups))) {
       group_out[[group_idx]] <- mirai(
         {
+          daemons(k, seed = TRUE)
+          everywhere(library(pme))
+          everywhere(library(tidyverse))
           group_set <- groups == unique(groups)[group_idx]
           group_x <- x[group_set, ]
           group_params <- params[group_set, ]
@@ -354,6 +427,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
             id_folds[group_ids]
           )
 
+          daemons(0)
           list(
             embeddings = group_embeddings,
             group_x = group_x,
@@ -381,10 +455,20 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       group_weights[[group_idx]] <- group_out[[group_idx]][]$group_weights
     }
 
+    daemons(0)
+    daemons(min(avail_cores, length(unique(ids))), seed = TRUE)
+    everywhere(library(mirai))
+    everywhere(library(pme))
+    everywhere(library(tidyverse))
+    everywhere(source("code/functions/fit_weighted_spline.R")) 
+     
     id_out <- list()
     for (id_idx in seq_along(unique(ids))) {
       id_out[[id_idx]] <- mirai(
         {
+          daemons(k, seed = TRUE)
+          everywhere(library(pme))
+          everywhere(library(tidyverse))
           id_set <- ids == unique(ids)[id_idx]
           id_group <- which(unique(groups) == unique(groups[id_set]))
           id_x <- x[id_set, ]
@@ -431,6 +515,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
             scan_fold_vals
           )
 
+          daemons(0)
+
           list(
             embeddings = id_embeddings,
             id_x = id_x,
@@ -459,10 +545,20 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       id_weights[[id_idx]] <- id_out[[id_idx]][]$id_weights
     }
 
+    daemons(0)
+    daemons(min(avail_cores, length(unique(ids))), seed = TRUE)
+    everywhere(library(mirai))
+    everywhere(library(pme))
+    everywhere(library(tidyverse))
+    everywhere(source("code/functions/fit_weighted_spline.R")) 
+     
     img_out <- list()
     for (img_idx in seq_along(unique(scans))) {
       img_out[[img_idx]] <- mirai(
         {
+          daemons(k, seed = TRUE)
+          everywhere(library(pme))
+          everywhere(library(tidyverse)) 
           img_set <- scans == unique(scans)[img_idx]
           img_group <- which(unique(groups) == unique(groups[img_set]))
           img_id <- which(unique(ids) == unique(ids[img_set]))
@@ -504,6 +600,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
           ) %>%
             reduce(rbind) %>%
             colMeans()
+
+          daemons(0)
 
           list(
             embeddings = img_embeddings,

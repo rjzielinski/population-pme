@@ -10,11 +10,11 @@ fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
   lambda <- smoothing_vals
 
   for (smoothing_idx in seq_along(smoothing_vals)) {
-    smoothing_out[[smoothing_idx]] <- mirai(
-      {
-        coefs[[smoothing_idx]] <- list()
-        fold_output <- list()
-        for (k_idx in seq_len(k)) {
+    coefs[[smoothing_idx]] <- list()
+    fold_output <- list()
+    for (k_idx in seq_len(k)) {
+      fold_output[[k_idx]] <- mirai(
+        {
           train_params <- params[!(folds == k_idx), ] %>%
             matrix(ncol = d)
           fold_params <- params[folds == k_idx, ] %>%
@@ -47,24 +47,25 @@ fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
           ) %>%
             reduce(c) %>%
             mean()
-          fold_output[[k_idx]] <- error_val
-        }
-        fold_errors <- map(fold_output, ~ .x[]) %>%
-          reduce(c)
-        mean(fold_errors)
-      },
-      smoothing_idx = smoothing_idx,
-      params = params,
-      folds = folds,
-      weights = weights,
-      x = x,
-      k = k,
-      d = d,
-      lambda = lambda,
-      coefs = coefs
-    )
+          error_val
+        },
+        smoothing_idx = smoothing_idx,
+        params = params,
+        folds = folds,
+        weights = weights,
+        x = x,
+        k = k,
+        d = d,
+        lambda = lambda,
+        coefs = coefs,
+        k_idx = k_idx
+      )
+    }
+    fold_errors <- map(fold_output, ~ .x[]) %>%
+      reduce(c)
+    smoothing_out[[smoothing_idx]] <- mean(fold_errors)
   }
-  smoothing_error <- map(smoothing_out, ~ .x[]) %>%
+  smoothing_error <- map(smoothing_out, ~ .x) %>%
     reduce(c)
   opt_run <- which.min(smoothing_error)
 
