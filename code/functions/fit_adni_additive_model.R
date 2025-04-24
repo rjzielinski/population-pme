@@ -28,11 +28,12 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     )
   ]
 
+  print("Initializing...")
+
   daemons(cores, seed = TRUE)
   everywhere(library(pme))
   everywhere(library(tidyverse))
   everywhere(source("code/functions/fit_weighted_spline.R"))
-  print("Initializing Population model")
   init_population_embedding <- fit_weighted_spline(
     x,
     params,
@@ -41,7 +42,6 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     scan_folds[scans]
   )
 
-  print("Initializing Group models")
   init_group_embeddings <- list()
   group_x <- list()
   group_params <- list()
@@ -123,7 +123,6 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   }
 
   
-  print("Initializing ID models")
   init_id_embeddings <- list()
   id_x <- list()
   id_params <- list()
@@ -221,7 +220,6 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     id_weights[[id_idx]] <- id_out[[id_idx]][]$id_weights
   }
 
-  print("Initializing Image models")
   init_img_embeddings <- list()
   img_x <- list()
   img_params <- list()
@@ -345,7 +343,6 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
 
   while ((epsilon_hat > epsilon) & (n <= max_iter)) {
     daemons(0)
-    print(paste0("Starting iteration ", as.character(n + 1)))
     population_embedding_old <- population_embedding
     group_embeddings_old <- group_embeddings
     id_embeddings_old <- id_embeddings
@@ -660,9 +657,10 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     epsilon_hat <- mse_ratio
     print(
       paste0(
-        "Estimated mean squared error: ",
+        "Iteration ", as.character(n - 1), ": ",
+        "Estimated mean squared error - ",
         as.character(round(mse, 5)),
-        "; Relative change in mean squared error: ",
+        "; Relative change in mean squared error - ",
         as.character(round(mse_ratio, 5))
       )
     )
