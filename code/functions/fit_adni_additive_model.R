@@ -1,5 +1,5 @@
 fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, scans, times, epsilon = 0.05, max_iter = 100, cores = 1) {
-  require(future, quietly = TRUE)
+  require(mirai, quietly = TRUE)
   require(pme, quietly = TRUE)
   require(purrr, quietly = TRUE)
   D <- ncol(x)
@@ -19,7 +19,6 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   ]
 
   print("Initializing Population model")
-  plan(multisession, workers = min(cores, k))
   init_population_embedding <- fit_weighted_spline(
     x,
     params,
@@ -34,17 +33,9 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   group_params <- list()
   group_weights <- list()
 
-  avail_cores <- min(length(unique(groups)), cores %/% k)
-  # plan(
-  #   list(
-  #     tweak(multisession, workers = avail_cores),
-  #     tweak(multisession, workers = min(cores, k))
-  #   )
-  # )
-  plan(multisession)
   group_out <- list()
   for (group_idx in seq_along(unique(groups))) {
-    group_out[[group_idx]] <- future(
+    group_out[[group_idx]] <- mirai(
       {
         group_set <- groups == unique(groups)[group_idx]
         group_x <- x[group_set, ]
@@ -84,15 +75,24 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
           group_weights = group_weights
         )
       },
-      seed = TRUE
+      groups = groups,
+      ids = ids,
+      scans = scans,
+      x = x,
+      params = params,
+      weights = weights,
+      k = k,
+      init_population_embedding = init_population_embedding,
+      lambda = lambda,
+      group_idx = group_idx
     )
   }
 
   for (group_idx in seq_along(unique(groups))) {
-    init_group_embeddings[[group_idx]] <- value(group_out[[group_idx]])$embeddings
-    group_x[[group_idx]] <- value(group_out[[group_idx]])$group_x
-    group_params[[group_idx]] <- value(group_out[[group_idx]])$group_params
-    group_weights[[group_idx]] <- value(group_out[[group_idx]])$group_weights
+    init_group_embeddings[[group_idx]] <- group_out[[group_idx]][]$embeddings
+    group_x[[group_idx]] <- group_out[[group_idx]][]$group_x
+    group_params[[group_idx]] <- group_out[[group_idx]][]$group_params
+    group_weights[[group_idx]] <- group_out[[group_idx]][]$group_weights
   }
 
   print("Initializing ID models")
@@ -101,18 +101,9 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   id_params <- list()
   id_weights <- list()
 
-  avail_cores <- min(length(unique(ids)), cores %/% k)
-  # plan(
-  #   list(
-  #     tweak(multisession, workers = cores),
-  #     tweak(multisession, workers = min(cores, k))
-  #   )
-  # )
-  # plan(list(tweak(multisession, workers = cores), sequential))
-  plan(multisession)
   id_out <- list()
   for (id_idx in seq_along(unique(ids))) {
-    id_out[[id_idx]] <- future(
+    id_out[[id_idx]] <- mirai(
       {
         id_set <- ids == unique(ids)[id_idx]
         id_group <- which(unique(groups) == unique(groups[id_set]))
@@ -167,15 +158,25 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
           id_weights = id_weights
         )
       },
-      seed = TRUE
+      groups = groups,
+      ids = ids,
+      scans = scans,
+      x = x,
+      params = params,
+      weights = weights,
+      k = k,
+      init_population_embedding = init_population_embedding,
+      init_group_embeddings = init_group_embeddings,
+      lambda = lambda,
+      id_idx = id_idx
     )
   }
 
   for (id_idx in seq_along(unique(ids))) {
-    init_id_embeddings[[id_idx]] <- value(id_out[[id_idx]])$embeddings
-    id_x[[id_idx]] <- value(id_out[[id_idx]])$id_x
-    id_params[[id_idx]] <- value(id_out[[id_idx]])$id_params
-    id_weights[[id_idx]] <- value(id_out[[id_idx]])$id_weights
+    init_id_embeddings[[id_idx]] <- id_out[[id_idx]][]$embeddings
+    id_x[[id_idx]] <- id_out[[id_idx]][]$id_x
+    id_params[[id_idx]] <- id_out[[id_idx]][]$id_params
+    id_weights[[id_idx]] <- id_out[[id_idx]][]$id_weights
   }
 
   print("Initializing Image models")
@@ -185,18 +186,9 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   img_weights <- list()
   mean_x <- list()
 
-  avail_cores <- min(length(unique(scans)), cores %/% k)
-  # plan(
-  #   list(
-  #     tweak(multisession, workers = avail_cores),
-  #     tweak(multisession, workers = min(cores, k))
-  #   )
-  # )
-  # plan(list(tweak(multisession, workers = cores), sequential))
-  plan(multisession)
   img_out <- list()
   for (img_idx in seq_along(unique(scans))) {
-    img_out[[img_idx]] <- future(
+    img_out[[img_idx]] <- mirai(
       {
         img_set <- scans == unique(scans)[img_idx]
         img_group <- which(unique(groups) == unique(groups[img_set]))
@@ -248,16 +240,27 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
           mean_x = mean_x
         )
       },
-      seed = TRUE
+      groups = groups,
+      ids = ids,
+      scans = scans,
+      x = x,
+      params = params,
+      weights = weights,
+      k = k,
+      init_population_embedding = init_population_embedding,
+      init_group_embeddings = init_group_embeddings,
+      init_id_embeddings = init_id_embeddings,
+      lambda = lambda,
+      img_idx = img_idx
     )
   }
 
   for (img_idx in seq_along(unique(scans))) {
-    init_img_embeddings[[img_idx]] <- value(img_out[[img_idx]])$embeddings
-    img_x[[img_idx]] <- value(img_out[[img_idx]])$img_x
-    img_params[[img_idx]] <- value(img_out[[img_idx]])$img_params
-    img_weights[[img_idx]] <- value(img_out[[img_idx]])$img_weights
-    mean_x[[img_idx]] <- value(img_out[[img_idx]])$mean_x
+    init_img_embeddings[[img_idx]] <- img_out[[img_idx]][]$embeddings
+    img_x[[img_idx]] <- img_out[[img_idx]][]$img_x
+    img_params[[img_idx]] <- img_out[[img_idx]][]$img_params
+    img_weights[[img_idx]] <- img_out[[img_idx]][]$img_weights
+    mean_x[[img_idx]] <- img_out[[img_idx]][]$mean_x
   }
 
   epsilon_hat <- 2 * epsilon
@@ -308,7 +311,6 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       )
     ]
 
-    plan(multisession, workers = min(cores, k))
     population_embedding <- fit_weighted_spline(
       x - x_pred_nopop,
       params,
@@ -317,17 +319,9 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       scan_folds[scans]
     )
 
-    avail_cores <- min(length(unique(groups)), cores %/% k)
-    # plan(
-    #   list(
-    #    tweak(multisession, workers = avail_cores),
-    #     tweak(multisession, workers = min(cores, k))
-    #   )
-    # )
-    plan(multisession)
     group_out <- list()
     for (group_idx in seq_along(unique(groups))) {
-      group_out[[group_idx]] <- future(
+      group_out[[group_idx]] <- mirai(
         {
           group_set <- groups == unique(groups)[group_idx]
           group_x <- x[group_set, ]
@@ -367,29 +361,29 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
             group_weights = group_weights
           )
         },
-        seed = TRUE
+        groups = groups,
+        ids = ids,
+        scans = scans,
+        x = x,
+        params = params,
+        weights = weights,
+        k = k,
+        population_embedding = population_embedding,
+        lambda = lambda,
+        group_idx = group_idx
       )
     }
 
     for (group_idx in seq_along(unique(groups))) {
-      group_embeddings[[group_idx]] <- value(group_out[[group_idx]])$embeddings
-      group_x[[group_idx]] <- value(group_out[[group_idx]])$group_x
-      group_params[[group_idx]] <- value(group_out[[group_idx]])$group_params
-      group_weights[[group_idx]] <- value(group_out[[group_idx]])$group_weights
+      group_embeddings[[group_idx]] <- group_out[[group_idx]][]$embeddings
+      group_x[[group_idx]] <- group_out[[group_idx]][]$group_x
+      group_params[[group_idx]] <- group_out[[group_idx]][]$group_params
+      group_weights[[group_idx]] <- group_out[[group_idx]][]$group_weights
     }
 
-    avail_cores <- min(length(unique(ids)), cores %/% k)
-    # plan(
-    #   list(
-    #     tweak(multisession, workers = avail_cores),
-    #     tweak(multisession, workers = min(cores, k))
-    #   )
-    # )
-    # plan(list(tweak(multisession, workers = cores), sequential))
-    plan(multisession)
     id_out <- list()
     for (id_idx in seq_along(unique(ids))) {
-      id_out[[id_idx]] <- future(
+      id_out[[id_idx]] <- mirai(
         {
           id_set <- ids == unique(ids)[id_idx]
           id_group <- which(unique(groups) == unique(groups[id_set]))
@@ -444,29 +438,30 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
             id_weights = id_weights
           )
         },
-        seed = TRUE
+        groups = groups,
+        ids = ids,
+        scans = scans,
+        x = x,
+        params = params,
+        weights = weights,
+        k = k,
+        population_embedding = population_embedding,
+        group_embeddings = group_embeddings,
+        lambda = lambda,
+        id_idx = id_idx
       )
     }
 
     for (id_idx in seq_along(unique(ids))) {
-      id_embeddings[[id_idx]] <- value(id_out[[id_idx]])$embeddings
-      id_x[[id_idx]] <- value(id_out[[id_idx]])$id_x
-      id_params[[id_idx]] <- value(id_out[[id_idx]])$id_params
-      id_weights[[id_idx]] <- value(id_out[[id_idx]])$id_weights
+      id_embeddings[[id_idx]] <- id_out[[id_idx]][]$embeddings
+      id_x[[id_idx]] <- id_out[[id_idx]][]$id_x
+      id_params[[id_idx]] <- id_out[[id_idx]][]$id_params
+      id_weights[[id_idx]] <- id_out[[id_idx]][]$id_weights
     }
 
-    avail_cores <- min(length(unique(scans)), cores %/% k)
-    # plan(
-    #   list(
-    #     tweak(multisession, workers = avail_cores),
-    #     tweak(multisession, workers = min(cores, k))
-    #   )
-    # )
-    # plan(list(tweak(multisession, workers = cores), sequential))
-    plan(multisession)
     img_out <- list()
     for (img_idx in seq_along(unique(scans))) {
-      img_out[[img_idx]] <- future(
+      img_out[[img_idx]] <- mirai(
         {
           img_set <- scans == unique(scans)[img_idx]
           img_group <- which(unique(groups) == unique(groups[img_set]))
@@ -518,16 +513,27 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
             mean_x = mean_x
           )
         },
-        seed = TRUE
+        groups = groups,
+        ids = ids,
+        scans = scans,
+        x = x,
+        params = params,
+        weights = weights,
+        k = k,
+        population_embedding = population_embedding,
+        group_embeddings = group_embeddings,
+        id_embeddings = id_embeddings,
+        lambda = lambda,
+        img_idx = img_idx
       )
     }
 
     for (img_idx in seq_along(unique(scans))) {
-      img_embeddings[[img_idx]] <- value(img_out[[img_idx]])$embeddings
-      img_x[[img_idx]] <- value(img_out[[img_idx]])$img_x
-      img_params[[img_idx]] <- value(img_out[[img_idx]])$img_params
-      img_weights[[img_idx]] <- value(img_out[[img_idx]])$img_weights
-      mean_x[[img_idx]] <- value(img_out[[img_idx]])$mean_x
+      img_embeddings[[img_idx]] <- img_out[[img_idx]][]$embeddings
+      img_x[[img_idx]] <- img_out[[img_idx]][]$img_x
+      img_params[[img_idx]] <- img_out[[img_idx]][]$img_params
+      img_weights[[img_idx]] <- img_out[[img_idx]][]$img_weights
+      mean_x[[img_idx]] <- img_out[[img_idx]][]$mean_x
     }
 
     n <- n + 1
@@ -544,7 +550,10 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     ) %>%
       reduce(rbind)
 
-    mse <- map(1:nrow(x), ~ weights[.x] * dist_euclidean(x[.x, ], x_preds[.x, ])^2) %>%
+    mse <- map(
+      seq_len(nrow(x)), 
+      ~ weights[.x] * dist_euclidean(x[.x, ], x_preds[.x, ])^2
+    ) %>%
       reduce(c) %>%
       mean()
 

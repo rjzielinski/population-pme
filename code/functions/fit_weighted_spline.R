@@ -1,27 +1,20 @@
 fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
-  require(future, quietly = TRUE)
+  require(mirai, quietly = TRUE)
   require(pme, quietly = TRUE)
   require(purrr, quietly = TRUE)
   k <- length(unique(folds))
   coefs <- list()
   d <- ncol(params)
   smoothing_error <- vector()
+  smoothing_out <- list()
   lambda <- smoothing_vals
 
   for (smoothing_idx in seq_along(smoothing_vals)) {
-    coefs[[smoothing_idx]] <- list()
-
-    # if (parallel == "sequential") {
-    #   plan(sequential)
-    # } else if (parallel == "multisession") {
-    #   plan(multisession, workers = min(cores, k))
-    # } else if (parallel == "multicore") {
-    #   plan(multicore, workers = min(cores, k))
-    # }
-    fold_output <- list()
-    for (k_idx in seq_len(k)) {
-      fold_output[[k_idx]] <- future(
-        {
+    smoothing_out[[smoothing_idx]] <- mirai(
+      {
+        coefs[[smoothing_idx]] <- list()
+        fold_output <- list()
+        for (k_idx in seq_len(k)) {
           train_params <- params[!(folds == k_idx), ] %>%
             matrix(ncol = d)
           fold_params <- params[folds == k_idx, ] %>%
@@ -40,10 +33,9 @@ fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
             ncol(train_params),
             ncol(train_x)
           )
-          eta_val <- etaFunc(parameters, train_params, 4 - d)
           fold_embedding <- function(parameters) {
             as.vector(
-              (t(coefs[[smoothing_idx]][[k_idx]][seq_len(nrow(train_x)), ]) %*% eta_val) +
+              (t(coefs[[smoothing_idx]][[k_idx]][seq_len(nrow(train_x)), ]) %*% etaFunc(parameters, train_params, 4 - d)) +
                 (t(coefs[[smoothing_idx]][[k_idx]][(nrow(train_x) + 1):(nrow(train_x) + d + 1), ]) %*% matrix(c(1, parameters), ncol = 1))
             )
           }
@@ -55,20 +47,25 @@ fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
           ) %>%
             reduce(c) %>%
             mean()
-          error_val
-        },
-        seed = TRUE
-      )
-    }
-    fold_errors <- map(fold_output, ~ value(.x)) %>%
-      reduce(c)
-    smoothing_error[smoothing_idx] <- mean(fold_errors)
-    if (length(smoothing_error) >= 5) {
-      if (!is.unsorted(smoothing_error[(length(smoothing_error) - 4):length(smoothing_error)])) {
-        break
-      }
-    }
+          fold_output[[k_idx]] <- error_val
+        }
+        fold_errors <- map(fold_output, ~ .x[]) %>%
+          reduce(c)
+        mean(fold_errors)
+      },
+      smoothing_idx = smoothing_idx,
+      params = params,
+      folds = folds,
+      weights = weights,
+      x = x,
+      k = k,
+      d = d,
+      lambda = lambda,
+      coefs = coefs
+    )
   }
+  smoothing_error <- map(smoothing_out, ~ .x[]) %>%
+    reduce(c)
   opt_run <- which.min(smoothing_error)
 
   E <- calcE(params, 4 - ncol(params))
@@ -83,10 +80,9 @@ fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
     ncol(x)
   )
 
-  eta_final <- etaFunc(parameters, params, 4 - d)
   embedding_map <- function(parameters) {
     as.vector(
-      (t(opt_coefs[seq_len(nrow(x)), ]) %*% eta_final) +
+      (t(opt_coefs[seq_len(nrow(x)), ]) %*% etaFunc(parameters, params, 4 - d)) +
         (t(opt_coefs[(nrow(x) + 1):(nrow(x) + d + 1), ]) %*% matrix(c(1, parameters), ncol = 1))
     )
   }

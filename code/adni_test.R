@@ -2,6 +2,7 @@ library(doParallel)
 library(doFuture)
 library(foreach)
 library(listenv)
+library(mirai)
 library(pme)
 library(progress)
 library(Rfast)
@@ -11,6 +12,14 @@ options(future.globals.maxSize = 32 * 1024^3)
 options(renv.config.sandbox.enabled = FALSE)
 options(renv.config.auto.snapshot = FALSE)
 cores <- detectCores() - 1
+
+daemons(cores)
+
+everywhere(library(pme))
+everywhere(library(tidyverse))
+everywhere(source("code/functions/fit_weighted_spline.R"))
+everywhere(source("code/functions/fit_adni_additive_model.R"))
+everywhere(source("code/functions/print_SSD.R"))
 
 source("code/functions/fit_weighted_spline.R")
 source("code/functions/print_SSD.R")
@@ -85,41 +94,40 @@ lhipp_init_data[[2]] <- lhipp_surface_inputs[
     (lhipp_partition == 2),
 ]
 
-plan(multisession, workers = 2)
 init_pme_wrapper <- list()
 for (i in seq_len(2)) {
-  init_pme_wrapper[[i]] <- future(
+  init_pme_wrapper[[i]] <- mirai(
     {
       pme(
-        lhipp_init_data[[i]][, -1],
+        data,
         d = 2,
         print_plots = FALSE,
         verbose = FALSE
       )
     },
-    seed = TRUE
+    data = lhipp_init_data[[i]][, -1],
+    pme = pme
   )
 }
 
 lhipp_init_pme <- map(
   init_pme_wrapper,
-  ~ value(.x)
+  ~ .x[]
 )
 
-plan(multisession, workers = cores - 1)
 lhipp_reduced <- list()
 scan_list <- unique(lhipp_scans)
 for (scan_idx in seq_along(scan_list)) {
-  lhipp_reduced[[scan_idx]] <- future(
+  lhipp_reduced[[scan_idx]] <- mirai(
     {
-      scan_indices <- lhipp_scans == scan_list[scan_idx]
+      scan_indices <- lhipp_scans == scans
       group_val <- unique(lhipp_groups[scan_indices])
       id_val <- unique(lhipp_ids[scan_indices])
 
       scan_data_pt1 <- lhipp_surface_inputs[
         (lhipp_groups == group_val) &
           (lhipp_ids == id_val) &
-          (lhipp_scans == scan_list[scan_idx]) &
+          (lhipp_scans == scans) &
           (lhipp_partition == 1),
       ]
       scan_time <- scan_data_pt1[1, 1]
@@ -128,7 +136,7 @@ for (scan_idx in seq_along(scan_list)) {
       scan_data_pt2 <- lhipp_surface_inputs[
         (lhipp_groups == group_val) &
           (lhipp_ids == id_val) &
-          (lhipp_scans == scan_list[scan_idx]) &
+          (lhipp_scans == scans) &
           (lhipp_partition == 2), -1
       ]
 
@@ -151,13 +159,18 @@ for (scan_idx in seq_along(scan_list)) {
         group_vec_pt2 = rep(group_val, n_pt2),
         id_vec_pt1 = rep(id_val, n_pt1),
         id_vec_pt2 = rep(id_val, n_pt2),
-        scan_vec_pt1 = rep(scan_list[scan_idx], n_pt1),
-        scan_vec_pt2 = rep(scan_list[scan_idx], n_pt2),
+        scan_vec_pt1 = rep(scans, n_pt1),
+        scan_vec_pt2 = rep(scans, n_pt2),
         lhipp_time_pt1 = rep(scan_time, n_pt1),
         lhipp_time_pt2 = rep(scan_time, n_pt2)
       )
     },
-    seed = TRUE
+    scans = scan_list[scan_idx],
+    lhipp_groups = lhipp_groups,
+    lhipp_ids = lhipp_ids,
+    lhipp_scans = lhipp_scans,
+    lhipp_partition = lhipp_partition,
+    lhipp_surface_inputs = lhipp_surface_inputs
   )
 }
 
@@ -172,18 +185,18 @@ lhipp_weights <- list(list(), list())
 
 
 for (scan_idx in seq_along(lhipp_reduced)) {
-  lhipp_x[[1]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$lhipp_x_pt1
-  lhipp_x[[2]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$lhipp_x_pt2
-  lhipp_weights[[1]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$lhipp_weights_pt1
-  lhipp_weights[[2]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$lhipp_weights_pt2
-  group_vecs[[1]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$group_vec_pt1
-  group_vecs[[2]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$group_vec_pt2
-  id_vecs[[1]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$id_vec_pt1
-  id_vecs[[2]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$id_vec_pt2
-  img_vecs[[1]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$scan_vec_pt1
-  img_vecs[[2]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$scan_vec_pt2
-  lhipp_times[[1]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$lhipp_time_pt1
-  lhipp_times[[2]][[scan_idx]] <- value(lhipp_reduced[[scan_idx]])$lhipp_time_pt2
+  lhipp_x[[1]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$lhipp_x_pt1
+  lhipp_x[[2]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$lhipp_x_pt2
+  lhipp_weights[[1]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$lhipp_weights_pt1
+  lhipp_weights[[2]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$lhipp_weights_pt2
+  group_vecs[[1]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$group_vec_pt1
+  group_vecs[[2]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$group_vec_pt2
+  id_vecs[[1]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$id_vec_pt1
+  id_vecs[[2]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$id_vec_pt2
+  img_vecs[[1]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$scan_vec_pt1
+  img_vecs[[2]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$scan_vec_pt2
+  lhipp_times[[1]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$lhipp_time_pt1
+  lhipp_times[[2]][[scan_idx]] <- lhipp_reduced[[scan_idx]][]$lhipp_time_pt2
 }
 
 lhipp_x[[1]] <- reduce(lhipp_x[[1]], rbind)
