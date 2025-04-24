@@ -30,6 +30,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
 
   print("Initializing...")
 
+  daemons(0)
   daemons(cores, seed = TRUE)
   everywhere(library(pme))
   everywhere(library(tidyverse))
@@ -58,6 +59,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   for (group_idx in seq_along(unique(groups))) {
     group_out[[group_idx]] <- mirai(
       {
+        daemons(0)
         daemons(k, seed = TRUE)
         everywhere(library(pme))
         everywhere(library(tidyverse))
@@ -142,6 +144,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     id_out[[id_idx]] <- mirai(
       {
         # daemons(k, seed = TRUE)
+        daemons(0)
         daemons(1, seed = TRUE)
         everywhere(library(pme))
         everywhere(library(tidyverse)) 
@@ -242,6 +245,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     img_out[[img_idx]] <- mirai(
       {
         # daemons(k, seed = TRUE)
+        daemons(0)
         daemons(1, seed = TRUE)
         everywhere(library(pme))
         everywhere(library(tidyverse)) 
@@ -345,6 +349,13 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     reduce(c) %>%
     mean()
 
+  print(
+    paste0(
+      "Initialization complete. Estimated mean squared error - ",
+      as.character(round(mse, 5)),
+    )
+  )
+
   while ((epsilon_hat > epsilon) & (n <= max_iter)) {
     daemons(0)
     population_embedding_old <- population_embedding
@@ -370,6 +381,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       )
     ]
 
+    daemons(0)
     daemons(cores, seed = TRUE)
     everywhere(library(pme))
     everywhere(library(tidyverse))
@@ -394,6 +406,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     for (group_idx in seq_along(unique(groups))) {
       group_out[[group_idx]] <- mirai(
         {
+          daemons(0)
           daemons(k, seed = TRUE)
           everywhere(library(pme))
           everywhere(library(tidyverse))
@@ -469,6 +482,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       id_out[[id_idx]] <- mirai(
         {
           # daemons(k, seed = TRUE)
+          daemons(0)
           daemons(1, seed = TRUE)
           everywhere(library(pme))
           everywhere(library(tidyverse))
@@ -561,6 +575,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
       img_out[[img_idx]] <- mirai(
         {
           # daemons(k, seed = TRUE)
+          daemons(0)
           daemons(1, seed = TRUE)
           everywhere(library(pme))
           everywhere(library(tidyverse)) 
@@ -665,7 +680,7 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     epsilon_hat <- mse_ratio
     print(
       paste0(
-        "Iteration ", as.character(n - 1), ": ",
+        "Iteration ", as.character(n), ": ",
         "Estimated mean squared error - ",
         as.character(round(mse, 5)),
         "; Relative change in mean squared error - ",
