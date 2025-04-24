@@ -129,7 +129,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   id_weights <- list()
 
   daemons(0)
-  daemons(min(avail_cores, length(unique(ids))), seed = TRUE)
+  # daemons(min(avail_cores, length(unique(ids))), seed = TRUE)
+  daemons(min(cores, length(unique(ids))), seed = TRUE)
   everywhere(library(mirai))
   everywhere(library(pme))
   everywhere(library(tidyverse))
@@ -140,7 +141,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   for (id_idx in seq_along(unique(ids))) {
     id_out[[id_idx]] <- mirai(
       {
-        daemons(k, seed = TRUE)
+        # daemons(k, seed = TRUE)
+        daemons(1, seed = TRUE)
         everywhere(library(pme))
         everywhere(library(tidyverse)) 
 
@@ -227,7 +229,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   mean_x <- list()
 
   daemons(0)
-  daemons(min(avail_cores, length(unique(scans))), seed = TRUE)
+  # daemons(min(avail_cores, length(unique(scans))), seed = TRUE)
+  daemons(min(cores, length(unique(scans))), seed = TRUE)
   everywhere(library(mirai))
   everywhere(library(pme))
   everywhere(library(tidyverse))
@@ -238,7 +241,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
   for (img_idx in seq_along(unique(scans))) {
     img_out[[img_idx]] <- mirai(
       {
-        daemons(k, seed = TRUE)
+        # daemons(k, seed = TRUE)
+        daemons(1, seed = TRUE)
         everywhere(library(pme))
         everywhere(library(tidyverse)) 
          
@@ -453,7 +457,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     }
 
     daemons(0)
-    daemons(min(avail_cores, length(unique(ids))), seed = TRUE)
+    # daemons(min(avail_cores, length(unique(ids))), seed = TRUE)
+    daemons(min(cores, length(unique(ids))), seed = TRUE)
     everywhere(library(mirai))
     everywhere(library(pme))
     everywhere(library(tidyverse))
@@ -463,7 +468,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     for (id_idx in seq_along(unique(ids))) {
       id_out[[id_idx]] <- mirai(
         {
-          daemons(k, seed = TRUE)
+          # daemons(k, seed = TRUE)
+          daemons(1, seed = TRUE)
           everywhere(library(pme))
           everywhere(library(tidyverse))
           id_set <- ids == unique(ids)[id_idx]
@@ -543,7 +549,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     }
 
     daemons(0)
-    daemons(min(avail_cores, length(unique(ids))), seed = TRUE)
+    # daemons(min(avail_cores, length(unique(ids))), seed = TRUE)
+    daemons(min(cores, length(unique(scans))), seed = TRUE)
     everywhere(library(mirai))
     everywhere(library(pme))
     everywhere(library(tidyverse))
@@ -553,7 +560,8 @@ fit_adni_additive_model <- function(x, params, weights, lambda, k, groups, ids, 
     for (img_idx in seq_along(unique(scans))) {
       img_out[[img_idx]] <- mirai(
         {
-          daemons(k, seed = TRUE)
+          # daemons(k, seed = TRUE)
+          daemons(1, seed = TRUE)
           everywhere(library(pme))
           everywhere(library(tidyverse)) 
           img_set <- scans == unique(scans)[img_idx]
