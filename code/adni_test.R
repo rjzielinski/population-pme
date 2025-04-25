@@ -259,7 +259,7 @@ init_additive_mod_pt2 <- fit_adni_additive_model(
   times = lhipp_times[[2]],
   epsilon = 0.05,
   max_iter = 250,
-  cores = cores - 1
+  cores = cores
 )
 
 lambda <- exp(-20:5)
@@ -458,23 +458,17 @@ nearest_params <- matrix(
   nrow = nrow(lhipp_surface_inputs),
   ncol = ncol(params[[1]])
 )
-pb <- progress_bar$new(
-  total = nrow(lhipp_surface_inputs),
-  format = "[:bar] :percent eta: :eta",
-  clear = FALSE
-)
 
 for (i in seq_len(nrow(lhipp_surface_inputs))) {
-  pb$tick()
   temp_clusters <- lhipp_x[[lhipp_partition[i]]][
-    (group_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_groups[i])) &
-      (id_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_ids[i])) &
-      (img_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_scans[i])),
+    (as.numeric(group_vecs[[lhipp_partition[i]]]) == as.numeric(lhipp_groups[i])) &
+      (as.numeric(id_vecs[[lhipp_partition[i]]]) == as.numeric(lhipp_ids[i])) &
+      (as.numeric(img_vecs[[lhipp_partition[i]]]) == as.numeric(lhipp_scans[i])),
   ]
   temp_params <- params[[lhipp_partition[i]]][
-    (group_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_groups[i])) &
-      (id_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_ids[i])) &
-      (img_vecs[[lhipp_partition[i]]] == as.numeric(lhipp_scans[i])),
+    (as.numeric(group_vecs[[lhipp_partition[i]]]) == as.numeric(lhipp_groups[i])) &
+      (as.numeric(id_vecs[[lhipp_partition[i]]]) == as.numeric(lhipp_ids[i])) &
+      (as.numeric(img_vecs[[lhipp_partition[i]]]) == as.numeric(lhipp_scans[i])),
   ]
   distances <- map(
     seq_len(nrow(temp_clusters)),
