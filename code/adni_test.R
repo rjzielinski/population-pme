@@ -66,7 +66,8 @@ lhipp_surface <- lhipp_surface |>
     z = (z - mean_z) / max_z,
     time_from_bl = date - date_bl,
     partition = ifelse(x > 0, 1, 2)
-  )
+  ) |>
+  rename(image_id = scan_id)
 
 lhipp_surface_inputs <- lhipp_surface |>
   select(date, x, y, z) |>
