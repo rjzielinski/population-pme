@@ -22,10 +22,15 @@ source("code/functions/calculate_pme_reconstructions.R")
 SSD_ratio_threshold <- 5
 verbose <- TRUE
 
-lhipp_surface <- read_csv("data_old/adni_fsl_lhipp_surface.csv")
-adni_info <- read_csv("data_old/adni_fsl_info.csv")
+lhipp_surface <- read_csv("data/lhipp_surface_fsl.csv")
+adni_info <- read_csv("data/adni_info_full.csv")
+
+adni_info <- adni_info |>
+  distinct(.keep_all = TRUE)
+
 
 lhipp_surface <- lhipp_surface |>
+  left_join(adni_info, by = join_by(scan_id == image_id)) |>
   mutate(
     date = decimal_date(date),
     Group = gsub("EMCI", "MCI", Group),
