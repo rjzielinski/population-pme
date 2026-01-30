@@ -1,11 +1,23 @@
-fit_mnist_additive_model <- function(x, params, weights, lambda, k, ids, epsilon = 0.05, max_iter = 100) {
+fit_mnist_additive_model <- function(
+  x,
+  params,
+  weights,
+  lambda,
+  k,
+  ids,
+  epsilon = 0.05,
+  max_iter = 100
+) {
+  require(pme, quietly = TRUE)
+  require(purrr, quietly = TRUE)
+
   D <- ncol(x)
   d <- ncol(params)
 
   fold_vec_full <- rep(1:k, ceiling(length(unique(ids)) / k))
   id_folds <- fold_vec_full[
     sample(
-      1:length(unique(ids)),
+      seq_along(unique(ids)),
       length(unique(ids)),
       replace = FALSE
     )
@@ -27,7 +39,8 @@ fit_mnist_additive_model <- function(x, params, weights, lambda, k, ids, epsilon
   id_weights <- list()
   id_coefs <- list()
   mean_x <- list()
-  for (id_idx in 1:length(unique(ids))) {
+
+  for (id_idx in seq_along(unique(ids))) {
     id_x[[id_idx]] <- x[ids == unique(ids)[id_idx], ]
     id_params[[id_idx]] <- params[ids == unique(ids)[id_idx], ] %>%
       matrix(ncol = 1)
@@ -36,13 +49,14 @@ fit_mnist_additive_model <- function(x, params, weights, lambda, k, ids, epsilon
     fold_vec <- rep(1:k, ceiling(nrow(id_x[[id_idx]]) / k))
     id_folds <- fold_vec[
       sample(
-        1:nrow(id_x[[id_idx]]),
+        seq_len(nrow(id_x[[id_idx]])),
         size = nrow(id_x[[id_idx]]),
         replace = FALSE
       )
     ]
+
     id_preds <- map(
-      1:nrow(id_params[[id_idx]]),
+      seq_len(nrow(id_params[[id_idx]])),
       ~ init_population_embedding$embedding_map(id_params[[id_idx]][.x, ])
     ) %>%
       reduce(rbind)
@@ -53,8 +67,9 @@ fit_mnist_additive_model <- function(x, params, weights, lambda, k, ids, epsilon
       lambda,
       id_folds
     )
+
     mean_x[[id_idx]] <- map(
-      1:nrow(id_params[[id_idx]]),
+      seq_len(nrow(id_params[[id_idx]])),
       ~ init_id_embeddings[[id_idx]]$embedding_map(id_params[[id_idx]][.x, ])
     ) %>%
       reduce(rbind) %>%
@@ -67,13 +82,16 @@ fit_mnist_additive_model <- function(x, params, weights, lambda, k, ids, epsilon
   id_embeddings <- init_id_embeddings
 
   x_preds <- map(
-    1:nrow(x),
+    seq_len(nrow(x)),
     ~ population_embedding$embedding_map(params[.x]) +
       id_embeddings[[ids[.x]]]$embedding_map(params[.x])
   ) %>%
     reduce(rbind)
 
-  mse <- map(1:nrow(x), ~ weights[.x] * dist_euclidean(x[.x, ], x_preds[.x, ])^2) %>%
+  mse <- map(
+    seq_len(nrow(x)),
+    ~ weights[.x] * dist_euclidean(x[.x, ], x_preds[.x, ])^2
+  ) %>%
     reduce(c) %>%
     mean()
 
@@ -85,7 +103,7 @@ fit_mnist_additive_model <- function(x, params, weights, lambda, k, ids, epsilon
     mse_old <- mse
 
     x_id_preds <- map(
-      1:nrow(x),
+      seq_len(nrow(x)),
       # ~ id_embeddings_old[[ids[.x]]]$embedding_map(params[.x, ]) - mean_x[[id_idx]]
       ~ id_embeddings_old[[ids[.x]]]$embedding_map(params[.x, ])
     ) %>%
@@ -94,7 +112,7 @@ fit_mnist_additive_model <- function(x, params, weights, lambda, k, ids, epsilon
     fold_vec_full <- rep(1:k, ceiling(length(unique(ids)) / k))
     id_folds <- fold_vec_full[
       sample(
-        1:length(unique(ids)),
+        seq_len(length(unique(ids))),
         length(unique(ids)),
         replace = FALSE
       )
@@ -113,19 +131,29 @@ fit_mnist_additive_model <- function(x, params, weights, lambda, k, ids, epsilon
       dist_euclidean(
         population_embedding$coefs,
         population_embedding_old$coefs
-      ) / norm_euclidean(population_embedding_old$coefs)
+      ) /
+        norm_euclidean(population_embedding_old$coefs)
     )
 
-    for (id_idx in 1:length(unique(ids))) {
+    for (id_idx in seq_along(length(unique(ids)))) {
       id_x[[id_idx]] <- x[ids == unique(ids)[id_idx], ]
       id_params[[id_idx]] <- params[ids == unique(ids)[id_idx], ] %>%
         matrix(ncol = 1)
       # id_weights[[id_idx]] <- weights[ids == unique(ids)[id_idx]]
-      id_weights[[id_idx]] <- rep(1 / nrow(id_x[[id_idx]]), nrow(id_x[[id_idx]]))
+      id_weights[[id_idx]] <- rep(
+        1 / nrow(id_x[[id_idx]]),
+        nrow(id_x[[id_idx]])
+      )
+
       fold_vec <- rep(1:k, ceiling(nrow(id_x[[id_idx]]) / k))
-      id_folds <- fold_vec[sample(1:nrow(id_x[[id_idx]]), size = nrow(id_x[[id_idx]]), replace = FALSE)]
+      id_folds <- fold_vec[sample(
+        seq_len(nrow(id_x[[id_idx]])),
+        size = nrow(id_x[[id_idx]]),
+        replace = FALSE
+      )]
+
       id_preds <- map(
-        1:nrow(id_params[[id_idx]]),
+        seq_len(nrow(id_params[[id_idx]])),
         ~ population_embedding$embedding_map(id_params[[id_idx]][.x, ])
       ) %>%
         reduce(rbind)
@@ -136,38 +164,44 @@ fit_mnist_additive_model <- function(x, params, weights, lambda, k, ids, epsilon
         lambda,
         id_folds
       )
+
       coef_diff <- max(
         coef_diff,
         dist_euclidean(
           id_embeddings[[id_idx]]$coefs,
           id_embeddings_old[[id_idx]]$coefs
-       ) / norm_euclidean(id_embeddings_old[[id_idx]]$coefs)
+        ) /
+          norm_euclidean(id_embeddings_old[[id_idx]]$coefs)
       )
+
       mean_x[[id_idx]] <- map(
-        1:nrow(id_params[[id_idx]]),
+        seq_len(nrow(id_params[[id_idx]])),
         ~ id_embeddings[[id_idx]]$embedding_map(id_params[[id_idx]][.x, ])
       ) %>%
         reduce(rbind) %>%
         colMeans()
     }
+
     n <- n + 1
     plot_id_pred(
       sample(unique(ids), 1),
       population_embedding,
       id_embeddings,
       params,
-      ids,
-      mean_x
+      ids
     )
 
     x_preds <- map(
-      1:nrow(x),
+      seq_len(nrow(x)),
       ~ population_embedding$embedding_map(params[.x]) +
         id_embeddings[[ids[.x]]]$embedding_map(params[.x])
     ) %>%
       reduce(rbind)
 
-    mse <- map(1:nrow(x), ~ weights[.x] * dist_euclidean(x[.x, ], x_preds[.x, ])^2) %>%
+    mse <- map(
+      seq_len(nrow(x)),
+      ~ weights[.x] * dist_euclidean(x[.x, ], x_preds[.x, ])^2
+    ) %>%
       reduce(c) %>%
       mean()
 
@@ -191,7 +225,7 @@ fit_mnist_additive_model <- function(x, params, weights, lambda, k, ids, epsilon
   }
 
   full_embeddings <- list()
-  for (id_idx in 1:length(unique(ids))) {
+  for (id_idx in seq_along(length(unique(ids)))) {
     full_embeddings[[id_idx]] <- function(parameters) {
       population_embedding$embedding_map(parameters) +
         id_embeddings[[id_idx]]$embedding_map(parameters) -
