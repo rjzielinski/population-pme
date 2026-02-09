@@ -53,7 +53,6 @@ varying_coef_spline <- function(
   spline_coefs <- list()
 
   if (verbose == TRUE) {
-    print("Fitting time-point specific estimates")
     p <- progressor(along = time_points)
   }
 
@@ -137,10 +136,6 @@ varying_coef_spline <- function(
   D_coef <- dim(spline_coefs)[2]
 
   mse <- vector()
-
-  if (verbose == TRUE) {
-    print("Fitting temporal smoothing spline")
-  }
 
   for (smoothing_idx in seq_along(gamma)) {
     cv_folds <- sample(
