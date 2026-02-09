@@ -15,7 +15,7 @@ handlers("progress")
 options(future.globals.maxSize = 32 * 1024^3)
 options(renv.config.sandbox.enabled = FALSE)
 options(renv.config.auto.snapshot = FALSE)
-cores <- detectCores() - 4
+cores <- detectCores() - 2
 
 source("code/functions/fit_weighted_spline.R")
 source("code/functions/print_SSD.R")
@@ -29,14 +29,14 @@ map(
   source
 )
 
-plan(multisession, workers = cores)
+plan(mirai_multisession, workers = cores)
 
 ssd_ratio_threshold <- 5
 verbose <- TRUE
 
 epsilon <- 0.05
 
-read_data()
+read_data(n_individuals = 100)
 
 # INITIALIZATION
 
