@@ -210,7 +210,7 @@ fit_mnist_additive_model <- function(
     epsilon_hat <- mse_ratio
     print(
       paste0(
-        "Maximum relative coefficient difference: ",
+        "MSE Ratio: ",
         as.character(round(epsilon_hat, 3))
       )
     )

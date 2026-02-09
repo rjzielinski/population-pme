@@ -1,4 +1,5 @@
 fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
+  require(furrr, quietly = TRUE)
   require(future, quietly = TRUE)
   require(magrittr, quietly = TRUE)
   require(pme, quietly = TRUE)
@@ -20,7 +21,7 @@ fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
       fold_params <- params[folds == k_idx, ] %>%
         matrix(ncol = d)
 
-      train_param_mat <- cbind(1, train_params)
+      train_param_mat <- cbind(rep(1, nrow(train_params)), train_params)
       train_x <- x[!(folds == k_idx), ]
       fold_x <- x[folds == k_idx, ]
       train_weights <- diag(weights[!(folds == k_idx)])
@@ -60,6 +61,15 @@ fit_weighted_spline <- function(x, params, weights, smoothing_vals, folds) {
     }
 
     smoothing_out[[smoothing_idx]] <- mean(fold_errors)
+
+    # if errors have been increasing for past 4 smoothing values, stop early
+    if (smoothing_idx >= 4) {
+      errors <- reduce(smoothing_out, c)
+      recent_errors <- errors[(smoothing_idx - 3):smoothing_idx]
+      if (all(recent_errors == cummax(recent_errors))) {
+        break
+      }
+    }
   }
 
   smoothing_error <- map(smoothing_out, ~.x) %>%
