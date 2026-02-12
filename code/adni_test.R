@@ -3,7 +3,6 @@ library(doFuture)
 library(foreach)
 library(here)
 library(listenv)
-library(mirai)
 library(pme)
 library(progressr)
 library(Rfast)
@@ -29,12 +28,13 @@ map(
   source
 )
 
-plan(mirai_multisession, workers = cores)
+plan(multicore, workers = cores)
 
 ssd_ratio_threshold <- 5
 verbose <- TRUE
 
 epsilon <- 0.05
+max_iter <- 100
 
 read_data(n_individuals = 100)
 
@@ -109,8 +109,9 @@ param_list <- update_params(
   lhipp_surface_red,
   lhipp_centers,
   partition_values,
-  id_vals
+  id_values
 )
+
 params <- param_list$params
 center_projections <- param_list$center_projections
 
@@ -171,7 +172,7 @@ while (
     lhipp_surface_red,
     lhipp_centers,
     partition_values,
-    id_vals
+    id_values
   )
   params <- param_list$params
   center_projections <- param_list$center_projections
