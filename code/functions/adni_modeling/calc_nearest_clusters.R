@@ -56,7 +56,7 @@ calc_nearest_clusters <- function(
         seq_len(nrow(row_centers)),
         ~ dist_euclidean(
           surface_loc,
-          row_centers[.x, ]
+          row_centers[.x, -1]
         )
       ) |>
         reduce(c)
