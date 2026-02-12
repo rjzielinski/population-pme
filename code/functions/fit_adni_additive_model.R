@@ -430,7 +430,7 @@ fit_adni_additive_model <- function(
         as.character(n),
         ": ",
         "Estimated mean squared error - ",
-        as.character(round(mse, 5)),
+        as.character(round(mse, 10)),
         "; Relative change in mean squared error - ",
         as.character(round(mse_ratio, 5))
       )
