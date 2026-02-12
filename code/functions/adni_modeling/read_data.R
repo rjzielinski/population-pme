@@ -1,4 +1,4 @@
-read_data <- function(n_individuals = 50, min_visits = 3, min_duration = 1) {
+read_data <- function(n_individuals = NULL, min_visits = 3, min_duration = 1) {
   # Read and prepare data for anlaysis
   require(dplyr, quietly = TRUE)
   require(lubridate, quietly = TRUE)
@@ -64,6 +64,11 @@ read_data <- function(n_individuals = 50, min_visits = 3, min_duration = 1) {
     filter(duration >= min_duration)
 
   id_vec <- unique(lhipp_surface$subid)
+  if (!is.null(n_individuals)) {
+    n_individuals <- min(n_individuals, length(id_vec))
+  } else {
+    n_individuals <- length(id_vec)
+  }
   include_ids <- id_vec[1:n_individuals]
 
   lhipp_surface <- lhipp_surface |>

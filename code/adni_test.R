@@ -28,7 +28,8 @@ map(
   source
 )
 
-plan(multicore, workers = cores)
+# plan(multicore, workers = cores)
+plan(sequential)
 
 ssd_ratio_threshold <- 5
 verbose <- TRUE
@@ -36,7 +37,8 @@ verbose <- TRUE
 epsilon <- 0.05
 max_iter <- 100
 
-read_data(n_individuals = 100)
+# read_data(n_individuals = 100)
+read_data()
 
 # INITIALIZATION
 
