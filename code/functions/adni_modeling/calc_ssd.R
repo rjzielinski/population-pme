@@ -10,7 +10,8 @@ calc_ssd <- function(centers, center_projections, partition_values) {
       ~ dist_euclidean(
         centers[[partition_idx]][.x, ],
         center_projections[[partition_idx]][.x, ]
-      )^2
+      )^2,
+      .options = furrr_options(seed = TRUE)
     ) %>%
       reduce(c) %>%
       sum()
