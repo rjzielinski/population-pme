@@ -11,6 +11,7 @@ update_params <- function(
 
   params <- list()
   center_preds <- list()
+
   for (partition_idx in seq_along(partition_values)) {
     ids <- reduced_data |>
       filter(partition == partition_values[partition_idx]) |>
@@ -32,7 +33,7 @@ update_params <- function(
       seq_len(nrow(params[[partition_idx]])),
       ~ additive_model[[partition_idx]]$embeddings[[which(
         id_vals == ids[.x]
-      )]]$embedding_map(params[[partition_idx]][.x, ])
+      )]](params[[partition_idx]][.x, ])
     ) |>
       reduce(rbind)
   }
