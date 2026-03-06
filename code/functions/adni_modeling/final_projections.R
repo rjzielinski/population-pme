@@ -17,60 +17,71 @@ final_projections <- function(
 
   source(here("code/functions/adni_modeling/calc_nearest_clusters.R"))
 
-  nearest_clusters <- calc_nearest_clusters(
+  nearest_params <- calc_nearest_clusters(
     surface_data,
     reduced_data,
     params,
     partition_values
   )
 
-  nearest_params <- nearest_clusters$params
+  with_progress({
+    p <- progressor(nrow(surface_data))
+    projections <- foreach(
+      row_idx = seq_len(nrow(surface_data)),
+      .options.future = list(seed = TRUE)
+    ) %dofuture%
+      {
+        row_id <- surface_data$subid[row_idx]
+        row_group <- surface_data$Group[row_idx]
+        row_partition <- surface_data$partition[row_idx]
+        row_point <- surface_data |>
+          select(time_from_bl, x, y, z) |>
+          slice(row_idx) |>
+          unlist()
 
-  projections <- foreach(
-    row_idx = seq_len(nrow(surface_data)),
-    .options.future = list(seed = TRUE)
-  ) %dofuture%
-    {
-      row_id <- surface_data$subid[row_idx]
-      row_group <- surface_data$group[row_idx]
-      row_partition <- surface_data$partition[row_idx]
-      row_point <- surface_data |>
-        select(time_from_bl, x, y, z) |>
-        slice(row_idx) |>
-        unlist()
+        partition_idx <- which(partition_values == row_partition)
+        group_idx <- which(group_values == row_group)
+        id_idx <- which(id_values == row_id)
 
-      partition_idx <- which(partition_values == row_partition)
-      group_idx <- which(group_values == row_group)
-      id_idx <- which(id_values == row_id)
+        param <- projection_lpme(
+          row_point,
+          additive_model[[partition_idx]]$embeddings[[id_idx]],
+          nearest_params[row_idx, ]
+        )
 
-      param <- projection_lpme(
-        row_point,
-        additive_model[[partition_idx]]$embeddings[[id_idx]],
-        nearest_params[row_idx, ]
-      )
+        full_projection <- additive_model[[partition_idx]]$embeddings[[id_idx]](
+          param
+        )
 
-      full_projection <- additive_model[[partition_idx]]$embeddings[[id_idx]](
-        param
-      )
+        pop_projection <- additive_model[[
+          partition_idx
+        ]]$population_embedding$embedding_map(
+          param
+        )
+        group_projection <- c(
+          param[1],
+          additive_model[[partition_idx]]$population_embedding$embedding_map(
+            param
+          )[-1] +
+            additive_model[[partition_idx]]$group_embeddings[[
+              group_idx
+            ]]$embedding_map(
+              param
+            )[
+              -1
+            ]
+        )
 
-      pop_projection <- additive_model[[partition_idx]]$population_embedding(
-        param
-      )
-      group_projection <- c(
-        param[1],
-        additive_model[[partition_idx]]$population_embedding(param)[-1] +
-          additive_model[[partition_idx]]$group_embedding[[group_idx]](param)[
-            -1
-          ]
-      )
+        p()
 
-      list(
-        param = param,
-        full_projection = full_projection,
-        population_projection = pop_projection,
-        group_projection = group_projection
-      )
-    }
+        list(
+          param = param,
+          full_projection = full_projection,
+          population_projection = pop_projection,
+          group_projection = group_projection
+        )
+      }
+  })
 
   full_params <- map(projections, ~ .x$param) |>
     reduce(rbind)
