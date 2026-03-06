@@ -12,8 +12,10 @@ calc_nearest_clusters <- function(
   require(purrr, quietly = TRUE)
 
   p <- progressor(nrow(surface_data))
-  nearest_clusters <- foreach(row_idx = seq_len(nrow(surface_data))) %dofuture%
-    {
+
+  nearest_params <- future_map(
+    seq_len(nrow(surface_data)),
+    function(row_idx) {
       row_id <- surface_data$subid[row_idx]
       row_scan <- surface_data$image_id[row_idx]
       row_time <- surface_data$time_from_bl[row_idx]
@@ -62,24 +64,12 @@ calc_nearest_clusters <- function(
         reduce(c)
 
       center_idx <- which.min(center_dists)
-      center_loc <- row_centers[center_idx, ]
-      center_param <- row_params[center_idx, ]
+      p(sprintf("Row %d", row_idx))
 
-      p()
-
-      list(
-        center = center_loc,
-        param = center_param
-      )
+      row_params[center_idx, ]
     }
-
-  nearest_params <- future_map(nearest_clusters, ~ .x$param) |>
-    reduce(rbind)
-  nearest_centers <- future_map(nearest_clusters, ~ .x$center) |>
+  ) |>
     reduce(rbind)
 
-  list(
-    centers = nearest_centers,
-    params = nearest_params
-  )
+  nearest_params
 }
