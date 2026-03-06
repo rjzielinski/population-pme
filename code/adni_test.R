@@ -3,6 +3,7 @@ library(doFuture)
 library(foreach)
 library(here)
 library(listenv)
+library(plotly)
 library(pme)
 library(progressr)
 library(Rfast)
@@ -37,8 +38,9 @@ verbose <- TRUE
 epsilon <- 0.05
 max_iter <- 100
 
-# read_data(n_individuals = 100)
-read_data()
+read_data(n_individuals = 50)
+
+gc()
 
 # INITIALIZATION
 
@@ -105,6 +107,10 @@ for (partition_idx in seq_along(partition_values)) {
   )
 }
 
+plan(sequential)
+
+print("Updating parameters")
+
 param_list <- update_params(
   init_additive_mod,
   init_params,
@@ -134,9 +140,13 @@ while (
     (ssd_ratio <= ssd_ratio_threshold) &
     (n <= (max_iter - 1))
 ) {
+  plan(multicore, workers = cores)
+
   ssd_prev <- ssd
   additive_model_old <- additive_model
   params_prev <- params
+
+  print("Fitting additive models")
 
   for (partition_idx in seq_along(partition_values)) {
     additive_model[[partition_idx]] <- fit_adni_additive_model(
@@ -168,6 +178,10 @@ while (
     )
   }
 
+  plan(sequential)
+
+  print("Updating parameters")
+
   param_list <- update_params(
     additive_model,
     params,
@@ -176,6 +190,7 @@ while (
     partition_values,
     id_values
   )
+
   params <- param_list$params
   center_projections <- param_list$center_projections
 
@@ -193,6 +208,9 @@ while (
 
 # calculate final MSD and projections?
 
+plan(sequential)
+
+print("Computing full projections")
 projection_list <- final_projections(
   additive_model,
   lhipp_surface,
@@ -203,6 +221,7 @@ projection_list <- final_projections(
   id_values
 )
 
+print("Calculating MSD")
 msd <- calc_msd(lhipp_surface, projections = projection_list$projections)
 
 lhipp_test_out <- list(
@@ -215,4 +234,69 @@ lhipp_test_out <- list(
   id_values = id_values,
   msd = msd
 )
-saveRDS(lhipp_test_out, "output/test_lhipp_additive_model.RDS")
+saveRDS(lhipp_test_out, "output/lhipp_additive_model_250.RDS")
+
+lhipp_test_out <- readRDS("output/test_lhipp_additive_model.RDS")
+
+data <- lhipp_test_out$data
+
+groups <- lhipp_test_out$group_values
+ids <- lhipp_test_out$id_values
+id_groups <- map(
+  ids,
+  ~ filter(data, subid == .x) |>
+    pull(Group) |>
+    unique()
+) |>
+  reduce(c)
+
+f_test_results <- functional_anova_pointwise(
+  lhipp_test_out$model,
+  lhipp_test_out$params,
+  groups,
+  ids,
+  id_groups,
+  n_params = 1000,
+  test_type = "f_type",
+  alpha = 0.05
+)
+
+f_test_group_embeddings <- list()
+
+for (partition_idx in seq_along(lhipp_test_out$model)) {
+  partition_group_embeddings <- list()
+  partition_params <- lhipp_test_out$params[[partition_idx]]
+
+  for (group_idx in seq_along(groups)) {
+    # partition_group_embeddings[[group_idx]] <- map(
+
+    test_embeddings <- map(
+      seq_len(nrow(partition_params)),
+      ~ {
+        cbind(
+          partition_params[, 1],
+          lhipp_test_out$model[[
+            partition_idx
+          ]]$population_embedding$embedding_map(unlist(partition_params[
+            .x,
+          ]))[-1] +
+            lhipp_test_out$model[[partition_idx]]$group_embeddings[[
+              group_idx
+            ]]$embedding_map(unlist(partition_params[.x, ]))[-1]
+        )
+      }
+    ) |>
+      reduce(rbind)
+  }
+}
+
+chisq_test_results <- functional_anova_pointwise(
+  lhipp_test_out$model,
+  lhipp_test_out$params,
+  groups,
+  ids,
+  id_groups,
+  n_params = 1000,
+  test_type = "chisq_type",
+  alpha = 0.05
+)
