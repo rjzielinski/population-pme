@@ -6,7 +6,11 @@ update_params <- function(
   partition_values,
   id_vals
 ) {
+  require(doFuture, quietly = TRUE)
+  require(foreach, quietly = TRUE)
+  require(furrr, quietly = TRUE)
   require(pme, quietly = TRUE)
+  require(progressr, quietly = TRUE)
   require(purrr, quietly = TRUE)
 
   params <- list()
@@ -17,23 +21,33 @@ update_params <- function(
       filter(partition == partition_values[partition_idx]) |>
       pull(id)
 
-    params[[partition_idx]] <- map(
+    p <- progressor(nrow(centers[[partition_idx]]))
+    params[[partition_idx]] <- future_map(
       seq_len(nrow(centers[[partition_idx]])),
-      ~ projection_lpme(
-        centers[[partition_idx]][.x, ],
-        additive_model[[partition_idx]]$embeddings[[which(
-          id_vals == ids[.x]
-        )]],
-        prev_params[[partition_idx]][.x, ]
-      )
+      ~ {
+        p()
+        projection_lpme(
+          centers[[partition_idx]][.x, ],
+          additive_model[[partition_idx]]$embeddings[[which(
+            id_vals == ids[.x]
+          )]],
+          prev_params[[partition_idx]][.x, ]
+        )
+      },
+      .options = furrr_options(seed = TRUE)
     ) |>
       reduce(rbind)
 
-    center_preds[[partition_idx]] <- map(
+    p <- progressor(nrow(params[[partition_idx]]))
+    center_preds[[partition_idx]] <- future_map(
       seq_len(nrow(params[[partition_idx]])),
-      ~ additive_model[[partition_idx]]$embeddings[[which(
-        id_vals == ids[.x]
-      )]](params[[partition_idx]][.x, ])
+      ~ {
+        p()
+        additive_model[[partition_idx]]$embeddings[[which(
+          id_vals == ids[.x]
+        )]](params[[partition_idx]][.x, ])
+      },
+      .options = furrr_options(seed = TRUE)
     ) |>
       reduce(rbind)
   }
