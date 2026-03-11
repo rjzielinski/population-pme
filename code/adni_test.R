@@ -250,6 +250,8 @@ id_groups <- map(
 ) |>
   reduce(c)
 
+plan(multicore, workers = cores)
+
 f_test_results <- functional_anova_pointwise(
   lhipp_test_out$model,
   lhipp_test_out$params,
@@ -261,35 +263,6 @@ f_test_results <- functional_anova_pointwise(
   alpha = 0.05
 )
 
-f_test_group_embeddings <- list()
-
-for (partition_idx in seq_along(lhipp_test_out$model)) {
-  partition_group_embeddings <- list()
-  partition_params <- lhipp_test_out$params[[partition_idx]]
-
-  for (group_idx in seq_along(groups)) {
-    # partition_group_embeddings[[group_idx]] <- map(
-
-    test_embeddings <- map(
-      seq_len(nrow(partition_params)),
-      ~ {
-        cbind(
-          partition_params[, 1],
-          lhipp_test_out$model[[
-            partition_idx
-          ]]$population_embedding$embedding_map(unlist(partition_params[
-            .x,
-          ]))[-1] +
-            lhipp_test_out$model[[partition_idx]]$group_embeddings[[
-              group_idx
-            ]]$embedding_map(unlist(partition_params[.x, ]))[-1]
-        )
-      }
-    ) |>
-      reduce(rbind)
-  }
-}
-
 chisq_test_results <- functional_anova_pointwise(
   lhipp_test_out$model,
   lhipp_test_out$params,
@@ -300,3 +273,18 @@ chisq_test_results <- functional_anova_pointwise(
   test_type = "chisq_type",
   alpha = 0.05
 )
+
+pointwise_bootstrap_results <- functional_anova_pointwise(
+  lhipp_test_out$model,
+  lhipp_test_out$params,
+  groups,
+  ids,
+  id_groups,
+  n_params = 1000,
+  test_type = "f_type",
+  alpha = 0.05,
+  bootstrap = TRUE,
+  n_bootstrap = 50
+)
+
+display_test_results(pointwise_bootstrap_results, groups)
