@@ -18,6 +18,7 @@ fit_adni_additive_model <- function(
   require(furrr, quietly = TRUE)
   require(future, quietly = TRUE)
   require(here, quietly = TRUE)
+  require(plotly, quietly = TRUE)
   require(pme, quietly = TRUE)
   require(progressr, quietly = TRUE)
   require(purrr, quietly = TRUE)
