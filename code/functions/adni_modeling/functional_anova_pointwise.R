@@ -1,4 +1,4 @@
-functional_anova_pointwise <- function(
+functional_anova <- function(
   additive_model,
   params,
   groups,
@@ -13,13 +13,38 @@ functional_anova_pointwise <- function(
   require(doFuture, quietly = TRUE)
   require(foreach, quietly = TRUE)
   require(furrr, quietly = TRUE)
+  require(future, quietly = TRUE)
+  require(Matrix, quietly = TRUE)
+  require(pme, quietly = TRUE)
+  require(progressr, quietly = TRUE)
   require(purrr, quietly = TRUE)
 
   n_partitions <- length(additive_model)
   n_groups <- length(additive_model[[1]]$group_embeddings)
   n_individuals <- length(additive_model[[1]]$id_embeddings)
 
-  param_grids <- calc_param_grids(params, n_params, interval = 0.25)
+  param_grids <- calc_param_grids(
+    params,
+    n_params,
+    interval = 0.25,
+    noise_factor = 10,
+    dist_kernel_sd = 0.5
+  )
+
+  param_interval_vols <- vector()
+
+  for (partition_idx in seq_len(n_partitions)) {
+    param_interval_length <- vector()
+    for (dim_idx in seq_len(ncol(param_grids[[partition_idx]]))) {
+      values <- param_grids[[partition_idx]][, dim_idx] |>
+        unique() |>
+        sort()
+
+      param_interval_length[dim_idx] <- values[2] - values[1]
+    }
+
+    param_interval_vols[partition_idx] <- prod(param_interval_length)
+  }
 
   print("Computing Embeddings")
 
@@ -30,6 +55,8 @@ functional_anova_pointwise <- function(
     n_individuals,
     id_groups
   )
+
+  gc()
 
   sum_squares <- calc_sum_squares(
     embeddings,
@@ -42,9 +69,17 @@ functional_anova_pointwise <- function(
   rejected <- list()
 
   for (partition_idx in seq_len(n_partitions)) {
-    test_stat[[partition_idx]] <- (sum_squares$ssh[[partition_idx]] /
-      (n_groups - 1)) /
-      (sum_squares$sse[[partition_idx]] / (n_individuals - n_groups))
+    if (test_type %in% c("f_type", "chisq_type")) {
+      test_stat[[partition_idx]] <- (sum_squares$ssh[[partition_idx]] /
+        (n_groups - 1)) /
+        (sum_squares$sse[[partition_idx]] / (n_individuals - n_groups))
+    } else if (test_type == "l2_norm") {
+      param_interval_length <- vector()
+
+      test_stat[[partition_idx]] <- sum(
+        sum_squares$ssh[[partition_idx]] * param_interval_vols[partition_idx]
+      )
+    }
   }
 
   if (bootstrap == FALSE) {
@@ -52,9 +87,70 @@ functional_anova_pointwise <- function(
       critical_value <- qf(1 - alpha, n_groups - 1, n_individuals - n_groups)
     } else if (test_type == "chisq_type") {
       critical_value <- qchisq(1 - alpha, n_groups - 1) / (n_groups - 1)
+    } else if (test_type == "l2_norm") {
+      sample_cov <- list()
+      trace_sample_cov <- list()
+      trace_sample_cov2 <- list()
+      C <- list()
+      D <- list()
+
+      critical_value <- list()
+      for (partition_idx in seq_len(n_partitions)) {
+        p <- progressor(nrow(param_grids[[partition_idx]]))
+        trace_sample_cov[[partition_idx]] <- future_map(
+          seq_len(nrow(param_grids[[partition_idx]])),
+          ~ {
+            p()
+            calc_sample_cov(
+              embeddings,
+              param_grids,
+              partition_idx,
+              .x,
+              .x
+            ) *
+              param_interval_vols[partition_idx]
+          },
+          .options = furrr_options(seed = TRUE)
+        ) |>
+          reduce(sum)
+
+        p <- progressor(nrow(param_grids[[partition_idx]]))
+        trace_sample_cov2[[partition_idx]] <- future_map(
+          seq_len(nrow(param_grids[[partition_idx]])),
+          ~ {
+            p()
+            calc_sample_cov2(
+              embeddings,
+              param_grids,
+              partition_idx,
+              .x,
+              .x,
+              param_interval_vols
+            ) *
+              param_interval_vols[partition_idx]
+          },
+          .options = furrr_options(seed = TRUE)
+        ) |>
+          reduce(sum)
+
+        C[[partition_idx]] <- trace_sample_cov2[[partition_idx]] /
+          trace_sample_cov[[partition_idx]]
+
+        D[[partition_idx]] <- (trace_sample_cov[[partition_idx]]^2) /
+          trace_sample_cov2[[partition_idx]]
+
+        critical_value[[partition_idx]] <- C[[partition_idx]] *
+          qchisq(1 - alpha, (n_groups - 1) * D[[partition_idx]])
+      }
     }
+
     for (partition_idx in seq_along(additive_model)) {
-      rejected[[partition_idx]] <- test_stat[[partition_idx]] > critical_value
+      if (test_type == "l2_norm") {
+        rejected[[partition_idx]] <- test_stat[[partition_idx]] >
+          critical_value[[partition_idx]]
+      } else {
+        rejected[[partition_idx]] <- test_stat[[partition_idx]] > critical_value
+      }
     }
   } else {
     bootstrap_test_stats <- test_stat
@@ -87,15 +183,24 @@ functional_anova_pointwise <- function(
           ids
         )
 
-        test_stats <- map(
-          seq_len(n_partitions),
-          ~ (bootstrap_sum_squares$ssh[[.x]] /
-            (n_groups - 1)) /
-            (bootstrap_sum_squares$sse[[.x]] /
-              (n_individuals - n_groups))
-        )
+        if (test_type %in% c("f_type", "chisq_type")) {
+          test_stats <- map(
+            seq_len(n_partitions),
+            ~ (bootstrap_sum_squares$ssh[[.x]] / (n_groups - 1)) /
+              (bootstrap_sum_squares$sse[[.x]] / (n_individuals - n_groups))
+          )
+        } else if (test_type == "l2_norm") {
+          test_stats <- map(
+            seq_len(n_partitions),
+            ~ sum(
+              bootstrap_sum_squares$ssh[[partition_idx]] *
+                param_interval_vols[.x]
+            )
+          )
+        }
 
-        p()
+        p(message = sprintf("Bootstrap sample: %g", bootstrap_idx))
+        gc()
 
         test_stats
       }
@@ -127,7 +232,22 @@ functional_anova_pointwise <- function(
   )
 }
 
-calc_param_grids <- function(params, n_params, interval = 0.25) {
+calc_param_grids <- function(
+  params,
+  n_params,
+  interval = 0.25,
+  noise_factor = 0,
+  dist_kernel_sd = 1
+) {
+  # manifolds of parameter values are not necessarily regularly shaped
+  # manifolds may shift in shape and location over time
+  # parameters are not uniformly distributed over the manifold
+  #
+  # instead of generating constant parameter grid, resample from
+  # existing parameter values
+  # sampling probabilities will be proportional to proximity between time points
+  # add slight noise to sampled parameter values
+
   require(Rfast, quietly = TRUE)
 
   param_bounds <- list()
@@ -135,31 +255,49 @@ calc_param_grids <- function(params, n_params, interval = 0.25) {
   time_points_list <- list()
 
   for (param_idx in seq_along(params)) {
-    time_points_list[[param_idx]] <- unique(params[[param_idx]][, 1])
+    time_points_list[[param_idx]] <- sort(unique(params[[param_idx]][, 1]))
+
+    time_params <- table(params[[param_idx]][, 1])
+
+    time_idx_vals <- map(
+      params[[param_idx]][, 1],
+      ~ which(time_points_list[[param_idx]] == .x)
+    ) |>
+      reduce(c)
+
     times <- seq(
       from = 0,
       to = max(time_points_list[[param_idx]]),
       by = interval
     )
 
-    param_bounds[[param_idx]] <- colMinsMaxs(params[[param_idx]][, -1])
-    d <- ncol(param_bounds[[param_idx]])
-
     param_list <- list()
-    param_list[[1]] <- times
 
-    for (dim in seq_len(d)) {
-      param_range <- abs(
-        param_bounds[[param_idx]][2, dim] - param_bounds[[param_idx]][1, dim]
+    for (time_idx in seq_along(times)) {
+      time_val <- times[time_idx]
+
+      time_dists <- time_points_list[[param_idx]] - time_val
+
+      dist_weights <- dnorm(time_dists, mean = 0, sd = dist_kernel_sd)
+      dist_weights <- dist_weights / sum(dist_weights)
+
+      time_weights <- dist_weights * (1 / time_params)
+
+      param_weights <- time_weights[time_idx_vals]
+
+      sample_idx <- sample(
+        seq_len(nrow(params[[param_idx]])),
+        size = n_params,
+        prob = param_weights
       )
-      param_list[[dim + 1]] <- seq(
-        from = param_bounds[[param_idx]][2, dim] - (0.1 * param_range),
-        to = param_bounds[[param_idx]][2, dim] + (0.1 * param_range),
-        length.out = ceiling(n_params^(1 / d))
-      )
+
+      sampled_params <- params[[param_idx]][sample_idx, ]
+      sampled_params_jitter <- jitter(sampled_params, noise_factor)
+
+      param_list[[time_idx]] <- cbind(time_val, sampled_params_jitter[, -1])
     }
 
-    param_grids[[param_idx]] <- expand.grid(param_list)
+    param_grids[[param_idx]] <- reduce(param_list, rbind)
   }
 
   param_grids
@@ -181,55 +319,61 @@ calc_embeddings <- function(
   id_embeddings <- list()
 
   for (partition_idx in seq_along(additive_model)) {
-    p <- progressor(nrow(param_grids[[partition_idx]]))
-    population_embeddings[[partition_idx]] <- future_map(
-      seq_len(nrow(param_grids[[partition_idx]])),
-      ~ {
-        p()
-        additive_model[[
-          partition_idx
-        ]]$population_embedding$embedding_map(unlist(param_grids[[
-          partition_idx
-        ]][
-          .x,
-        ]))
-      },
-      .options = furrr_options(seed = TRUE)
-    ) |>
-      reduce(rbind)
+    with_progress({
+      p <- progressor(nrow(param_grids[[partition_idx]]))
+      population_embeddings[[partition_idx]] <- map(
+        seq_len(nrow(param_grids[[partition_idx]])),
+        ~ {
+          p()
+          additive_model[[
+            partition_idx
+          ]]$population_embedding$embedding_map(unlist(param_grids[[
+            partition_idx
+          ]][
+            .x,
+          ]))
+        }
+      ) |>
+        reduce(rbind)
+    })
 
-    part_group_embeddings <- foreach(
-      group_idx = seq_len(n_groups),
-      .options.future = list(seed = TRUE)
-    ) %do%
-      {
-        p <- progressor(nrow(param_grids[[partition_idx]]))
-        future_map(
-          seq_len(nrow(param_grids[[partition_idx]])),
-          ~ {
-            p()
-            additive_model[[partition_idx]]$group_embeddings[[
-              group_idx
+    with_progress({
+      p <- progressor(n_groups)
+      part_group_embeddings <- foreach(
+        group_idx = seq_len(n_groups),
+        .options.future = list(seed = TRUE)
+      ) %dofuture%
+        {
+          p()
+          map(
+            seq_len(nrow(param_grids[[partition_idx]])),
+            ~ {
+              additive_model[[partition_idx]]$group_embeddings[[
+                group_idx
+              ]]$embedding_map(unlist(param_grids[[partition_idx]][.x, ]))
+            }
+          ) |>
+            reduce(rbind)
+        }
+    })
+
+    with_progress({
+      p <- progressor(n_individuals)
+      part_id_embeddings <- foreach(
+        id_idx = seq_len(n_individuals),
+        .options.future = list(seed = TRUE)
+      ) %dofuture%
+        {
+          p()
+          map(
+            seq_len(nrow(param_grids[[partition_idx]])),
+            ~ additive_model[[partition_idx]]$id_embeddings[[
+              id_idx
             ]]$embedding_map(unlist(param_grids[[partition_idx]][.x, ]))
-          },
-          .options = furrr_options(seed = TRUE)
-        ) |>
-          reduce(rbind)
-      }
-
-    p <- progressor(n_individuals)
-    part_id_embeddings <- foreach(id_idx = seq_len(n_individuals)) %do%
-      {
-        p()
-        future_map(
-          seq_len(nrow(param_grids[[partition_idx]])),
-          ~ additive_model[[partition_idx]]$id_embeddings[[
-            id_idx
-          ]]$embedding_map(unlist(param_grids[[partition_idx]][.x, ])),
-          .options = furrr_options(seed = TRUE)
-        ) |>
-          reduce(rbind)
-      }
+          ) |>
+            reduce(rbind)
+        }
+    })
 
     group_embeddings[[partition_idx]] <- part_group_embeddings
     id_embeddings[[partition_idx]] <- part_id_embeddings
@@ -371,26 +515,82 @@ calc_bootstrap_embeddings <- function(embeddings, groups, ids, id_groups) {
   )
 }
 
-calc_sample_cov <- function() {
-  # sample_cov <- list()
-  # sample_cov[[partition_idx]] <- matrix(
-  #   nrow = nrow(param_grids[[partition_idx]]),
-  #   ncol = nrow(param_grids[[partition_idx]])
-  # )
-  #
-  # for (param_idx1 in nrow(param_grids[[partition_idx]])) {
-  #   for (param_idx2 in nrow(param_grids[[partition_idx]])) {
-  #     sample_cov_num <- map(
-  #       seq_along(ids),
-  #       ~ sum(
-  #         id_embeddings[[partition_idx]][[.x]][param_idx1, -1] *
-  #           id_embeddings[[partition_idx]][[.x]][param_idx2, -1]
-  #       )
-  #     ) |>
-  #       reduce(sum)
-  #
-  #     sample_cov[[partition_idx]][param_idx1, param_idx2] <- sample_cov_num /
-  #       (n_individuals - n_groups)
-  #   }
-  # }
+calc_sample_cov <- function(
+  embeddings,
+  param_grids,
+  partition,
+  param_idx1,
+  param_idx2
+) {
+  # NOTE: this function assumes that param1 and param2 are elements of the param_grids matrices
+
+  n_groups <- length(embeddings$group_embeddings[[partition]])
+  n_individuals <- length(embeddings$id_embeddings[[partition]])
+
+  embeddings_param1 <- map(
+    embeddings$id_embeddings[[partition]],
+    ~ .x[param_idx1, ][-1]
+  ) |>
+    reduce(rbind)
+
+  if (param_idx1 == param_idx2) {
+    sample_cov <- diag(embeddings_param1 %*% t(embeddings_param1)) |>
+      sum()
+  } else {
+    embeddings_param2 <- map(
+      embeddings$id_embeddings[[partition]],
+      ~ .x[param_idx2, ][-1]
+    ) |>
+      reduce(rbind)
+
+    sample_cov <- diag(embeddings_param1 %*% t(embeddings_param2)) |>
+      sum()
+  }
+
+  sample_cov <- sample_cov / (n_individuals - n_groups)
+
+  sample_cov
+}
+
+calc_sample_cov2 <- function(
+  embeddings,
+  param_grids,
+  partition,
+  param_idx1,
+  param_idx2,
+  param_interval_vols
+) {
+  sample_covs1 <- map(
+    seq_len(nrow(param_grids[[partition]])),
+    ~ calc_sample_cov(
+      embeddings,
+      param_grids,
+      partition,
+      param_idx1,
+      .x
+    )
+  ) |>
+    reduce(c)
+
+  if (param_idx1 == param_idx2) {
+    sample_cov2_val <- sum(sample_covs1^2 * param_interval_vols[partition])
+  } else {
+    sample_covs2 <- map(
+      seq_len(nrow(param_grids[[partition]])),
+      ~ calc_sample_cov(
+        embeddings,
+        param_grids,
+        partition,
+        .x,
+        param_idx2
+      )
+    ) |>
+      reduce(c)
+
+    sample_cov2_val <- sum(
+      sample_covs1 * sample_covs2 * param_interval_vols[partition]
+    )
+  }
+
+  sample_cov2_val
 }
