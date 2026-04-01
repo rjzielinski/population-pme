@@ -74,26 +74,18 @@ final_projections <- function(
 
         p()
 
-        list(
-          param = param,
-          full_projection = full_projection,
-          population_projection = pop_projection,
-          group_projection = group_projection
-        )
-      }
+        c(param, full_projection, pop_projection, group_projection)
+      } |>
+      reduce(rbind)
   })
 
-  full_params <- map(projections, ~ .x$param) |>
-    reduce(rbind)
-  population_projections <- map(
-    projections,
-    ~ .x$population_projection
-  ) |>
-    reduce(rbind)
-  group_projections <- map(projections, ~ .x$group_projection) |>
-    reduce(rbind)
-  projections <- map(projections, ~ .x$full_projection) |>
-    reduce(rbind)
+  d <- ncol(params[[1]][, -1])
+  D <- (ncol(projections) - d) / 3
+
+  full_params <- projections[, 1:d]
+  population_projections <- projections[, (d + D + 1):(d + (2 * D))]
+  group_projections <- projections[, (d + (2 * D) + 1):(d + (3 * D))]
+  projections <- projections[, (d + 1):(d + D)]
 
   list(
     params = full_params,
