@@ -4,12 +4,17 @@ calc_nearest_clusters <- function(
   params,
   partition_values
 ) {
+  require(data.table, quietly = TRUE)
   require(doFuture, quietly = TRUE)
   require(dplyr, quietly = TRUE)
+  require(dtplyr, quietly = TRUE)
   require(foreach, quietly = TRUE)
   require(furrr, quietly = TRUE)
   require(progressr, quietly = TRUE)
   require(purrr, quietly = TRUE)
+
+  surface_data <- data.table(surface_data)
+  reduced_data <- data.table(reduced_data)
 
   p <- progressor(nrow(surface_data))
 
@@ -21,26 +26,17 @@ calc_nearest_clusters <- function(
       row_time <- surface_data$time_from_bl[row_idx]
       row_partition <- surface_data$partition[row_idx]
 
-      id_vals <- reduced_data |>
-        filter(partition == row_partition) |>
-        pull(id)
+      id_vals <- reduced_data[partition == row_partition, id]
+      scan_vals <- reduced_data[partition == row_partition, scan]
+      time_vals <- reduced_data[partition == row_partition, time_from_bl]
 
-      scan_vals <- reduced_data |>
-        filter(partition == row_partition) |>
-        pull(scan)
-
-      time_vals <- reduced_data |>
-        filter(partition == row_partition) |>
-        pull(time_from_bl)
-
-      row_centers <- reduced_data |>
-        filter(
-          id == row_id,
-          scan == row_scan,
-          time_from_bl == row_time,
-          partition == row_partition
-        ) |>
-        select(time_from_bl, x, y, z) |>
+      row_centers <- reduced_data[
+        (id == row_id) &
+          (scan == row_scan) &
+          (time_from_bl == row_time) &
+          (partition == row_partition),
+        .(time_from_bl, x, y, z)
+      ] |>
         as.matrix()
 
       row_params <- params[[which(partition_values == row_partition)]][
@@ -49,9 +45,7 @@ calc_nearest_clusters <- function(
           time_vals == row_time,
       ]
 
-      surface_loc <- surface_data |>
-        select(x, y, z) |>
-        slice(row_idx) |>
+      surface_loc <- surface_data[row_idx, .(x, y, z)] |>
         unlist()
 
       center_dists <- map(
