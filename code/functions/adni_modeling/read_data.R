@@ -45,8 +45,7 @@ read_data <- function(n_individuals = NULL, min_visits = 3, min_duration = 1) {
       x = (x - mean_x) / max_x,
       y = (y - mean_y) / max_y,
       z = (z - mean_z) / max_z,
-      # round time_from_bl to nearest 0.05 (~2 weeks)
-      time_from_bl = round(20 * (date - date_bl), 0) / 20,
+      time_from_bl = date - date_bl,
       partition = ifelse(z > 0, 1, 2)
     ) |>
     rename(image_id = scan_id)
