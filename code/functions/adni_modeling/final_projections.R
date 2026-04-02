@@ -7,6 +7,7 @@ final_projections <- function(
   group_values,
   id_values
 ) {
+  require(data.table, quietly = TRUE)
   require(doFuture, quietly = TRUE)
   require(dplyr, quietly = TRUE)
   require(foreach, quietly = TRUE)
@@ -24,6 +25,9 @@ final_projections <- function(
     partition_values
   )
 
+  surface_data <- as.data.table(surface_data)
+  reduced_data <- as.data.table(reduced_data)
+
   with_progress({
     p <- progressor(nrow(surface_data))
     projections <- foreach(
@@ -34,9 +38,8 @@ final_projections <- function(
         row_id <- surface_data$subid[row_idx]
         row_group <- surface_data$Group[row_idx]
         row_partition <- surface_data$partition[row_idx]
-        row_point <- surface_data |>
-          select(time_from_bl, x, y, z) |>
-          slice(row_idx) |>
+
+        row_point <- surface_data[row_idx, .(time_from_bl, x, y, z)] |>
           unlist()
 
         partition_idx <- which(partition_values == row_partition)
