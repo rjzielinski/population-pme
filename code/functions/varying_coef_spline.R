@@ -59,33 +59,11 @@ varying_coef_spline <- function(
   for (time_idx in seq_along(time_points)) {
     time_val <- time_points[time_idx]
 
-    scan_vals <- scans[times == time_val]
-    n_scans[time_idx] <- scan_vals |>
-      unique() |>
-      length()
-
-    fold_vec_full <- rep(1:k, ceiling(n_scans[time_idx] / k))
-
-    scan_folds <- fold_vec_full[
-      sample(
-        seq_len(n_scans[time_idx]),
-        n_scans[time_idx],
-        replace = FALSE
-      )
-    ]
-
-    folds <- future_map(
-      scan_vals,
-      ~ scan_folds[which(unique(scan_vals) == .x)]
-    ) |>
-      reduce(c)
-
     init_spline_est[[time_idx]] <- fit_weighted_spline(
       centers[times == time_val, -1],
       params[times == time_val, -1],
       weights[times == time_val],
-      lambda,
-      folds
+      lambda
     )
 
     centers_grid <- map(
@@ -97,27 +75,23 @@ varying_coef_spline <- function(
     grid_E <- calcE(param_grid, 4 - d)
     grid_mat <- cbind(rep(1, nrow(param_grid)), param_grid)
 
-    grid_coefs <- solve_spline(
+    grid_coefs <- solve_spline_hat(
       grid_E,
       grid_mat,
       centers_grid,
       init_spline_est[[time_idx]]$lambda,
       d,
       D
-    ) |>
+    )
+
+    spline_coefs[[time_idx]] <- rbind(grid_coefs$s, grid_coefs$alpha) |>
       t() |>
       matrix(nrow = 1)
 
-    spline_coefs[[time_idx]] <- grid_coefs
-
     embedding_map <- function(parameters) {
       as.vector(
-        (t(spline_coefs[seq_len(nrow(centers_grid)), ]) %*%
-          etaFunc(parameters, param_grid, 4 - d)) +
-          (t(spline_coefs[
-            (nrow(centers_grid) + 1):(nrow(centers_grid) + d + 1),
-          ]) %*%
-            matrix(c(1, parameters), ncol = 1))
+        (t(grid_coefs$s) %*% etaFunc(parameters, param_grid, 4 - d)) +
+          (t(grid_coefs$alpha) %*% matrix(c(1, parameters), ncol = 1))
       )
     }
 
@@ -127,7 +101,8 @@ varying_coef_spline <- function(
 
     spline_est[[time_idx]] <- list(
       embedding_map = embedding_map,
-      coefs = grid_coefs,
+      hat = grid_coefs$hat,
+      coefs = rbind(grid_coefs$s, grid_coefs$alpha),
       lambda = init_spline_est[[time_idx]]$lambda
     )
   }
@@ -135,108 +110,55 @@ varying_coef_spline <- function(
   spline_coefs <- reduce(spline_coefs, rbind)
   D_coef <- dim(spline_coefs)[2]
 
-  mse <- vector()
+  coef_gcv <- vector()
+
+  time_spline <- list()
 
   for (smoothing_idx in seq_along(gamma)) {
-    cv_folds <- sample(
-      seq_along(time_points),
-      length(time_points),
-      replace = FALSE
+    time_E <- calcE(matrix(time_points, ncol = 1), 4 - 1)
+    time_mat <- cbind(rep(1, length(time_points)), time_points)
+
+    time_spline[[smoothing_idx]] <- solve_spline_hat(
+      time_E,
+      time_mat,
+      spline_coefs,
+      gamma[smoothing_idx],
+      1,
+      D_coef
     )
 
-    cv_mse <- vector()
-    for (fold_idx in seq_along(cv_folds)) {
-      time_E <- calcE(matrix(time_points[-cv_folds[fold_idx]], ncol = 1), 4 - 1)
-      time_mat <- cbind(
-        rep(1, length(time_points) - 1),
-        time_points[-cv_folds[fold_idx]]
-      )
+    fitted_coefs <- time_spline[[smoothing_idx]]$hat %*% spline_coefs
 
-      time_coefs <- solve_spline(
-        time_E,
-        time_mat,
-        spline_coefs[-cv_folds[fold_idx], ],
-        gamma[smoothing_idx],
-        1,
-        D_coef
-      )
+    coef_RSS <- apply(spline_coefs - fitted_coefs, 1, norm_euclidean)^2 |>
+      sum()
+    gcv_denom <- length(time_points) *
+      (1 -
+        (sum(diag(time_spline[[smoothing_idx]]$hat)) / length(time_points)))^2
 
-      get_time_spline_coefs <- function(time_val) {
-        return_vec <- as.vector(
-          t(time_coefs[1:(nrow(spline_coefs) - 1), ]) %*%
-            etaFunc(
-              as.matrix(time_val),
-              matrix(time_points[-cv_folds[fold_idx]], ncol = 1),
-              3
-            ) +
-            t(time_coefs[
-              (length(time_points)):(length(time_points) + 1),
-            ]) %*%
-              matrix(c(1, time_val), ncol = 1)
-        )
-        return_vec
+    coef_gcv[smoothing_idx] <- coef_RSS / gcv_denom
+
+    # if errors have been increasing for past 4 smoothing values, stop early
+    if (smoothing_idx >= 4) {
+      recent_errors <- coef_gcv[(smoothing_idx - 3):smoothing_idx]
+      if (all(recent_errors == cummax(recent_errors))) {
+        break
       }
-
-      f_new <- function(param_vec) {
-        coefs <- get_time_spline_coefs(param_vec[1])
-        coef_mat <- matrix(coefs, n_knots + d + 1, byrow = TRUE)
-        return_vec <- t(coef_mat[1:n_knots, ]) %*%
-          etaFunc(param_vec[-1], param_grid, 4 - d) +
-          t(coef_mat[(n_knots + 1):(n_knots + d + 1), ]) %*%
-            matrix(c(1, param_vec[-1]), ncol = 1)
-        c(param_vec[1], return_vec)
-      }
-
-      fold_centers <- centers[centers[, 1] == time_points[cv_folds[fold_idx]], ]
-      fold_params <- params[params[, 1] == time_points[cv_folds[fold_idx]], ]
-
-      fold_preds <- map(
-        seq_len(nrow(fold_params)),
-        ~ f_new(unlist(fold_params[.x, ]))
-      ) |>
-        reduce(rbind)
-
-      cv_mse[fold_idx] <- map(
-        seq_len(nrow(fold_centers)),
-        ~ dist_euclidean(
-          unlist(fold_centers[.x, -1]),
-          unlist(fold_preds[.x, -1])
-        )^2
-      ) |>
-        reduce(c) |>
-        mean()
     }
-    mse[smoothing_idx] <- mean(cv_mse)
   }
 
-  opt_gamma <- which.min(mse)
+  opt_gamma <- which.min(coef_gcv)
 
-  time_E <- calcE(matrix(time_points, ncol = 1), 4 - 1)
-  time_mat <- cbind(
-    rep(1, length(time_points)),
-    time_points
-  )
-
-  time_coefs <- solve_spline(
-    time_E,
-    time_mat,
-    spline_coefs,
-    gamma[opt_gamma],
-    1,
-    D_coef
-  )
+  temporal_spline <- time_spline[[opt_gamma]]
 
   get_time_spline_coefs <- function(time_val) {
     return_vec <- as.vector(
-      t(time_coefs[seq_len(nrow(spline_coefs)), ]) %*%
+      t(temporal_spline$s) %*%
         etaFunc(
           as.matrix(time_val),
           matrix(time_points, ncol = 1),
           3
         ) +
-        t(time_coefs[
-          (length(time_points) + 1):(length(time_points) + 1 + 1),
-        ]) %*%
+        t(temporal_spline$alpha) %*%
           matrix(c(1, time_val), ncol = 1)
     )
     return_vec
@@ -254,7 +176,7 @@ varying_coef_spline <- function(
 
   list(
     embedding_map = f_out,
-    coefs = time_coefs,
+    temporal_spline = temporal_spline,
     gamma = gamma[opt_gamma]
   )
 }
