@@ -16,9 +16,9 @@ handlers("progress")
 options(future.globals.maxSize = 32 * 1024^3)
 options(renv.config.sandbox.enabled = FALSE)
 options(renv.config.auto.snapshot = FALSE)
-cores <- detectCores() - 1
+cores <- detectCores() - 4
 
-plot_progress <- FALSE
+plot_progress <- TRUE
 
 source("code/functions/fit_weighted_spline.R")
 source("code/functions/print_SSD.R")
@@ -33,7 +33,7 @@ map(
   source
 )
 
-plan(cluster)
+plan(multicore, workers = cores)
 
 ssd_ratio_threshold <- 5
 verbose <- TRUE
@@ -41,9 +41,7 @@ verbose <- TRUE
 epsilon <- 0.05
 max_iter <- 100
 
-read_data(n_individuals = 250)
-
-gc()
+read_data(n_individuals = 100)
 
 # INITIALIZATION
 
@@ -108,15 +106,14 @@ group_vals <- unique(lhipp_surface_red$group)[order(unique(
 ))]
 
 # Fit initial additive model estimate
-init_additive_mod <- list()
+additive_model <- list()
 for (partition_idx in seq_along(partition_values)) {
-  init_additive_mod[[partition_idx]] <- fit_adni_additive_model(
+  additive_model[[partition_idx]] <- fit_adni_additive_model(
     centers = lhipp_centers[[partition_idx]],
     params = init_params[[partition_idx]],
     weights = lhipp_weights[[partition_idx]],
     lambda = exp(-20:5),
     gamma = exp(-20:5),
-    k = 5,
     groups = filter(
       lhipp_surface_red,
       partition == partition_values[partition_idx]
@@ -141,19 +138,17 @@ for (partition_idx in seq_along(partition_values)) {
 
 if (plot_progress == TRUE) {
   plot_additive_model(
-    init_additive_mod,
+    additive_model,
     init_params,
     group_vals,
     margin = 0.02
   )
 }
 
-plan(sequential)
-
 print("Updating parameters")
 
 param_list <- update_params(
-  init_additive_mod,
+  additive_model,
   init_params,
   lhipp_surface_red,
   lhipp_centers,
@@ -165,24 +160,19 @@ params <- param_list$params
 center_projections <- param_list$center_projections
 
 ssd <- calc_ssd(lhipp_centers, center_projections, partition_values)
-
-# embeddings <- init_additive_mod$embeddings
-
-n <- 1
 ssd_ratio <- 10 * epsilon
 
-additive_model <- init_additive_mod
+n <- 1
 
 ssd_vec <- vector()
-ssd_vec[0] <- ssd
+ssd_vec[n] <- ssd
+
 
 while (
   (ssd_ratio > epsilon) &
     (ssd_ratio <= ssd_ratio_threshold) &
     (n <= (max_iter - 1))
 ) {
-  plan(cluster)
-
   ssd_prev <- ssd
   additive_model_old <- additive_model
   params_prev <- params
@@ -196,7 +186,6 @@ while (
       weights = lhipp_weights[[partition_idx]],
       lambda = exp(-20:5),
       gamma = exp(-20:5),
-      k = 5,
       groups = filter(
         lhipp_surface_red,
         partition == partition_values[partition_idx]
@@ -229,8 +218,6 @@ while (
     print(fig)
   }
 
-  plan(sequential)
-
   print("Updating parameters")
 
   param_list <- update_params(
@@ -246,12 +233,11 @@ while (
   center_projections <- param_list$center_projections
 
   ssd <- calc_ssd(lhipp_centers, center_projections, partition_values)
-
   ssd_ratio <- abs(ssd - ssd_prev) / ssd_prev
 
+  n <- n + 1
   ssd_vec[n] <- ssd
 
-  n <- n + 1
   if (verbose == TRUE) {
     print_ssd(ssd, ssd_ratio, n)
   }
@@ -385,8 +371,6 @@ if (plot_progress == TRUE) {
 
 # calculate final MSD and projections?
 
-plan(cluster)
-
 print("Computing full projections")
 projection_list <- final_projections(
   additive_model,
@@ -409,11 +393,23 @@ lhipp_test_out <- list(
   projections = projection_list,
   group_values = group_values,
   id_values = id_values,
+  partition_values = partition_values,
   msd = msd
 )
-saveRDS(lhipp_test_out, "output/lhipp_additive_model_250.RDS")
+saveRDS(lhipp_test_out, "output/lhipp_additive_model_100.RDS")
 
 # lhipp_test_out <- readRDS("output/test_lhipp_additive_model.RDS")
+
+# lhipp_test_projections <- final_projections(
+#   lhipp_test_out$model,
+#   surface_data = lhipp_test_out$data,
+#   reduced_data = lhipp_test_out$reduced_data,
+#   params = lhipp_test_out$params,
+#   partition_values = lhipp_test_out$partition_values,
+#   group_values = lhipp_test_out$group_values,
+#   id_values = lhipp_test_out$id_values
+# )
+
 #
 # data <- lhipp_test_out$data
 #
