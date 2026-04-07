@@ -2,7 +2,8 @@ calc_nearest_clusters <- function(
   surface_data,
   reduced_data,
   params,
-  partition_values
+  partition_values,
+  cores
 ) {
   require(data.table, quietly = TRUE)
   require(doFuture, quietly = TRUE)
@@ -10,8 +11,10 @@ calc_nearest_clusters <- function(
   require(dtplyr, quietly = TRUE)
   require(foreach, quietly = TRUE)
   require(furrr, quietly = TRUE)
+  require(lineup2, quietly = TRUE)
   require(progressr, quietly = TRUE)
   require(purrr, quietly = TRUE)
+  require(Rfast, quietly = TRUE)
 
   surface_data <- data.table(surface_data)
   surface_data <- surface_data[, .(
@@ -24,54 +27,72 @@ calc_nearest_clusters <- function(
     partition
   )]
 
+  surface_data[, row_idx := .I]
+
   reduced_data <- data.table(reduced_data)
 
-  p <- progressor(nrow(surface_data))
+  scans <- unique(surface_data$image_id)
 
-  nearest_params <- foreach(row_idx = seq_len(nrow(surface_data))) %dofuture%
-    {
-      row_id <- surface_data$subid[row_idx]
-      row_scan <- surface_data$image_id[row_idx]
-      row_time <- surface_data$time_from_bl[row_idx]
-      row_partition <- surface_data$partition[row_idx]
+  partition_ids <- list()
+  partition_scans <- list()
+  partition_times <- list()
 
-      id_vals <- reduced_data[partition == row_partition, id]
-      scan_vals <- reduced_data[partition == row_partition, scan]
-      time_vals <- reduced_data[partition == row_partition, time_from_bl]
+  for (partition_idx in seq_along(partition_values)) {
+    partition_ids[[partition_idx]] <- reduced_data[
+      partition == partition_idx,
+      id
+    ]
+    partition_scans[[partition_idx]] <- reduced_data[
+      partition == partition_idx,
+      scan
+    ]
+    partition_times[[partition_idx]] <- reduced_data[
+      partition == partition_idx,
+      time_from_bl
+    ]
+  }
 
-      row_centers <- reduced_data[
-        (id == row_id) &
-          (scan == row_scan) &
-          (time_from_bl == row_time) &
-          (partition == row_partition),
+  nearest_params <- matrix(
+    0,
+    nrow = nrow(surface_data),
+    ncol = ncol(params[[1]])
+  )
+
+  p <- progressor(length(scans))
+  for (scan_idx in seq_len(length(scans))) {
+    scan_data <- surface_data[image_id == scans[scan_idx]]
+    scan_partition_vals <- unique(scan_data$partition)
+    scan_id <- unique(scan_data$subid)
+
+    for (partition_val in scan_partition_vals) {
+      scan_part_data <- scan_data[partition == partition_val]
+
+      scan_part_centers <- reduced_data[
+        (scan == scans[scan_idx]) & (partition == partition_val),
         .(time_from_bl, x, y, z)
       ] |>
         as.matrix()
 
-      row_params <- params[[which(partition_values == row_partition)]][
-        id_vals == row_id &
-          scan_vals == row_scan &
-          time_vals == row_time,
+      scan_part_params <- params[[which(partition_values == partition_val)]][
+        (partition_scans[[partition_val]] == scans[scan_idx]),
       ]
 
-      surface_loc <- surface_data[row_idx, .(x, y, z)] |>
-        unlist()
+      scan_part_dist <- dist_betw_matrices(
+        as.matrix(scan_part_data[, .(x, y, z)]),
+        as.matrix(scan_part_centers[, -1]),
+        distance = "rmsd",
+        cores = cores
+      )
 
-      center_dists <- map(
-        seq_len(nrow(row_centers)),
-        ~ dist_euclidean(
-          surface_loc,
-          row_centers[.x, -1]
-        )
-      ) |>
-        reduce(c)
+      nearest_param_idx <- rowMins(scan_part_dist, value = FALSE)
 
-      center_idx <- which.min(center_dists)
-      p(sprintf("Row %d", row_idx))
+      nearest_params[scan_part_data$row_idx, ] <- scan_part_params[
+        nearest_param_idx,
+      ]
+    }
 
-      row_params[center_idx, ]
-    } |>
-    reduce(rbind)
+    p(sprintf("Scan %d of %d", scan_idx, length(scans)))
+  }
 
   nearest_params
 }

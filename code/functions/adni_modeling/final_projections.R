@@ -5,12 +5,16 @@ final_projections <- function(
   params,
   partition_values,
   group_values,
-  id_values
+  id_values,
+  d,
+  D,
+  cores
 ) {
   require(data.table, quietly = TRUE)
   require(doFuture, quietly = TRUE)
   require(dplyr, quietly = TRUE)
   require(foreach, quietly = TRUE)
+  require(furrr, quietly = TRUE)
   require(here, quietly = TRUE)
   require(pme, quietly = TRUE)
   require(progressr, quietly = TRUE)
@@ -18,82 +22,71 @@ final_projections <- function(
 
   source(here("code/functions/adni_modeling/calc_nearest_clusters.R"))
 
+  surface_data <- as.data.table(surface_data)
+  reduced_data <- as.data.table(reduced_data)
+
+  n_rows <- nrow(surface_data)
+
   nearest_params <- calc_nearest_clusters(
     surface_data,
     reduced_data,
     params,
-    partition_values
+    partition_values,
+    cores
   )
 
-  surface_data <- as.data.table(surface_data)
-  reduced_data <- as.data.table(reduced_data)
+  param_mat <- matrix(0, nrow = n_rows, ncol = d + 1)
+  projections <- matrix(0, nrow = n_rows, ncol = D + 1)
+  pop_projections <- matrix(0, nrow = n_rows, ncol = D + 1)
+  group_projections <- matrix(0, nrow = n_rows, ncol = D + 1)
 
-  with_progress({
-    p <- progressor(nrow(surface_data))
-    projections <- foreach(
-      row_idx = seq_len(nrow(surface_data)),
-      .options.future = list(seed = TRUE)
-    ) %dofuture%
-      {
-        row_id <- surface_data$subid[row_idx]
-        row_group <- surface_data$Group[row_idx]
-        row_partition <- surface_data$partition[row_idx]
+  partition_indices <- match(surface_data$partition, partition_values)
+  group_indices <- match(surface_data$Group, group_values)
+  id_indices <- match(surface_data$subid, id_values)
 
-        row_point <- surface_data[row_idx, .(time_from_bl, x, y, z)] |>
-          unlist()
+  p <- progressor(n_rows)
+  for (row_idx in seq_len(n_rows)) {
+    row_point <- surface_data[row_idx, .(time_from_bl, x, y, z)] |>
+      unlist()
 
-        partition_idx <- which(partition_values == row_partition)
-        group_idx <- which(group_values == row_group)
-        id_idx <- which(id_values == row_id)
+    embedding_map <- additive_model[[partition_indices[row_idx]]]$embeddings[[
+      id_indices[row_idx]
+    ]]
 
-        param <- projection_lpme(
-          row_point,
-          additive_model[[partition_idx]]$embeddings[[id_idx]],
-          nearest_params[row_idx, ]
-        )
+    population_embedding <- additive_model[[partition_indices[
+      row_idx
+    ]]]$population_embedding$embedding_map
+    group_embedding <- additive_model[[partition_indices[
+      row_idx
+    ]]]$group_embeddings[[
+      group_indices[row_idx]
+    ]]$embedding_map
 
-        full_projection <- additive_model[[partition_idx]]$embeddings[[id_idx]](
-          param
-        )
+    param <- projection_lpme(
+      row_point,
+      embedding_map,
+      nearest_params[row_idx, ]
+    )
 
-        pop_projection <- additive_model[[
-          partition_idx
-        ]]$population_embedding$embedding_map(
-          param
-        )
-        group_projection <- c(
-          param[1],
-          additive_model[[partition_idx]]$population_embedding$embedding_map(
-            param
-          )[-1] +
-            additive_model[[partition_idx]]$group_embeddings[[
-              group_idx
-            ]]$embedding_map(
-              param
-            )[
-              -1
-            ]
-        )
+    param_mat[row_idx, ] <- param
 
-        p()
+    projections[row_idx, ] <- embedding_map(param)
+    pop_projection <- population_embedding(param)
+    group_projection <- group_embedding(param)
 
-        c(param, full_projection, pop_projection, group_projection)
-      } |>
-      reduce(rbind)
-  })
+    pop_projections[row_idx, ] <- pop_projection
+    group_projections[row_idx, ] <- c(
+      param[1],
+      pop_projection[-1] + group_projection[-1]
+    )
 
-  d <- ncol(params[[1]][, -1])
-  D <- (ncol(projections) - d) / 3
-
-  full_params <- projections[, 1:d]
-  population_projections <- projections[, (d + D + 1):(d + (2 * D))]
-  group_projections <- projections[, (d + (2 * D) + 1):(d + (3 * D))]
-  projections <- projections[, (d + 1):(d + D)]
+    p(sprintf("Row %d of %d", row_idx, n_rows))
+  }
 
   list(
-    params = full_params,
+    params = param_mat,
     projections = projections,
-    population_projections = population_projections,
+    population_projections = pop_projections,
     group_projections = group_projections
   )
 }
