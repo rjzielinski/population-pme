@@ -379,7 +379,10 @@ projection_list <- final_projections(
   params,
   partition_values,
   group_values,
-  id_values
+  id_values,
+  d = ncol(params[[1]]) - 1,
+  D = ncol(lhipp_centers[[1]]) - 1,
+  cores = cores
 )
 
 print("Calculating MSD")
