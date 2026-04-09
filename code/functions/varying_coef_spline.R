@@ -162,6 +162,7 @@ varying_coef_spline <- function(
 
   list(
     embedding_map = f_out,
+    spline_coef_map = get_time_spline_coefs,
     temporal_spline = best_time_spline,
     gamma = gamma[opt_gamma]
   )

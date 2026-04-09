@@ -24,7 +24,8 @@ fit_adni_additive_model <- function(
   require(Rfast, quietly = TRUE)
 
   source(here("code/functions/fit_weighted_spline.R"))
-  source(here("code/functions/varying_coef_spline.R"))
+  source(here("code/functions/gen_full_embedding.R"))
+  source(here("code/functions/varying_coef_spline_full.R"))
 
   D <- ncol(centers) - 1
   d <- ncol(params) - 1
@@ -108,6 +109,7 @@ fit_adni_additive_model <- function(
         verbose = TRUE
       )
     }
+  names(group_embeddings) <- group_vals
 
   for (group_idx in seq_along(group_vals)) {
     group_set <- which(groups == group_vals[group_idx])
@@ -123,44 +125,46 @@ fit_adni_additive_model <- function(
 
   print("Estimating initial individual-level embeddings...")
 
-  p <- progressor(along = unique(ids))
+  with_progress({
+    p <- progressor(along = unique(ids))
+    id_embeddings <- foreach(
+      id_idx = seq_along(id_vals),
+      .options.future = list(seed = TRUE)
+    ) %dofuture%
+      {
+        id_set <- ids == id_vals[id_idx]
 
-  id_embeddings <- foreach(
-    id_idx = seq_along(id_vals),
-    .options.future = list(seed = TRUE)
-  ) %dofuture%
-    {
-      id_set <- ids == id_vals[id_idx]
+        id_centers <- centers[id_set, ]
+        id_params <- params[id_set, ]
+        id_weights <- weights[id_set]
+        id_times <- times[id_set]
+        id_scans <- scans[id_set]
+        id_group <- unique(groups[id_set])
 
-      id_centers <- centers[id_set, ]
-      id_params <- params[id_set, ]
-      id_weights <- weights[id_set]
-      id_times <- times[id_set]
-      id_scans <- scans[id_set]
-      id_group <- unique(groups[id_set])
+        group_idx <- which(group_vals == id_group)
 
-      group_idx <- which(group_vals == id_group)
+        adjusted_centers <- cbind(
+          id_centers[, 1],
+          id_centers[, -1] -
+            (population_preds[id_set, -1] + group_preds[id_set, -1])
+        )
 
-      adjusted_centers <- cbind(
-        id_centers[, 1],
-        id_centers[, -1] -
-          (population_preds[id_set, -1] + group_preds[id_set, -1])
-      )
+        p(message = sprintf("ID: %s", id_vals[id_idx]))
 
-      p(message = sprintf("ID: %s", id_vals[id_idx]))
-
-      varying_coef_spline(
-        adjusted_centers,
-        id_params,
-        id_weights,
-        id_times,
-        rep(id_vals[id_idx], nrow(id_centers)),
-        id_scans,
-        lambda,
-        gamma,
-        param_grid = param_grid
-      )
-    }
+        varying_coef_spline(
+          adjusted_centers,
+          id_params,
+          id_weights,
+          id_times,
+          rep(id_vals[id_idx], nrow(id_centers)),
+          id_scans,
+          lambda,
+          gamma,
+          param_grid = param_grid
+        )
+      }
+  })
+  names(id_embeddings) <- id_vals
 
   for (id_idx in seq_along(id_vals)) {
     id_set <- which(ids == id_vals[id_idx])
@@ -247,6 +251,7 @@ fit_adni_additive_model <- function(
           verbose = TRUE
         )
       }
+    names(group_embeddings) <- group_vals
 
     for (group_idx in seq_along(group_vals)) {
       group_set <- which(groups == group_vals[group_idx])
@@ -262,44 +267,46 @@ fit_adni_additive_model <- function(
 
     print("Estimating individual-level embeddings...")
 
-    p <- progressor(along = unique(ids))
+    with_progress({
+      p <- progressor(along = unique(ids))
+      id_embeddings <- foreach(
+        id_idx = seq_along(id_vals),
+        .options.future = list(seed = TRUE)
+      ) %dofuture%
+        {
+          id_set <- ids == id_vals[id_idx]
 
-    id_embeddings <- foreach(
-      id_idx = seq_along(id_vals),
-      .options.future = list(seed = TRUE)
-    ) %dofuture%
-      {
-        id_set <- ids == id_vals[id_idx]
+          id_centers <- centers[id_set, ]
+          id_params <- params[id_set, ]
+          id_weights <- weights[id_set]
+          id_times <- times[id_set]
+          id_scans <- scans[id_set]
+          id_group <- unique(groups[id_set])
 
-        id_centers <- centers[id_set, ]
-        id_params <- params[id_set, ]
-        id_weights <- weights[id_set]
-        id_times <- times[id_set]
-        id_scans <- scans[id_set]
-        id_group <- unique(groups[id_set])
+          group_idx <- which(group_vals == id_group)
 
-        group_idx <- which(group_vals == id_group)
+          adjusted_centers <- cbind(
+            id_centers[, 1],
+            id_centers[, -1] -
+              (population_preds[id_set, -1] + group_preds[id_set, -1])
+          )
 
-        adjusted_centers <- cbind(
-          id_centers[, 1],
-          id_centers[, -1] -
-            (population_preds[id_set, -1] + group_preds[id_set, -1])
-        )
+          p(message = sprintf("ID: %s", id_vals[id_idx]))
 
-        p(message = sprintf("ID: %s", id_vals[id_idx]))
-
-        varying_coef_spline(
-          adjusted_centers,
-          id_params,
-          id_weights,
-          id_times,
-          rep(id_vals[id_idx], nrow(id_centers)),
-          id_scans,
-          lambda,
-          gamma,
-          param_grid = param_grid
-        )
-      }
+          varying_coef_spline(
+            adjusted_centers,
+            id_params,
+            id_weights,
+            id_times,
+            rep(id_vals[id_idx], nrow(id_centers)),
+            id_scans,
+            lambda,
+            gamma,
+            param_grid = param_grid
+          )
+        }
+    })
+    names(id_embeddings) <- id_vals
 
     for (id_idx in seq_along(id_vals)) {
       id_set <- which(ids == id_vals[id_idx])
@@ -342,25 +349,29 @@ fit_adni_additive_model <- function(
     )
   }
 
-  full_embeddings <- list()
-  for (id_idx in seq_along(id_vals)) {
-    id_set <- ids == id_vals[id_idx]
-    group_idx <- which(group_vals == unique(groups[id_set]))
+  full_embeddings <- foreach(id_idx = seq_along(id_vals)) %do%
+    {
+      id_set <- ids == id_vals[id_idx]
+      group_idx <- which(group_vals == unique(groups[id_set]))
 
-    full_embeddings[[id_idx]] <- function(parameters) {
-      pred_vec <- population_embedding$embedding_map(parameters) +
-        group_embeddings[[group_idx]]$embedding_map(parameters) +
-        id_embeddings[[id_idx]]$embedding_map(parameters)
-      c(parameters[1], pred_vec[-1])
+      gen_full_embedding(
+        population_embedding,
+        group_embeddings,
+        id_embeddings,
+        group_idx,
+        id_idx
+      )
     }
-  }
 
   return(
     list(
       embeddings = full_embeddings,
       population_embedding = population_embedding,
       group_embeddings = group_embeddings,
-      id_embeddings = id_embeddings
+      id_embeddings = id_embeddings,
+      param_grid = param_grid,
+      group_values = group_vals,
+      id_values = id_vals
     )
   )
 }

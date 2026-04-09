@@ -21,9 +21,13 @@ final_projections <- function(
   require(purrr, quietly = TRUE)
 
   source(here("code/functions/adni_modeling/calc_nearest_clusters.R"))
+  source(here("code/functions/projection_additive_pme.R"))
 
   surface_data <- as.data.table(surface_data)
   reduced_data <- as.data.table(reduced_data)
+
+  surface_data_mat <- surface_data[, .(time_from_bl, x, y, z)] |>
+    as.matrix()
 
   n_rows <- nrow(surface_data)
 
@@ -44,28 +48,38 @@ final_projections <- function(
   group_indices <- match(surface_data$Group, group_values)
   id_indices <- match(surface_data$subid, id_values)
 
+  param_grids <- map(
+    partition_values,
+    ~ as.matrix(additive_model[[.x]]$param_grid)
+  )
+
   p <- progressor(n_rows)
   for (row_idx in seq_len(n_rows)) {
-    row_point <- surface_data[row_idx, .(time_from_bl, x, y, z)] |>
-      unlist()
+    row_point <- surface_data_mat[row_idx, ]
 
-    embedding_map <- additive_model[[partition_indices[row_idx]]]$embeddings[[
-      id_indices[row_idx]
-    ]]
+    partition_val <- partition_indices[row_idx]
+    group_idx <- group_indices[row_idx]
+    id_idx <- id_indices[row_idx]
 
-    population_embedding <- additive_model[[partition_indices[
-      row_idx
-    ]]]$population_embedding$embedding_map
-    group_embedding <- additive_model[[partition_indices[
-      row_idx
-    ]]]$group_embeddings[[
-      group_indices[row_idx]
+    embedding_map <- additive_model[[partition_val]]$embeddings[[
+      id_idx
+    ]]$embedding_map
+    spline_coef_map <- additive_model[[partition_val]]$embeddings[[
+      id_idx
+    ]]$spline_coef_map
+
+    population_embedding <- additive_model[[
+      partition_val
+    ]]$population_embedding$embedding_map
+    group_embedding <- additive_model[[partition_val]]$group_embeddings[[
+      group_idx
     ]]$embedding_map
 
-    param <- projection_lpme(
+    param <- projection_additive_pme(
       row_point,
-      embedding_map,
-      nearest_params[row_idx, ]
+      spline_coef_map,
+      nearest_params[row_idx, ],
+      param_grids[[partition_val]]
     )
 
     param_mat[row_idx, ] <- param
