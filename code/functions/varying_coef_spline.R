@@ -145,7 +145,7 @@ varying_coef_spline <- function(
           3
         ) +
         t(best_time_spline$alpha) %*%
-          matrix(c(1, time_val), ncol = 1)
+          c(1, time_val)
     )
     return_vec
   }
@@ -164,6 +164,8 @@ varying_coef_spline <- function(
     embedding_map = f_out,
     spline_coef_map = get_time_spline_coefs,
     temporal_spline = best_time_spline,
+    params = param_grid,
+    time_points = time_points,
     gamma = gamma[opt_gamma]
   )
 }
