@@ -9,56 +9,45 @@ plot_additive_model <- function(
 
   n_partitions <- length(additive_model)
   n_groups <- length(group_vals)
-  group_embeddings <- list()
 
   pop_partition_embedding <- list()
+  group_embeddings <- lapply(seq_len(n_groups), function(x) list())
+
   for (partition_idx in seq_len(n_partitions)) {
+    partition_params <- params[[partition_idx]]
+    pop_embedding_map <- additive_model[[
+      partition_idx
+    ]]$population_embedding$embedding_map
+
     pop_embedding <- map(
       seq_len(nrow(params[[partition_idx]])),
-      ~ additive_model[[
-        partition_idx
-      ]]$population_embedding$embedding_map(unlist(params[[partition_idx]][
-        .x,
-      ]))
-    ) |>
-      reduce(rbind)
-
+      ~ pop_embedding_map(partition_params[.x, ])
+    )
+    pop_embedding <- do.call(rbind, pop_embedding)
     pop_partition_embedding[[partition_idx]] <- pop_embedding
-  }
-  population_embeddings <- reduce(pop_partition_embedding, rbind)
 
-  for (group_idx in seq_len(n_groups)) {
-    partition_embeddings <- list()
-
-    for (partition_idx in seq_len(n_partitions)) {
-      pop_embedding <- map(
-        seq_len(nrow(params[[partition_idx]])),
-        ~ additive_model[[
-          partition_idx
-        ]]$population_embedding$embedding_map(unlist(params[[partition_idx]][
-          .x,
-        ]))
-      ) |>
-        reduce(rbind)
-
-      pop_partition_embedding[[partition_idx]] <- pop_embedding
+    for (group_idx in seq_len(n_groups)) {
+      group_embedding_map <- additive_model[[partition_idx]]$group_embeddings[[
+        group_idx
+      ]]$embedding_map
 
       group_embedding <- map(
         seq_len(nrow(params[[partition_idx]])),
-        ~ additive_model[[partition_idx]]$group_embeddings[[
-          group_idx
-        ]]$embedding_map(unlist(params[[partition_idx]][.x, ]))
-      ) |>
-        reduce(rbind)
+        ~ group_embedding_map(partition_params[.x, ])
+      )
+      group_embedding <- do.call(rbind, group_embedding)
 
-      partition_embeddings[[partition_idx]] <- cbind(
+      group_embeddings[[group_idx]][[partition_idx]] <- cbind(
         pop_embedding[, 1],
         pop_embedding[, -1] + group_embedding[, -1]
       )
     }
-
-    group_embeddings[[group_idx]] <- reduce(partition_embeddings, rbind)
   }
+
+  population_embeddings <- do.call(rbind, pop_partition_embedding)
+  group_embeddings <- lapply(group_embeddings, function(partition_list) {
+    do.call(rbind, partition_list)
+  })
 
   group_plots <- list()
   layout_args <- list()
