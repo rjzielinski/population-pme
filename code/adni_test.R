@@ -41,7 +41,7 @@ verbose <- TRUE
 epsilon <- 0.05
 max_iter <- 100
 
-read_data(n_individuals = 100)
+read_data(n_individuals = 150)
 
 # INITIALIZATION
 
@@ -130,7 +130,7 @@ for (partition_idx in seq_along(partition_values)) {
       lhipp_surface_red,
       partition == partition_values[partition_idx]
     )$time_from_bl,
-    epsilon = 0.05,
+    epsilon = 0.01,
     max_iter = 250,
     cores = cores
   )
@@ -153,6 +153,7 @@ param_list <- update_params(
   lhipp_surface_red,
   lhipp_centers,
   partition_values,
+  group_values,
   id_values
 )
 
@@ -202,7 +203,7 @@ while (
         lhipp_surface_red,
         partition == partition_values[partition_idx]
       )$time_from_bl,
-      epsilon = 0.05,
+      epsilon = 0.01,
       max_iter = 250,
       cores = cores
     )
@@ -226,6 +227,7 @@ while (
     lhipp_surface_red,
     lhipp_centers,
     partition_values,
+    group_values,
     id_values
   )
 
@@ -372,6 +374,7 @@ if (plot_progress == TRUE) {
 # calculate final MSD and projections?
 
 print("Computing full projections")
+
 projection_list <- final_projections(
   additive_model,
   lhipp_surface,
@@ -399,7 +402,7 @@ lhipp_test_out <- list(
   partition_values = partition_values,
   msd = msd
 )
-saveRDS(lhipp_test_out, "output/lhipp_additive_model_100.RDS")
+saveRDS(lhipp_test_out, "output/lhipp_additive_model_150.RDS")
 
 # lhipp_test_out <- readRDS("output/test_lhipp_additive_model.RDS")
 
