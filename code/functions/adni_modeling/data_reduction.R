@@ -95,5 +95,5 @@ data_reduction <- function(
       scan_red_df
     }
 
-  surface_red <- reduce(reduced_dfs, bind_rows)
+  surface_red <- do.call(bind_rows, reduced_dfs)
 }
