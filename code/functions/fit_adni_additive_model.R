@@ -25,7 +25,7 @@ fit_adni_additive_model <- function(
 
   source(here("code/functions/fit_weighted_spline.R"))
   source(here("code/functions/gen_full_embedding.R"))
-  source(here("code/functions/varying_coef_spline_full.R"))
+  source(here("code/functions/varying_coef_spline.R"))
 
   D <- ncol(centers) - 1
   d <- ncol(params) - 1
