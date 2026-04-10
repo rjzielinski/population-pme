@@ -41,7 +41,7 @@ verbose <- TRUE
 epsilon <- 0.05
 max_iter <- 100
 
-read_data(n_individuals = 150)
+read_data(n_individuals = 100)
 
 # INITIALIZATION
 
@@ -254,125 +254,7 @@ if (plot_progress == TRUE) {
   )
 }
 
-# opacity <- 0.75
-# line_width <- 2
-#
-# library(reticulate)
-# use_condaenv("lpme")
-# pv <- import("pyvista")
-#
-# time_points <- sort(unique(population_embeddings[, 1]))
-#
-# palette <- colorRampPalette(hcl.colors(8, palette = "viridis"))
-# palette_colors <- palette(151)
-# time_colors <- palette_colors[1:101][ceiling((time_points + 1e-10) * 10)]
-#
-# lhipp_plot <- pv$Plotter(shape = tuple(2L, 2L))
-#
-# for (time_idx in seq_along(time_points)) {
-#   if (time_points[time_idx] %% 1 == 0) {
-#     print(time_points[time_idx])
-#
-#     temp_pop <- population_embeddings[
-#       population_embeddings[, 1] == time_points[time_idx],
-#       -1
-#     ]
-#     temp_groups <- map(
-#       group_embeddings,
-#       ~ .x[.x[, 1] == time_points[time_idx], -1]
-#     )
-#
-#     pop_projection3 <- mesh_projection(temp_pop, axis = 3)
-#     group_projections <- map(temp_groups, ~ mesh_projection(.x, axis = 3))
-#
-#     lhipp_plot$subplot(0L, 0L)
-#     lhipp_plot$add_mesh(
-#       pop_projection3$boundary,
-#       show_edges = TRUE,
-#       color = time_colors[time_idx],
-#       line_width = line_width,
-#       opacity = opacity,
-#       label = paste0("Time = ", round(time_points[time_idx], 2))
-#     )
-#
-#     if (time_idx == 1) {
-#       lhipp_plot$add_text(
-#         "Population",
-#         position = "upper_left",
-#         font_size = 12
-#       )
-#     }
-#
-#     lhipp_plot$subplot(0L, 1L)
-#     lhipp_plot$add_mesh(
-#       group_projections[[1]]$boundary,
-#       show_edges = TRUE,
-#       color = time_colors[time_idx],
-#       line_width = line_width,
-#       opacity = opacity,
-#       label = paste0("Time = ", round(time_points[time_idx], 2))
-#     )
-#
-#     if (time_idx == 1) {
-#       lhipp_plot$add_text(
-#         group_vals[1],
-#         position = "upper_left",
-#         font_size = 12
-#       )
-#     }
-#
-#     lhipp_plot$subplot(1L, 0L)
-#     lhipp_plot$add_mesh(
-#       group_projections[[2]]$boundary,
-#       show_edges = TRUE,
-#       color = time_colors[time_idx],
-#       line_width = line_width,
-#       opacity = opacity,
-#       label = paste0("Time = ", round(time_points[time_idx], 2))
-#     )
-#
-#     if (time_idx == 1) {
-#       lhipp_plot$add_text(
-#         group_vals[2],
-#         position = "upper_left",
-#         font_size = 12
-#       )
-#     }
-#
-#     lhipp_plot$subplot(1L, 1L)
-#     lhipp_plot$add_mesh(
-#       group_projections[[3]]$boundary,
-#       show_edges = TRUE,
-#       color = time_colors[time_idx],
-#       line_width = line_width,
-#       opacity = opacity,
-#       label = paste0("Time = ", round(time_points[time_idx], 2))
-#     )
-#
-#     if (time_idx == 1) {
-#       lhipp_plot$add_text(
-#         group_vals[3],
-#         position = "upper_left",
-#         font_size = 12
-#       )
-#     }
-#
-#     lhipp_plot$link_views()
-#     lhipp_plot$camera_position <- "xy"
-#   } else {
-#     next
-#   }
-# }
-#
-# lhipp_plot$show()
-#
-# lhipp_plot$screenshot(
-#   "output/additive_mod_silhouette_plot.png"
-# )
-#
-
 # calculate final MSD and projections?
-
 print("Computing full projections")
 
 projection_list <- final_projections(
@@ -395,115 +277,12 @@ lhipp_test_out <- list(
   model = additive_model,
   data = lhipp_surface,
   reduced_data = lhipp_surface_red,
-  params = params,
   projections = projection_list,
+  params = params,
+  center_projections = center_projections,
   group_values = group_values,
   id_values = id_values,
   partition_values = partition_values,
   msd = msd
 )
-saveRDS(lhipp_test_out, "output/lhipp_additive_model_150.RDS")
-
-# lhipp_test_out <- readRDS("output/test_lhipp_additive_model.RDS")
-
-# lhipp_test_projections <- final_projections(
-#   lhipp_test_out$model,
-#   surface_data = lhipp_test_out$data,
-#   reduced_data = lhipp_test_out$reduced_data,
-#   params = lhipp_test_out$params,
-#   partition_values = lhipp_test_out$partition_values,
-#   group_values = lhipp_test_out$group_values,
-#   id_values = lhipp_test_out$id_values
-# )
-
-#
-# data <- lhipp_test_out$data
-#
-# groups <- lhipp_test_out$group_values
-# ids <- lhipp_test_out$id_values
-#
-# id_groups <- map(
-#   ids,
-#   ~ filter(data, subid == .x) |>
-#     pull(Group) |>
-#     unique()
-# ) |>
-#   reduce(c)
-#
-# plan(multicore, workers = cores)
-#
-# f_test_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "f_type",
-#   alpha = 0.05
-# )
-#
-# f_test_bootstrap_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "f_type",
-#   alpha = 0.05,
-#   bootstrap = TRUE,
-#   n_bootstrap = 1000
-# )
-#
-# chisq_test_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "chisq_type",
-#   alpha = 0.05
-# )
-#
-# chisq_test_bootstrap_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "chisq_type",
-#   alpha = 0.05,
-#   bootstrap = TRUE,
-#   n_bootstrap = 1000
-# )
-#
-# l2_norm_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "l2_norm",
-#   alpha = 0.05
-# )
-#
-# l2_norm_bootstrap_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "l2_norm",
-#   alpha = 0.05,
-#   bootstrap = TRUE,
-#   n_bootstrap = 1000
-# )
-#
-# display_test_results(pointwise_bootstrap_results, groups)
-#
-# display_test_results(f_test_results, groups)
+saveRDS(lhipp_test_out, "output/lhipp_additive_model_100.RDS")
