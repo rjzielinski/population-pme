@@ -319,23 +319,30 @@ calc_embeddings <- function(
   id_embeddings <- list()
 
   for (partition_idx in seq_along(additive_model)) {
-    with_progress({
-      p <- progressor(nrow(param_grids[[partition_idx]]))
-      population_embeddings[[partition_idx]] <- map(
-        seq_len(nrow(param_grids[[partition_idx]])),
-        ~ {
-          p()
-          additive_model[[
-            partition_idx
-          ]]$population_embedding$embedding_map(unlist(param_grids[[
-            partition_idx
-          ]][
-            .x,
-          ]))
-        }
-      ) |>
-        reduce(rbind)
-    })
+    param_grid <- param_grids[[partition_idx]]
+
+    pop_embedding_map <- additive_model[[
+      partition_idx
+    ]]$population_embedding$embedding_map
+    group_embedding_maps <- map(
+      additive_model[[partition_idx]]$group_embeddings,
+      ~ .x$embedding_map
+    )
+    id_embedding_maps <- map(
+      additive_model[[partition_idx]]$id_embeddings,
+      ~ .x$embedding_map
+    )
+
+    part_population_embeddings <- map(
+      seq_len(nrow(param_grid)),
+      ~ {
+        pop_embedding_map(param_grid[.x, ])
+      }
+    )
+    population_embeddings[[partition_idx]] <- do.call(
+      rbind,
+      part_population_embeddings
+    )
 
     with_progress({
       p <- progressor(n_groups)
@@ -344,16 +351,15 @@ calc_embeddings <- function(
         .options.future = list(seed = TRUE)
       ) %dofuture%
         {
-          p()
-          map(
-            seq_len(nrow(param_grids[[partition_idx]])),
+          group_embedding_map <- group_embedding_maps[[group_idx]]
+          p(sprintf("Group %d of %d", group_idx, n_groups))
+          group_embedding_list <- map(
+            seq_len(nrow(param_grid)),
             ~ {
-              additive_model[[partition_idx]]$group_embeddings[[
-                group_idx
-              ]]$embedding_map(unlist(param_grids[[partition_idx]][.x, ]))
+              group_embedding_map(param_grid[.x, ])
             }
-          ) |>
-            reduce(rbind)
+          )
+          do.call(rbind, group_embedding_list)
         }
     })
 
@@ -364,14 +370,13 @@ calc_embeddings <- function(
         .options.future = list(seed = TRUE)
       ) %dofuture%
         {
-          p()
-          map(
-            seq_len(nrow(param_grids[[partition_idx]])),
-            ~ additive_model[[partition_idx]]$id_embeddings[[
-              id_idx
-            ]]$embedding_map(unlist(param_grids[[partition_idx]][.x, ]))
-          ) |>
-            reduce(rbind)
+          id_embedding_map <- id_embedding_maps[[id_idx]]
+          p(sprintf("ID %d of %d", id_idx, n_individuals))
+          id_embedding_list <- map(
+            seq_len(nrow(param_grid)),
+            ~ id_embedding_map(param_grid[.x, ])
+          )
+          do.call(rbind, id_embedding_list)
         }
     })
 
@@ -530,8 +535,8 @@ calc_sample_cov <- function(
   embeddings_param1 <- map(
     embeddings$id_embeddings[[partition]],
     ~ .x[param_idx1, ][-1]
-  ) |>
-    reduce(rbind)
+  )
+  embeddings_param1 <- do.call(rbind, embeddings_param1)
 
   if (param_idx1 == param_idx2) {
     sample_cov <- diag(embeddings_param1 %*% t(embeddings_param1)) |>
@@ -540,8 +545,8 @@ calc_sample_cov <- function(
     embeddings_param2 <- map(
       embeddings$id_embeddings[[partition]],
       ~ .x[param_idx2, ][-1]
-    ) |>
-      reduce(rbind)
+    )
+    embeddings_param2 <- do.call(rbind, embeddings_param2)
 
     sample_cov <- diag(embeddings_param1 %*% t(embeddings_param2)) |>
       sum()
