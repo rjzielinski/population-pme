@@ -33,95 +33,119 @@ map(
   source
 )
 
-lhipp_out <- readRDS("output/lhipp_additive_model_100.RDS")
+lhipp_out200 <- readRDS("output/lhipp_additive_model_200.RDS")
 
-# data <- lhipp_test_out$data
-#
-# groups <- lhipp_test_out$group_values
-# ids <- lhipp_test_out$id_values
-#
-# id_groups <- map(
-#   ids,
-#   ~ filter(data, subid == .x) |>
-#     pull(Group) |>
-#     unique()
-# ) |>
-#   reduce(c)
-#
-# plan(multicore, workers = cores)
-#
-# f_test_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "f_type",
-#   alpha = 0.05
-# )
-#
-# f_test_bootstrap_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "f_type",
-#   alpha = 0.05,
-#   bootstrap = TRUE,
-#   n_bootstrap = 1000
-# )
-#
-# chisq_test_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "chisq_type",
-#   alpha = 0.05
-# )
-#
-# chisq_test_bootstrap_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "chisq_type",
-#   alpha = 0.05,
-#   bootstrap = TRUE,
-#   n_bootstrap = 1000
-# )
-#
-# l2_norm_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "l2_norm",
-#   alpha = 0.05
-# )
-#
-# l2_norm_bootstrap_results <- functional_anova(
-#   lhipp_test_out$model,
-#   lhipp_test_out$params,
-#   groups,
-#   ids,
-#   id_groups,
-#   n_params = 1000,
-#   test_type = "l2_norm",
-#   alpha = 0.05,
-#   bootstrap = TRUE,
-#   n_bootstrap = 1000
-# )
-#
-# display_test_results(pointwise_bootstrap_results, groups)
-#
-# display_test_results(f_test_results, groups)
+silhouette_plot(
+  additive_model = lhipp_out200$model,
+  surface_data = lhipp_out200$data,
+  projections = lhipp_out200$projections,
+  axis = 1,
+  filename = here("output/lhipp200_silhouette_plot_ax1.png")
+)
+
+silhouette_plot(
+  additive_model = lhipp_out200$model,
+  surface_data = lhipp_out200$data,
+  projections = lhipp_out200$projections,
+  axis = 2,
+  filename = here("output/lhipp200_silhouette_plot_ax1.png")
+)
+
+silhouette_plot(
+  additive_model = lhipp_out200$model,
+  surface_data = lhipp_out200$data,
+  projections = lhipp_out200$projections,
+  axis = 3,
+  filename = here("output/lhipp200_silhouette_plot_ax1.png")
+)
+
+data <- lhipp_out200$data
+
+groups <- lhipp_out200$group_values
+ids <- lhipp_out200$id_values
+
+id_groups <- map(
+  ids,
+  ~ filter(data, subid == .x) |>
+    pull(Group) |>
+    unique()
+) |>
+  reduce(c)
+
+# plan(multicore, workers = cores / 2)
+plan(sequential)
+
+f_test_results <- functional_anova(
+  lhipp_out200$model,
+  lhipp_out200$params,
+  groups,
+  ids,
+  id_groups,
+  n_params = 500,
+  test_type = "f_type",
+  alpha = 0.05
+)
+display_test_results(f_test_results, groups)
+
+f_test_bootstrap_results <- functional_anova(
+  lhipp_out200$model,
+  lhipp_out200$params,
+  groups,
+  ids,
+  id_groups,
+  n_params = 500,
+  test_type = "f_type",
+  alpha = 0.05,
+  bootstrap = TRUE,
+  n_bootstrap = 1000
+)
+
+chisq_test_results <- functional_anova(
+  lhipp_out200$model,
+  lhipp_out200$params,
+  groups,
+  ids,
+  id_groups,
+  n_params = 1000,
+  test_type = "chisq_type",
+  alpha = 0.05
+)
+
+chisq_test_bootstrap_results <- functional_anova(
+  lhipp_out200$model,
+  lhipp_out200$params,
+  groups,
+  ids,
+  id_groups,
+  n_params = 1000,
+  test_type = "chisq_type",
+  alpha = 0.05,
+  bootstrap = TRUE,
+  n_bootstrap = 1000
+)
+
+l2_norm_results <- functional_anova(
+  lhipp_out200$model,
+  lhipp_out200$params,
+  groups,
+  ids,
+  id_groups,
+  n_params = 1000,
+  test_type = "l2_norm",
+  alpha = 0.05
+)
+
+l2_norm_bootstrap_results <- functional_anova(
+  lhipp_out200$model,
+  lhipp_out200$params,
+  groups,
+  ids,
+  id_groups,
+  n_params = 1000,
+  test_type = "l2_norm",
+  alpha = 0.05,
+  bootstrap = TRUE,
+  n_bootstrap = 1000
+)
+
+display_test_results(pointwise_bootstrap_results, groups)
