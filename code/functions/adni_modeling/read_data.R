@@ -1,4 +1,12 @@
-read_data <- function(n_individuals = NULL, min_visits = 3, min_duration = 1) {
+read_data <- function(
+  n_individuals = NULL,
+  min_visits = 3,
+  min_duration = 1,
+  n_partitions = 4,
+  x_bound = 0,
+  y_bound = 0,
+  z_bound = 0
+) {
   # Read and prepare data for anlaysis
   require(dplyr, quietly = TRUE)
   require(lubridate, quietly = TRUE)
@@ -45,10 +53,40 @@ read_data <- function(n_individuals = NULL, min_visits = 3, min_duration = 1) {
       x = (x - mean_x) / max_x,
       y = (y - mean_y) / max_y,
       z = (z - mean_z) / max_z,
-      time_from_bl = date - date_bl,
-      partition = ifelse(z > 0, 1, 2)
+      time_from_bl = date - date_bl
     ) |>
     rename(image_id = scan_id)
+
+  if (n_partitions == 2) {
+    lhipp_surface <- lhipp_surface |>
+      mutate(
+        partition = ifelse(z > z_bound, 1, 2)
+      )
+  } else if (n_partitions == 4) {
+    lhipp_surface <- lhipp_surface |>
+      mutate(
+        partition = case_when(
+          y > y_bound & z > z_bound ~ 1,
+          y > y_bound & z <= z_bound ~ 2,
+          y <= y_bound & z > z_bound ~ 3,
+          y <= y_bound & z <= z_bound ~ 4
+        )
+      )
+  } else if (n_partitions == 8) {
+    lhipp_surface <- lhipp_surface |>
+      mutate(
+        partition = case_when(
+          x > x_bound & y > y_bound & z > z_bound ~ 1,
+          x > x_bound & y > y_bound & z <= z_bound ~ 2,
+          x > x_bound & y <= y_bound & z > z_bound ~ 3,
+          x > x_bound & y <= y_bound & z <= z_bound ~ 4,
+          x <= x_bound & y > y_bound & z > z_bound ~ 5,
+          x <= x_bound & y > y_bound & z <= z_bound ~ 6,
+          x <= x_bound & y <= y_bound & z > z_bound ~ 7,
+          x <= x_bound & y <= y_bound & z <= z_bound ~ 8
+        )
+      )
+  }
 
   n_visits <- lhipp_surface |>
     group_by(subid, time_from_bl) |>
