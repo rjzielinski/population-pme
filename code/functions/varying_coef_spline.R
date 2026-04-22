@@ -62,8 +62,8 @@ varying_coef_spline <- function(
     time_val <- time_points[time_idx]
 
     init_spline <- fit_weighted_spline(
-      centers[times == time_val, -1],
-      params[times == time_val, -1],
+      as.matrix(centers[times == time_val, -1], ncol = D),
+      as.matrix(params[times == time_val, -1], ncol = d),
       weights[times == time_val],
       lambda
     )
