@@ -18,6 +18,7 @@ lpme_initialization <- function(data, ids, ...) {
   ) %dofuture%
     {
       partition_value <- partition_values[partition_idx]
+
       init_data <- data |>
         filter(
           subid == ids[1],
