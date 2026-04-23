@@ -48,7 +48,7 @@ silhouette_plot(
   surface_data = lhipp_out200$data,
   projections = lhipp_out200$projections,
   axis = 2,
-  filename = here("output/lhipp200_silhouette_plot_ax1.png")
+  filename = here("output/lhipp200_silhouette_plot_ax2.png")
 )
 
 silhouette_plot(
@@ -56,7 +56,7 @@ silhouette_plot(
   surface_data = lhipp_out200$data,
   projections = lhipp_out200$projections,
   axis = 3,
-  filename = here("output/lhipp200_silhouette_plot_ax1.png")
+  filename = here("output/lhipp200_silhouette_plot_ax3.png")
 )
 
 data <- lhipp_out200$data
