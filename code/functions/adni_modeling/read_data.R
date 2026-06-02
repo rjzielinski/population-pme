@@ -1,15 +1,22 @@
 read_data <- function(
   n_individuals = NULL,
   min_visits = 3,
-  min_duration = 1,
-  n_partitions = 4,
+  min_duration = 2,
+  n_partitions = 1,
   x_bound = 0,
   y_bound = 0,
-  z_bound = 0
+  z_bound = 0,
+  x_slope = 1,
+  scan_exclude_threshold = 0.0025,
+  ad_cn_ratio = 1,
+  ad_mci_ratio = 1
 ) {
   # Read and prepare data for anlaysis
+
+  require(cobalt, quietly = TRUE)
   require(dplyr, quietly = TRUE)
   require(lubridate, quietly = TRUE)
+  require(MatchIt, quietly = TRUE)
   require(readr, quietly = TRUE)
 
   lhipp_surface <- read_csv(here("data/lhipp_surface_fsl.csv"))
@@ -25,6 +32,20 @@ read_data <- function(
       Group = gsub("EMCI", "MCI", Group),
       Group = gsub("LMCI", "MCI", Group),
     )
+
+  adni_n <- lhipp_surface |>
+    group_by(subid, scan_id) |>
+    tally() |>
+    ungroup()
+  adni_threshold <- quantile(adni_n$n, scan_exclude_threshold)
+
+  exclude_scans <- adni_n |>
+    filter(n < adni_threshold) |>
+    select(scan_id) |>
+    unlist()
+
+  lhipp_surface <- lhipp_surface |>
+    filter(!(scan_id %in% exclude_scans))
 
   lhipp_surface_centers <- lhipp_surface |>
     group_by(subid, date, scan_id) |>
@@ -66,10 +87,10 @@ read_data <- function(
     lhipp_surface <- lhipp_surface |>
       mutate(
         partition = case_when(
-          y > y_bound & z > z_bound ~ 1,
-          y > y_bound & z <= z_bound ~ 2,
-          y <= y_bound & z > z_bound ~ 3,
-          y <= y_bound & z <= z_bound ~ 4
+          y > (-(x_slope * x) + y_bound) & z > z_bound ~ 1,
+          y > (-(x_slope * x) + y_bound) & z <= z_bound ~ 2,
+          y <= (-(x_slope * x) + y_bound) & z > z_bound ~ 3,
+          y <= (-(x_slope * x) + y_bound) & z <= z_bound ~ 4
         )
       )
   } else if (n_partitions == 8) {
@@ -86,6 +107,9 @@ read_data <- function(
           x <= x_bound & y <= y_bound & z <= z_bound ~ 8
         )
       )
+  } else {
+    lhipp_surface <- lhipp_surface |>
+      mutate(partition = 1)
   }
 
   n_visits <- lhipp_surface |>
@@ -98,7 +122,7 @@ read_data <- function(
 
   lhipp_surface <- lhipp_surface |>
     filter(subid %in% filter(n_visits, n >= min_visits)$subid) |>
-    filter(duration >= min_duration)
+    filter(duration > min_duration)
 
   id_vec <- unique(lhipp_surface$subid)
   if (!is.null(n_individuals)) {
@@ -106,7 +130,70 @@ read_data <- function(
   } else {
     n_individuals <- length(id_vec)
   }
+
   include_ids <- id_vec[1:n_individuals]
+
+  lhipp_surface_info <- lhipp_surface |>
+    select(subid, Group, Sex, Age, duration) |>
+    group_by(subid) |>
+    summarize(
+      Group = first(Group),
+      Sex = first(Sex),
+      Age = first(Age),
+      Duration = first(duration)
+    ) |>
+    ungroup() |>
+    mutate(Group = as.factor(Group))
+
+  lhipp_surface_info_ad_cn <- lhipp_surface_info |>
+    filter(Group %in% c("AD", "CN")) |>
+    mutate(
+      Group = relevel(Group, ref = "CN"),
+      Group = as.numeric(Group) - 1,
+      Group = as.logical(Group),
+      Sex = as.factor(Sex),
+      Sex = as.numeric(Sex)
+    )
+
+  lhipp_surface_info_ad_mci <- lhipp_surface_info |>
+    filter(Group %in% c("AD", "MCI")) |>
+    mutate(
+      Group = relevel(Group, ref = "MCI"),
+      Group = as.numeric(Group) - 1,
+      Group = as.logical(Group),
+      Sex = as.factor(Sex),
+      Sex = as.numeric(Sex)
+    )
+
+  match_ad_cn <- matchit(
+    Group ~ Sex + Age + Duration,
+    data = lhipp_surface_info_ad_cn,
+    method = "nearest",
+    distance = "glm",
+    ratio = ad_cn_ratio
+  )
+
+  match_ad_mci <- matchit(
+    Group ~ Sex + Age + Duration,
+    data = lhipp_surface_info_ad_mci,
+    method = "nearest",
+    distance = "glm",
+    ratio = ad_mci_ratio
+  )
+
+  lhipp_surface_ad_cn_include <- lhipp_surface_info_ad_cn[
+    as.logical(match_ad_cn$weights),
+  ]
+
+  lhipp_surface_ad_mci_include <- lhipp_surface_info_ad_mci[
+    as.logical(match_ad_mci$weights),
+  ]
+
+  include_ids <- c(
+    lhipp_surface_ad_cn_include$subid,
+    lhipp_surface_ad_mci_include$subid
+  ) |>
+    unique()
 
   lhipp_surface <- lhipp_surface |>
     filter(subid %in% include_ids)
