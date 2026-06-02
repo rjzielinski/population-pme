@@ -34,7 +34,6 @@ map(
   source
 )
 
-plan(multicore, workers = cores)
 
 ssd_ratio_threshold <- 5
 verbose <- TRUE
@@ -42,21 +41,29 @@ verbose <- TRUE
 epsilon <- 0.05
 max_iter <- 100
 
-read_data(n_individuals = 200, n_partitions = 4, y_bound = 0.2)
+read_data(
+  n_partitions = 1,
+  ad_cn_ratio = 1,
+  ad_mci_ratio = 1
+)
 
 # INITIALIZATION
 
 lhipp_init_lpme <- lpme_initialization(
   data = lhipp_surface,
   ids = lhipp_ids,
+  n_init = 1,
   d = 2,
+  template = "sphere",
   init_type = "centers",
-  min_clusters = 20,
+  min_clusters = 75,
   print_plots = FALSE,
   verbose = FALSE
 )
 
 # DATA REDUCTION
+
+plan(multicore, workers = cores)
 
 lhipp_reduced <- list()
 scan_list <- unique(lhipp_scans)
@@ -67,7 +74,7 @@ lhipp_surface_red <- data_reduction(
   lhipp_groups,
   lhipp_ids,
   lhipp_scans,
-  min_clusters = 20,
+  min_clusters = 75,
   component_type = "centers"
 )
 
@@ -106,6 +113,7 @@ additive_model_list <- additive_pme(
   scans = lhipp_surface_red$scan,
   times = lhipp_surface_red$time_from_bl,
   partitions = lhipp_surface_red$partition,
+  template = "sphere",
   cores = cores,
   plot_progress = TRUE,
 )
@@ -127,6 +135,7 @@ projection_list <- final_projections(
   id_values,
   d = ncol(params[[1]]) - 1,
   D = ncol(lhipp_centers[[1]]) - 1,
+  template = "sphere",
   cores = cores
 )
 
@@ -143,6 +152,7 @@ lhipp_test_out <- list(
   group_values = group_values,
   id_values = id_values,
   partition_values = partition_values,
-  msd = msd
+  msd = msd,
+  template = "sphere"
 )
-saveRDS(lhipp_test_out, "output/lhipp_additive_model_200.RDS")
+saveRDS(lhipp_test_out, "output/lhipp_additive_matched_111.RDS")
