@@ -7,9 +7,11 @@ varying_coef_spline <- function(
   scans,
   lambda,
   gamma,
+  template,
   param_grid = NULL,
   verbose = FALSE
 ) {
+  require(assist, quietly = TRUE)
   require(furrr, quietly = TRUE)
   require(here, quietly = TRUE)
   require(pme, quietly = TRUE)
@@ -43,8 +45,15 @@ varying_coef_spline <- function(
     param_grid <- as.matrix(param_grid)
   }
 
-  grid_E <- calcE(param_grid, 4 - d)
-  grid_mat <- cbind(rep(1, nrow(param_grid)), param_grid)
+  if (template == "euclidean") {
+    grid_E <- calcE(param_grid, 4 - d)
+    grid_mat <- cbind(rep(1, nrow(param_grid)), param_grid)
+  } else if (template == "sphere") {
+    grid_cart <- pracma::sph2cart(cbind(param_grid, 1))
+    grid_E <- calcE_sphere(grid_cart)
+    grid_mat <- rep(1, nrow(param_grid)) |>
+      matrix(ncol = 1)
+  }
 
   n_knots <- nrow(param_grid)
   time_points <- sort(unique(times))
@@ -65,7 +74,8 @@ varying_coef_spline <- function(
       as.matrix(centers[times == time_val, -1], ncol = D),
       as.matrix(params[times == time_val, -1], ncol = d),
       weights[times == time_val],
-      lambda
+      lambda,
+      template
     )
 
     centers_grid <- map(
@@ -150,14 +160,31 @@ varying_coef_spline <- function(
     return_vec
   }
 
-  f_out <- function(param_vec) {
-    coefs <- get_time_spline_coefs(param_vec[1])
-    coef_mat <- matrix(coefs, n_knots + d + 1, byrow = TRUE)
-    return_vec <- t(coef_mat[1:n_knots, ]) %*%
-      etaFunc(param_vec[-1], param_grid, 4 - d) +
-      t(coef_mat[(n_knots + 1):(n_knots + d + 1), ]) %*%
-        matrix(c(1, param_vec[-1]), ncol = 1)
-    c(param_vec[1], return_vec)
+  if (template == "euclidean") {
+    f_out <- function(param_vec) {
+      coefs <- get_time_spline_coefs(param_vec[1])
+      coef_mat <- matrix(coefs, n_knots + d + 1, byrow = TRUE)
+      return_vec <- t(coef_mat[1:n_knots, ]) %*%
+        etaFunc(param_vec[-1], param_grid, 4 - d) +
+        t(coef_mat[(n_knots + 1):(n_knots + d + 1), ]) %*%
+          matrix(c(1, param_vec[-1]), ncol = 1)
+      c(param_vec[1], return_vec)
+    }
+  } else if (template == "sphere") {
+    f_out <- function(param_vec) {
+      coefs <- get_time_spline_coefs(param_vec[1])
+      coef_mat <- matrix(coefs, n_knots + d + 1, byrow = TRUE)
+
+      param_vec_cart <- pracma::sph2cart(c(param_vec[-1], 1))
+      param_grid_cart <- pracma::sph2cart(cbind(param_grid, 1))
+
+      return_vec <- t(coef_mat[1:n_knots, ]) %*%
+        sphere_kernel_func(param_vec_cart, param_grid_cart) +
+        t(coef_mat[n_knots + 1, , drop = FALSE]) %*%
+          matrix(1, ncol = 1)
+
+      c(param_vec[1], return_vec)
+    }
   }
 
   list(

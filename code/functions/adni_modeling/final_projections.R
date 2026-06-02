@@ -8,6 +8,7 @@ final_projections <- function(
   id_values,
   d,
   D,
+  template,
   cores
 ) {
   require(data.table, quietly = TRUE)
@@ -94,7 +95,8 @@ final_projections <- function(
               part_id_data_red[.x, ],
               spline_coef_map,
               part_id_nearest_params[.x, ],
-              param_grids[[partition_val]]
+              param_grids[[partition_val]],
+              template
             )
           )
 

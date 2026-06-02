@@ -5,6 +5,7 @@ functional_anova <- function(
   ids,
   id_groups,
   n_params,
+  template,
   test_type = "f_type",
   alpha = 0.05,
   bootstrap = FALSE,
@@ -28,7 +29,8 @@ functional_anova <- function(
     n_params,
     interval = 0.25,
     noise_factor = 10,
-    dist_kernel_sd = 0.5
+    dist_kernel_sd = 0.5,
+    template = template
   )
 
   param_interval_vols <- vector()
@@ -237,7 +239,8 @@ calc_param_grids <- function(
   n_params,
   interval = 0.25,
   noise_factor = 0,
-  dist_kernel_sd = 1
+  dist_kernel_sd = 1,
+  template = "euclidean"
 ) {
   # manifolds of parameter values are not necessarily regularly shaped
   # manifolds may shift in shape and location over time

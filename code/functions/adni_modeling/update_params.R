@@ -5,7 +5,8 @@ update_params <- function(
   centers,
   partition_values,
   group_values,
-  id_values
+  id_values,
+  template
 ) {
   require(doFuture, quietly = TRUE)
   require(foreach, quietly = TRUE)
@@ -64,7 +65,8 @@ update_params <- function(
         center_val,
         spline_coef_map,
         prev_params[[partition_idx]][row_idx, ],
-        param_grid
+        param_grid,
+        template
       )
 
       param_mat[row_idx, ] <- param_est

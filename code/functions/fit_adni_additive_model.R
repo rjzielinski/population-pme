@@ -8,6 +8,7 @@ fit_adni_additive_model <- function(
   ids,
   scans,
   times,
+  template,
   epsilon = 0.05,
   max_iter = 100,
   cores = 1
@@ -40,19 +41,23 @@ fit_adni_additive_model <- function(
   # of clusters across all scans
   N_prime <- max(table(scans))
 
-  param_bounds <- colMinsMaxs(params[, -1])
+  if (template == "euclidean") {
+    param_bounds <- colMinsMaxs(params[, -1])
 
-  param_list <- list()
-  for (dim in seq_len(d)) {
-    param_range <- abs(param_bounds[2, dim] - param_bounds[1, dim])
-    param_list[[dim]] <- seq(
-      from = param_bounds[1, dim] - (0.1 * param_range),
-      to = param_bounds[2, dim] + (0.1 * param_range),
-      length.out = ceiling(N_prime^(1 / d))
-    )
+    param_list <- list()
+    for (dim in seq_len(d)) {
+      param_range <- abs(param_bounds[2, dim] - param_bounds[1, dim])
+      param_list[[dim]] <- seq(
+        from = param_bounds[1, dim] - (0.1 * param_range),
+        to = param_bounds[2, dim] + (0.1 * param_range),
+        length.out = ceiling(N_prime^(1 / d))
+      )
+    }
+
+    param_grid <- expand.grid(param_list)
+  } else if (template == "sphere") {
+    param_grid <- fibonacci_sphere(N_prime)
   }
-
-  param_grid <- expand.grid(param_list)
 
   print("Estimating initial population-level embedding...")
 
@@ -65,6 +70,7 @@ fit_adni_additive_model <- function(
     scans,
     lambda,
     gamma,
+    template,
     param_grid = param_grid,
     verbose = TRUE
   )
@@ -105,6 +111,7 @@ fit_adni_additive_model <- function(
         group_scans,
         lambda,
         gamma,
+        template,
         param_grid = param_grid,
         verbose = TRUE
       )
@@ -160,6 +167,7 @@ fit_adni_additive_model <- function(
           id_scans,
           lambda,
           gamma,
+          template,
           param_grid = param_grid
         )
       }
@@ -184,6 +192,17 @@ fit_adni_additive_model <- function(
   full_preds <- cbind(
     centers[, 1],
     population_preds[, -1] + group_preds[, -1] + id_preds[, -1]
+  )
+
+  plot_ly(
+    x = full_preds[, 2],
+    y = full_preds[, 3],
+    z = full_preds[, 4],
+    frame = full_preds[, 1],
+    color = groups,
+    type = "scatter3d",
+    mode = "markers",
+    marker = list(size = 3)
   )
 
   mse <- map(
@@ -214,9 +233,16 @@ fit_adni_additive_model <- function(
       scans,
       lambda,
       gamma,
+      template,
       param_grid = param_grid,
       verbose = TRUE
     )
+
+    population_preds <- map(
+      seq_len(nrow(params)),
+      ~ population_embedding$embedding_map(params[.x, ])
+    ) %>%
+      reduce(rbind)
 
     print("Estimating group-level embeddings...")
 
@@ -247,6 +273,7 @@ fit_adni_additive_model <- function(
           group_scans,
           lambda,
           gamma,
+          template,
           param_grid = param_grid,
           verbose = TRUE
         )
@@ -302,6 +329,7 @@ fit_adni_additive_model <- function(
             id_scans,
             lambda,
             gamma,
+            template,
             param_grid = param_grid
           )
         }
@@ -323,6 +351,17 @@ fit_adni_additive_model <- function(
     full_preds <- cbind(
       centers[, 1],
       population_preds[, -1] + group_preds[, -1] + id_preds[, -1]
+    )
+
+    plot_ly(
+      x = full_preds[, 2],
+      y = full_preds[, 3],
+      z = full_preds[, 4],
+      frame = full_preds[, 1],
+      color = groups,
+      type = "scatter3d",
+      mode = "markers",
+      marker = list(size = 3)
     )
 
     mse <- map(

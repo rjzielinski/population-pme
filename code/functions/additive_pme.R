@@ -8,6 +8,7 @@ additive_pme <- function(
   scans,
   times,
   partitions,
+  template,
   lambda = exp(-20:5),
   gamma = exp(-20:5),
   epsilon = 0.01,
@@ -19,7 +20,9 @@ additive_pme <- function(
 ) {
   require(here, quietly = TRUE)
   require(pme, quietly = TRUE)
+  require(pracma, quietly = TRUE)
 
+  source(here("code/functions/scale_spherical.R"))
   source(here("code/functions/fit_adni_additive_model.R"))
   source(here("code/functions/plot_additive_model.R"))
   source(here("code/functions/print_SSD.R"))
@@ -36,6 +39,17 @@ additive_pme <- function(
   # Fit initial additive model estimate
   additive_model <- list()
   for (partition_idx in seq_along(partition_values)) {
+    if (template == "sphere") {
+      params_rescaled <- init_params[[partition_idx]][,
+        -1
+      ] |>
+        cbind(1) |>
+        sph2cart() |>
+        cart2sph()
+
+      init_params[[partition_idx]][, -1] <- params_rescaled[, -3]
+    }
+
     partition_groups <- groups[partitions == partition_values[partition_idx]]
     partition_ids <- ids[partitions == partition_values[partition_idx]]
     partition_scans <- scans[partitions == partition_values[partition_idx]]
@@ -51,6 +65,7 @@ additive_pme <- function(
       ids = partition_ids,
       scans = partition_scans,
       times = partition_times,
+      template = template,
       epsilon = epsilon,
       max_iter = max_iter,
       cores = cores
@@ -75,11 +90,23 @@ additive_pme <- function(
     centers,
     partition_values,
     group_values,
-    id_values
+    id_values,
+    template
   )
 
   params <- param_list$params
   center_projections <- param_list$center_projections
+
+  if (template == "sphere") {
+    for (partition_idx in seq_along(partition_values)) {
+      params_rescaled <- params[[partition_idx]][, -1] |>
+        cbind(1) |>
+        sph2cart() |>
+        cart2sph()
+
+      params[[partition_idx]][, -1] <- params_rescaled[, -3]
+    }
+  }
 
   ssd <- calc_ssd(centers, center_projections, partition_values)
   ssd_ratio <- 10 * epsilon
@@ -116,6 +143,7 @@ additive_pme <- function(
         ids = partition_ids,
         scans = partition_scans,
         times = partition_times,
+        template = template,
         epsilon = epsilon,
         max_iter = max_iter,
         cores = cores
@@ -141,11 +169,23 @@ additive_pme <- function(
       centers,
       partition_values,
       group_values,
-      id_values
+      id_values,
+      template
     )
 
     params <- param_list$params
     center_projections <- param_list$center_projections
+
+    if (template == "sphere") {
+      for (partition_idx in seq_along(partition_values)) {
+        params_rescaled <- params[[partition_idx]][, -1] |>
+          cbind(1) |>
+          sph2cart() |>
+          cart2sph()
+
+        params[[partition_idx]][, -1] <- params_rescaled[, -3]
+      }
+    }
 
     ssd <- calc_ssd(centers, center_projections, partition_values)
     ssd_ratio <- abs(ssd - ssd_prev) / ssd_prev
