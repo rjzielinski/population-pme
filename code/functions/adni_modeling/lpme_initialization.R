@@ -1,4 +1,4 @@
-lpme_initialization <- function(data, ids, ...) {
+lpme_initialization <- function(data, ids, n_init, ...) {
   # fit LPME model to first individual's data
   # assuming that data data.frame object has columns:
   # time_from_bl, x, y, z, subid, partition
@@ -21,7 +21,7 @@ lpme_initialization <- function(data, ids, ...) {
 
       init_data <- data |>
         filter(
-          subid == ids[1],
+          subid %in% ids[1:n_init],
           partition == partition_value
         ) |>
         select(time_from_bl, x, y, z) |>
