@@ -50,7 +50,7 @@ read_data <- function(
   # should I be centering/scaling by scan? or should this be applied by ID?
   # scaling by scan could potentially mask differences in scale over time
   lhipp_surface_centers <- lhipp_surface |>
-    group_by(subid, date) |>
+    group_by(subid) |>
     summarize(
       mean_x = mean(x),
       mean_y = mean(y),
@@ -70,7 +70,7 @@ read_data <- function(
     mutate(duration = max_date - date_bl)
 
   lhipp_surface <- lhipp_surface |>
-    full_join(lhipp_surface_centers, by = c("subid", "date")) |>
+    full_join(lhipp_surface_centers, by = c("subid")) |>
     full_join(lhipp_bl, by = "subid") |>
     mutate(
       x = (x - mean_x) / max_x,
