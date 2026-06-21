@@ -8,9 +8,18 @@ gen_full_embedding <- function(
   require(foreach, quietly = TRUE)
 
   embedding_map <- function(parameters) {
-    population_embedding$embedding_map(parameters) +
-      group_embeddings[[group_idx]]$embedding_map(parameters) +
-      id_embeddings[[id_idx]]$embedding_map(parameters)
+    population_embedding_out <- population_embedding$embedding_map(parameters)
+    group_embedding_out <- group_embeddings[[group_idx]]$embedding_map(
+      parameters
+    )
+    id_embedding_out <- id_embeddings[[id_idx]]$embedding_map(parameters)
+
+    c(
+      population_embedding_out[1],
+      population_embedding_out[-1] +
+        group_embedding_out[-1] +
+        id_embedding_out[-1]
+    )
   }
 
   spline_coef_map <- function(timeval) {
