@@ -52,6 +52,9 @@ plot_additive_model <- function(
   group_plots <- list()
   layout_args <- list()
 
+  d <- ncol(params[[1]]) - 1
+  D <- ncol(population_embeddings) - 1
+
   for (group_idx in seq_len(n_groups)) {
     group_val <- group_vals[group_idx]
 
@@ -63,26 +66,48 @@ plot_additive_model <- function(
       domain = list(x = c(scene_start, scene_end))
     )
 
-    group_plots[[group_idx]] <- plot_ly(
-      x = group_embeddings[[group_idx]][, 2],
-      y = group_embeddings[[group_idx]][, 3],
-      z = group_embeddings[[group_idx]][, 4],
-      frame = group_embeddings[[group_idx]][, 1],
-      type = "scatter3d",
-      mode = "markers",
-      marker = list(size = 3, color = "black"),
-      name = group_val,
-      scene = paste0("scene", group_idx)
-    ) |>
-      add_annotations(
-        x = (scene_start + scene_end) / 2,
-        y = 1,
-        text = group_val,
-        xanchor = "center",
-        yanchor = "top",
-        showarrow = FALSE,
-        font = list(size = 15)
-      )
+    if (D == 3) {
+      group_plots[[group_idx]] <- plot_ly(
+        x = group_embeddings[[group_idx]][, 2],
+        y = group_embeddings[[group_idx]][, 3],
+        z = group_embeddings[[group_idx]][, 4],
+        frame = group_embeddings[[group_idx]][, 1],
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3, color = "black"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+    } else if (D == 2) {
+      group_plots[[group_idx]] <- plot_ly(
+        x = group_embeddings[[group_idx]][, 2],
+        y = group_embeddings[[group_idx]][, 1],
+        z = group_embeddings[[group_idx]][, 3],
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3, color = "black"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+    }
   }
 
   fig <- subplot(group_plots, nrows = 1, margin = margin, shareX = TRUE)
