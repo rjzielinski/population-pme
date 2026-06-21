@@ -11,7 +11,7 @@ additive_pme <- function(
   template,
   lambda = exp(-20:5),
   gamma = exp(-20:5),
-  epsilon = 0.01,
+  epsilon = 0.025,
   max_iter = 250,
   ssd_ratio_threshold = 5,
   cores = 1,
@@ -68,20 +68,25 @@ additive_pme <- function(
       template = template,
       epsilon = epsilon,
       max_iter = max_iter,
-      cores = cores
+      cores = cores,
+      verbose = verbose,
+      plot_progress = plot_progress
     )
   }
 
   if (plot_progress == TRUE) {
-    plot_additive_model(
+    fig <- plot_additive_model(
       additive_model,
       init_params,
       group_values,
       margin = 0.02
     )
+    print(fig)
   }
 
-  print("Updating parameters")
+  if (verbose == TRUE) {
+    print("Updating parameters")
+  }
 
   param_list <- update_params(
     additive_model,
@@ -91,11 +96,22 @@ additive_pme <- function(
     partition_values,
     group_values,
     id_values,
-    template
+    template,
+    verbose = verbose
   )
 
   params <- param_list$params
   center_projections <- param_list$center_projections
+
+  if (plot_progress == TRUE) {
+    fig <- plot_additive_model(
+      additive_model,
+      params,
+      group_values,
+      margin = 0.02
+    )
+    print(fig)
+  }
 
   if (template == "sphere") {
     for (partition_idx in seq_along(partition_values)) {
@@ -111,6 +127,10 @@ additive_pme <- function(
   ssd <- calc_ssd(centers, center_projections, partition_values)
   ssd_ratio <- 10 * epsilon
 
+  if (verbose == TRUE) {
+    print_ssd(ssd, NA, 0)
+  }
+
   n <- 1
 
   ssd_vec <- vector()
@@ -125,7 +145,9 @@ additive_pme <- function(
     additive_model_old <- additive_model
     params_prev <- params
 
-    print("Fitting additive models")
+    if (verbose == TRUE) {
+      print("Fitting additive models")
+    }
 
     for (partition_idx in seq_along(partition_values)) {
       partition_groups <- groups[partitions == partition_values[partition_idx]]
@@ -146,21 +168,15 @@ additive_pme <- function(
         template = template,
         epsilon = epsilon,
         max_iter = max_iter,
-        cores = cores
+        cores = cores,
+        verbose = verbose,
+        plot_progress = plot_progress
       )
     }
 
-    if (plot_progress == TRUE) {
-      fig <- plot_additive_model(
-        additive_model,
-        params,
-        group_values,
-        margin = 0.02
-      )
-      print(fig)
+    if (verbose == TRUE) {
+      print("Updating parameters")
     }
-
-    print("Updating parameters")
 
     param_list <- update_params(
       additive_model,
@@ -170,7 +186,8 @@ additive_pme <- function(
       partition_values,
       group_values,
       id_values,
-      template
+      template,
+      verbose = verbose
     )
 
     params <- param_list$params
@@ -185,6 +202,16 @@ additive_pme <- function(
 
         params[[partition_idx]][, -1] <- params_rescaled[, -3]
       }
+    }
+
+    if (plot_progress == TRUE) {
+      fig <- plot_additive_model(
+        additive_model,
+        params,
+        group_values,
+        margin = 0.02
+      )
+      print(fig)
     }
 
     ssd <- calc_ssd(centers, center_projections, partition_values)
