@@ -11,7 +11,9 @@ fit_adni_additive_model <- function(
   template,
   epsilon = 0.05,
   max_iter = 100,
-  cores = 1
+  cores = 1,
+  verbose = TRUE,
+  plot_progress = TRUE
 ) {
   require(doFuture, quietly = TRUE)
   require(foreach, quietly = TRUE)
@@ -35,7 +37,9 @@ fit_adni_additive_model <- function(
   id_vals <- sort(unique(ids))
   scan_vals <- sort(unique(scans))
 
-  print("Initializing...")
+  if (verbose == TRUE) {
+    print("Initializing...")
+  }
 
   # create new grid of parameter values, with number of points equal to maximum
   # of clusters across all scans
@@ -59,7 +63,9 @@ fit_adni_additive_model <- function(
     param_grid <- fibonacci_sphere(N_prime)
   }
 
-  print("Estimating initial population-level embedding...")
+  if (verbose == TRUE) {
+    print("Estimating initial population-level embedding...")
+  }
 
   population_embedding <- varying_coef_spline(
     centers,
@@ -72,7 +78,7 @@ fit_adni_additive_model <- function(
     gamma,
     template,
     param_grid = param_grid,
-    verbose = TRUE
+    verbose = verbose
   )
 
   population_preds <- map(
@@ -84,7 +90,9 @@ fit_adni_additive_model <- function(
   group_preds <- matrix(0, nrow = nrow(centers), ncol = ncol(centers))
   id_preds <- matrix(0, nrow = nrow(centers), ncol = ncol(centers))
 
-  print("Estimating initial group-level embeddings...")
+  if (verbose == TRUE) {
+    print("Estimating initial group-level embeddings...")
+  }
 
   group_embeddings <- foreach(group_idx = seq_along(group_vals)) %do%
     {
@@ -113,7 +121,7 @@ fit_adni_additive_model <- function(
         gamma,
         template,
         param_grid = param_grid,
-        verbose = TRUE
+        verbose = verbose
       )
     }
   names(group_embeddings) <- group_vals
@@ -130,10 +138,14 @@ fit_adni_additive_model <- function(
       t()
   }
 
-  print("Estimating initial individual-level embeddings...")
+  if (verbose == TRUE) {
+    print("Estimating initial individual-level embeddings...")
+  }
 
   with_progress({
-    p <- progressor(along = unique(ids))
+    if (verbose == TRUE) {
+      p <- progressor(along = unique(ids))
+    }
     id_embeddings <- foreach(
       id_idx = seq_along(id_vals),
       .options.future = list(seed = TRUE)
@@ -156,7 +168,9 @@ fit_adni_additive_model <- function(
             (population_preds[id_set, -1] + group_preds[id_set, -1])
         )
 
-        p(message = sprintf("ID: %s", id_vals[id_idx]))
+        if (verbose == TRUE) {
+          p(message = sprintf("ID: %s", id_vals[id_idx]))
+        }
 
         varying_coef_spline(
           adjusted_centers,
@@ -194,16 +208,32 @@ fit_adni_additive_model <- function(
     population_preds[, -1] + group_preds[, -1] + id_preds[, -1]
   )
 
-  plot_ly(
-    x = full_preds[, 2],
-    y = full_preds[, 3],
-    z = full_preds[, 4],
-    frame = full_preds[, 1],
-    color = groups,
-    type = "scatter3d",
-    mode = "markers",
-    marker = list(size = 3)
-  )
+  if (plot_progress == TRUE) {
+    if (D == 3) {
+      fig <- plot_ly(
+        x = full_preds[, 2],
+        y = full_preds[, 3],
+        z = full_preds[, 4],
+        frame = full_preds[, 1],
+        color = groups,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3)
+      )
+      print(fig)
+    } else if (D == 2) {
+      fig <- plot_ly(
+        x = full_preds[, 2],
+        y = full_preds[, 1],
+        z = full_preds[, 3],
+        color = groups,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3)
+      )
+      print(fig)
+    }
+  }
 
   mse <- map(
     seq_len(nrow(centers)),
@@ -212,7 +242,23 @@ fit_adni_additive_model <- function(
     reduce(c) %>%
     mean()
 
-  print("Initialization Complete, beginning iterations")
+  if (verbose == TRUE) {
+    print(
+      paste0(
+        "Backfitting Iteration ",
+        as.character(0),
+        ": ",
+        "Estimated mean squared error - ",
+        as.character(round(mse, 10)),
+        "; Relative change in mean squared error - ",
+        as.character(NA)
+      )
+    )
+  }
+
+  if (verbose == TRUE) {
+    print("Initialization Complete, beginning iterations")
+  }
 
   while ((epsilon_hat > epsilon) & (n <= max_iter)) {
     mse_old <- mse
@@ -222,7 +268,9 @@ fit_adni_additive_model <- function(
       centers[, -1] - (group_preds[, -1] + id_preds[, -1])
     )
 
-    print("Estimating population-level embedding...")
+    if (verbose == TRUE) {
+      print("Estimating population-level embedding...")
+    }
 
     population_embedding <- varying_coef_spline(
       adjusted_centers,
@@ -235,7 +283,7 @@ fit_adni_additive_model <- function(
       gamma,
       template,
       param_grid = param_grid,
-      verbose = TRUE
+      verbose = verbose
     )
 
     population_preds <- map(
@@ -244,7 +292,9 @@ fit_adni_additive_model <- function(
     ) %>%
       reduce(rbind)
 
-    print("Estimating group-level embeddings...")
+    if (verbose == TRUE) {
+      print("Estimating group-level embeddings...")
+    }
 
     group_embeddings <- foreach(group_idx = seq_along(group_vals)) %do%
       {
@@ -275,7 +325,7 @@ fit_adni_additive_model <- function(
           gamma,
           template,
           param_grid = param_grid,
-          verbose = TRUE
+          verbose = verbose
         )
       }
     names(group_embeddings) <- group_vals
@@ -292,10 +342,14 @@ fit_adni_additive_model <- function(
         t()
     }
 
-    print("Estimating individual-level embeddings...")
+    if (verbose == TRUE) {
+      print("Estimating individual-level embeddings...")
+    }
 
     with_progress({
-      p <- progressor(along = unique(ids))
+      if (verbose == TRUE) {
+        p <- progressor(along = unique(ids))
+      }
       id_embeddings <- foreach(
         id_idx = seq_along(id_vals),
         .options.future = list(seed = TRUE)
@@ -318,7 +372,9 @@ fit_adni_additive_model <- function(
               (population_preds[id_set, -1] + group_preds[id_set, -1])
           )
 
-          p(message = sprintf("ID: %s", id_vals[id_idx]))
+          if (verbose == TRUE) {
+            p(message = sprintf("ID: %s", id_vals[id_idx]))
+          }
 
           varying_coef_spline(
             adjusted_centers,
@@ -353,16 +409,32 @@ fit_adni_additive_model <- function(
       population_preds[, -1] + group_preds[, -1] + id_preds[, -1]
     )
 
-    plot_ly(
-      x = full_preds[, 2],
-      y = full_preds[, 3],
-      z = full_preds[, 4],
-      frame = full_preds[, 1],
-      color = groups,
-      type = "scatter3d",
-      mode = "markers",
-      marker = list(size = 3)
-    )
+    if (plot_progress == TRUE) {
+      if (D == 3) {
+        fig <- plot_ly(
+          x = full_preds[, 2],
+          y = full_preds[, 3],
+          z = full_preds[, 4],
+          frame = full_preds[, 1],
+          color = groups,
+          type = "scatter3d",
+          mode = "markers",
+          marker = list(size = 3)
+        )
+        print(fig)
+      } else if (D == 2) {
+        fig <- plot_ly(
+          x = full_preds[, 2],
+          y = full_preds[, 1],
+          z = full_preds[, 3],
+          color = groups,
+          type = "scatter3d",
+          mode = "markers",
+          marker = list(size = 3)
+        )
+        print(fig)
+      }
+    }
 
     mse <- map(
       seq_len(nrow(centers)),
@@ -375,17 +447,19 @@ fit_adni_additive_model <- function(
     epsilon_hat <- mse_ratio
     n <- n + 1
 
-    print(
-      paste0(
-        "Backfitting Iteration ",
-        as.character(n),
-        ": ",
-        "Estimated mean squared error - ",
-        as.character(round(mse, 10)),
-        "; Relative change in mean squared error - ",
-        as.character(round(mse_ratio, 5))
+    if (verbose == TRUE) {
+      print(
+        paste0(
+          "Backfitting Iteration ",
+          as.character(n),
+          ": ",
+          "Estimated mean squared error - ",
+          as.character(round(mse, 10)),
+          "; Relative change in mean squared error - ",
+          as.character(round(mse_ratio, 5))
+        )
       )
-    )
+    }
   }
 
   full_embeddings <- foreach(id_idx = seq_along(id_vals)) %do%
