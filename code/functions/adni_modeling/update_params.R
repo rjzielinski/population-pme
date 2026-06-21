@@ -6,7 +6,8 @@ update_params <- function(
   partition_values,
   group_values,
   id_values,
-  template
+  template,
+  verbose = FALSE
 ) {
   require(doFuture, quietly = TRUE)
   require(foreach, quietly = TRUE)
@@ -51,7 +52,9 @@ update_params <- function(
 
     partition_embeddings <- additive_model[[partition_idx]]$embeddings
 
-    p <- progressor(nrow(centers[[partition_idx]]))
+    if (verbose == TRUE) {
+      p <- progressor(nrow(centers[[partition_idx]]))
+    }
     for (row_idx in seq_len(n_rows)) {
       center_val <- centers[[partition_idx]][row_idx, ]
       time_val <- center_val[1]
@@ -71,7 +74,9 @@ update_params <- function(
 
       param_mat[row_idx, ] <- param_est
       center_pred_mat[row_idx, ] <- embedding_map(param_mat[row_idx, ])
-      p()
+      if (verbose == TRUE) {
+        p()
+      }
     }
 
     params[[partition_idx]] <- param_mat
