@@ -58,10 +58,11 @@ varying_coef_spline <- function(
   n_knots <- nrow(param_grid)
   time_points <- sort(unique(times))
 
-  n_scans <- vector()
+  n_centers <- vector()
   init_spline_est <- list()
   spline_est <- list()
   spline_coefs <- list()
+  time_error <- vector()
 
   if (verbose == TRUE) {
     p <- progressor(along = time_points)
@@ -70,13 +71,29 @@ varying_coef_spline <- function(
   for (time_idx in seq_along(time_points)) {
     time_val <- time_points[time_idx]
 
+    time_centers <- as.matrix(centers[times == time_val, -1], ncol = D)
+    time_params <- as.matrix(params[times == time_val, -1], ncol = d)
+
+    n_centers[time_idx] <- nrow(time_centers)
+
     init_spline <- fit_weighted_spline(
-      as.matrix(centers[times == time_val, -1], ncol = D),
-      as.matrix(params[times == time_val, -1], ncol = d),
+      time_centers,
+      time_params,
       weights[times == time_val],
       lambda,
       template
     )
+
+    centers_pred <- map(
+      seq_len(nrow(time_params)),
+      ~ init_spline$embedding_map(unlist(time_params[.x, ]))
+    ) |>
+      reduce(rbind)
+
+    time_error[time_idx] <- (centers_pred - time_centers)^2 |>
+      rowSums() |>
+      sqrt() |>
+      mean()
 
     centers_grid <- map(
       seq_len(nrow(param_grid)),
@@ -103,17 +120,30 @@ varying_coef_spline <- function(
   spline_coefs <- reduce(spline_coefs, rbind)
   D_coef <- dim(spline_coefs)[2]
 
+  inv_errors <- n_centers / time_error
+  scaled_errors <- inv_errors / sum(inv_errors)
+
   time_mat <- cbind(rep(1, length(time_points)), time_points)
   time_E <- calcE(matrix(time_points, ncol = 1), 4 - 1)
   coef_gcv <- vector(mode = "numeric", length = length(gamma))
 
   best_time_spline <- NULL
   best_error <- 1e10
-  opt_gamma <- 1
+  opt_run <- 1
 
   for (smoothing_idx in seq_along(gamma)) {
-    time_spline <- solve_spline_hat(
+    # time_spline <- solve_spline_hat(
+    #   time_E,
+    #   time_mat,
+    #   spline_coefs,
+    #   gamma[smoothing_idx],
+    #   1,
+    #   D_coef
+    # )
+
+    time_spline <- solve_weighted_spline_hat(
       time_E,
+      scaled_errors,
       time_mat,
       spline_coefs,
       gamma[smoothing_idx],
@@ -138,8 +168,9 @@ varying_coef_spline <- function(
     }
 
     # if errors have been increasing for past 4 smoothing values, stop early
-    if (smoothing_idx >= 4) {
-      recent_errors <- coef_gcv[(smoothing_idx - 3):smoothing_idx]
+    # require at least 8 temporal smoothing values to be tested before stopping
+    if (smoothing_idx >= 8) {
+      recent_errors <- coef_gcv[(smoothing_idx - 4):smoothing_idx]
       if (all(recent_errors == cummax(recent_errors))) {
         break
       }
@@ -193,6 +224,6 @@ varying_coef_spline <- function(
     temporal_spline = best_time_spline,
     params = param_grid,
     time_points = time_points,
-    gamma = gamma[opt_gamma]
+    gamma = gamma[opt_run]
   )
 }
