@@ -13,6 +13,7 @@ functional_permutation_test <- function(
   template,
   alpha = 0.05,
   n_permutations = 1000,
+  threads = 4,
   verbose = TRUE
 ) {
   require(doFuture, quietly = TRUE)
@@ -23,6 +24,13 @@ functional_permutation_test <- function(
   require(pme, quietly = TRUE)
   require(progressr, quietly = TRUE)
   require(purrr, quietly = TRUE)
+  require(RhpcBLASctl, quietly = TRUE)
+
+  total_cores <- availableCores()
+  workers <- floor(total_cores / threads)
+
+  old_plan <- plan(multicore, workers = workers)
+  on.exit(plan(old_plan), add = TRUE)
 
   n_partitions <- length(additive_model)
   n_groups <- length(additive_model[[1]]$group_embeddings)
@@ -135,6 +143,9 @@ functional_permutation_test <- function(
       .options.future = list(seed = TRUE)
     ) %dofuture%
       {
+        blas_set_num_threads(threads)
+        omp_set_num_threads(threads)
+
         permute_id_groups <- id_groups |>
           sample(size = n_individuals)
 
@@ -498,7 +509,7 @@ calc_embeddings <- function(
     part_group_embeddings <- foreach(
       group_idx = seq_len(n_groups),
       .options.future = list(seed = TRUE)
-    ) %dofuture%
+    ) %do%
       {
         group_embedding_map <- group_embedding_maps[[group_idx]]
         group_embedding_list <- map(
@@ -513,7 +524,7 @@ calc_embeddings <- function(
     part_id_embeddings <- foreach(
       id_idx = seq_len(n_individuals),
       .options.future = list(seed = TRUE)
-    ) %dofuture%
+    ) %do%
       {
         id_embedding_map <- id_embedding_maps[[id_idx]]
         id_embedding_list <- map(
@@ -818,7 +829,7 @@ fit_permutation_models <- function(
   id_embeddings <- foreach(
     id_idx = seq_along(id_vals),
     .options.future = list(seed = TRUE)
-  ) %dofuture%
+  ) %do%
     {
       id_set <- ids == id_vals[id_idx]
 
@@ -975,7 +986,7 @@ fit_permutation_models <- function(
     id_embeddings <- foreach(
       id_idx = seq_along(id_vals),
       .options.future = list(seed = TRUE)
-    ) %dofuture%
+    ) %do%
       {
         id_set <- ids == id_vals[id_idx]
 

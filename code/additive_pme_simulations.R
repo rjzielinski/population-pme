@@ -8,6 +8,7 @@ library(plotly)
 library(pme)
 library(progressr)
 library(Rfast)
+library(RhpcBLASctl)
 library(tidyverse)
 
 handlers(global = TRUE)
@@ -16,7 +17,10 @@ handlers("progress")
 options(future.globals.maxSize = 32 * 1024^3)
 options(renv.config.sandbox.enabled = FALSE)
 options(renv.config.auto.snapshot = FALSE)
-cores <- detectCores() - 4
+cores <- availableCores()
+
+blas_set_num_threads(1)
+omp_set_num_threads(1)
 
 plot_progress <- TRUE
 
@@ -70,8 +74,6 @@ sim_param_grid <- expand_grid(
 
 set.seed(100)
 
-# plan(sequential)
-# plan(list(sequential, multicore))
 plan(multicore, workers = cores)
 
 sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
@@ -181,6 +183,8 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       )
     }
 
+    blas_set_num_threads(cores)
+
     additive_model_list <- additive_pme(
       reduced_data = sim_reduced,
       centers = list(sim_centers),
@@ -199,6 +203,8 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       verbose = FALSE,
       plot_progress = FALSE
     )
+
+    blas_set_num_threads(1)
 
     additive_model <- additive_model_list$additive_model
     params <- additive_model_list$params
