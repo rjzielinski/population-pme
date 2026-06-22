@@ -149,7 +149,7 @@ fit_adni_additive_model <- function(
     id_embeddings <- foreach(
       id_idx = seq_along(id_vals),
       .options.future = list(seed = TRUE)
-    ) %dofuture%
+    ) %do%
       {
         id_set <- ids == id_vals[id_idx]
 
@@ -353,7 +353,7 @@ fit_adni_additive_model <- function(
       id_embeddings <- foreach(
         id_idx = seq_along(id_vals),
         .options.future = list(seed = TRUE)
-      ) %dofuture%
+      ) %do%
         {
           id_set <- ids == id_vals[id_idx]
 
