@@ -9,6 +9,7 @@ library(pme)
 library(progressr)
 library(Rfast)
 library(RhpcBLASctl)
+library(tictoc)
 library(tidyverse)
 
 handlers(global = TRUE)
@@ -104,8 +105,12 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       N = N
     )
 
+    print("Data Generation Complete")
+
     sim_preprocessed <- preprocess_data(test_sim, case = 1, d = d, D = D)
 
+    tic("full")
+    tic("init")
     # LPME Initialization
     init_data <- sim_preprocessed$data |>
       filter(id == "1") |>
@@ -121,9 +126,11 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       print_plots = FALSE,
       verbose = FALSE
     )
+    init_time <- toc()
 
     # Data Reduction
 
+    tic("data_reduction")
     reduced_data <- sim_reduction(
       sim_preprocessed,
       case,
@@ -133,9 +140,13 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
     sim_reduced <- reduced_data$sim_reduced
     population_reduced <- reduced_data$population_reduced
     groups_reduced <- reduced_data$groups_reduced
+    reduction_time <- toc()
+
+    print("Data Reduction Complete")
 
     # Parameterization
 
+    tic("parameterization")
     sim_x <- sim_preprocessed$data |>
       select(time, contains("X"), -contains("true")) |>
       as.matrix()
@@ -169,6 +180,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
           ))
         )$projections
       }
+    parameterization_time <- toc()
 
     # Fitting
 
@@ -183,6 +195,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       )
     }
 
+    tic("fitting")
     blas_set_num_threads(cores)
 
     additive_model_list <- additive_pme(
@@ -209,10 +222,14 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
     additive_model <- additive_model_list$additive_model
     params <- additive_model_list$params
     center_projections <- additive_model_list$center_projections
+    fitting_time <- toc()
+
+    print("Fitting Complete")
 
     # Projections
     print("Computing full projections")
 
+    tic("projection")
     projection_list <- sim_projections(
       additive_model,
       sim_preprocessed$data,
@@ -225,6 +242,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       template = template,
       cores = cores
     )
+    projection_time <- toc()
 
     source(here("code/functions/simulations/calc_msd.R"))
 
@@ -236,6 +254,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
     population_data <- sim_preprocessed$data_full |>
       filter(id == "Population")
 
+    tic("pop_projections")
     population_projections <- sim_population_projections(
       additive_model,
       population_data,
@@ -248,12 +267,14 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       template = template,
       cores = cores
     )
+    pop_projection_time <- toc()
 
     population_msd <- calc_msd(
       population_data,
       projections = population_projections$projections
     )
 
+    tic("group_projections")
     group_projections <- foreach(
       group_idx = seq_along(sim_preprocessed$groups)
     ) %do%
@@ -274,6 +295,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
           cores = cores
         )
       }
+    group_projection_times <- toc()
 
     group_msd <- foreach(group_idx = seq_along(sim_preprocessed$groups)) %do%
       {
@@ -285,6 +307,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
           projections = group_projections[[group_idx]]$projections
         )
       }
+    full_time <- toc()
 
     # as expected, we encounter issues in the convergence of the HDMDE algorithm when
     # applied to the full dataset
@@ -346,6 +369,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
     source(here("code/functions/simulations/display_test_results.R"))
     source(here("code/functions/simulations/functional_permutation_test.R"))
 
+    tic()
     permutation_test_results <- functional_permutation_test(
       additive_model,
       list(sim_centers),
@@ -361,8 +385,11 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       template = template,
       alpha = 0.05,
       n_permutations = 1000,
-      verbose = TRUE
+      threads = 1,
+      verbose = FALSE,
+      progress = TRUE
     )
+    permutation_test_time <- toc()
 
     f_test_any_rejected <- (rowSums(permutation_test_results$f_test$rejected[[
       1
@@ -397,6 +424,18 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       sim_preprocessed$groups
     )
 
+    times <- list(
+      init = init_time,
+      reduction = reduction_time,
+      parameterization = parameterization_time,
+      fitting = fitting_time,
+      projection = projection_time,
+      population_projection = pop_projection_time,
+      group_projection = group_projection_times,
+      full = full_time,
+      permutation_test = permutation_test_time
+    )
+
     sim_result_out <- list(
       additive_model = additive_model,
       data = test_sim,
@@ -420,6 +459,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
         rejected_pct = chisq_test_rejected_pct
       ),
       l2_norm_test_rejected = l2_norm_test_rejected,
+      times = times,
       group_time_change_diff = sim_param_grid$group2_time_change[sim_idx],
       group_time_change_noise = sim_param_grid$group_time_change_noise[sim_idx],
       id_time_change_noise = sim_param_grid$id_time_change_noise[sim_idx],
