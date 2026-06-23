@@ -14,6 +14,7 @@ functional_permutation_test <- function(
   alpha = 0.05,
   n_permutations = 1000,
   threads = 4,
+  progress = TRUE,
   verbose = TRUE
 ) {
   require(doFuture, quietly = TRUE)
@@ -134,7 +135,7 @@ functional_permutation_test <- function(
   }
 
   with_progress({
-    if (verbose == TRUE) {
+    if (progress == TRUE) {
       p <- progressor(n_permutations)
     }
 
@@ -227,7 +228,7 @@ functional_permutation_test <- function(
           )
         }
 
-        if (verbose == TRUE) {
+        if (progress == TRUE) {
           p(message = sprintf("Permutation sample: %g", permute_idx))
         }
         gc()
