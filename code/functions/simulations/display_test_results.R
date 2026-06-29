@@ -56,6 +56,10 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
   group_plots <- list()
   layout_args <- list()
 
+  group_plots_dim1 <- list()
+  group_plots_dim2 <- list()
+  group_plots_dim3 <- list()
+
   for (group_idx in seq_len(n_groups)) {
     group_val <- groups[group_idx]
 
@@ -74,6 +78,52 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
         y = ~x,
         z = ~y,
         color = ~ (Rejected_x & Rejected_y),
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
+      group_plots_dim1[[group_idx]] <- plot_ly(
+        filter(embeddings_full, Group == group_val),
+        x = ~Time,
+        y = ~x,
+        z = ~y,
+        color = ~Rejected_x,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
+      group_plots_dim2[[group_idx]] <- plot_ly(
+        filter(embeddings_full, Group == group_val),
+        x = ~Time,
+        y = ~x,
+        z = ~y,
+        color = ~Rejected_y,
         type = "scatter3d",
         mode = "markers",
         marker = list(size = 3),
@@ -126,6 +176,78 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
           font = list(size = 15)
         )
 
+      group_plots_dim1[[group_idx]] <- plot_ly(
+        embeddings_full,
+        x = ~x,
+        y = ~y,
+        z = ~z,
+        color = ~Rejected_x,
+        frame = ~Time,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
+      group_plots_dim2[[group_idx]] <- plot_ly(
+        embeddings_full,
+        x = ~x,
+        y = ~y,
+        z = ~z,
+        color = ~Rejected_y,
+        frame = ~Time,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
+      group_plots_dim3[[group_idx]] <- plot_ly(
+        embeddings_full,
+        x = ~x,
+        y = ~y,
+        z = ~z,
+        color = ~Rejected_z,
+        frame = ~Time,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
       full_fig <- plot_ly(
         embeddings_full,
         x = ~x,
@@ -140,13 +262,54 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
     }
   }
 
-  group_fig <- subplot(group_plots, nrows = 1, margin = margin, shareX = TRUE)
-
-  group_fig <- group_fig |>
+  group_fig <- subplot(
+    group_plots,
+    nrows = 1,
+    margin = margin,
+    shareX = TRUE
+  ) |>
     layout(layout_args)
 
-  plots <- list(
-    group_plot = group_fig,
-    full_plot = full_fig
-  )
+  group_fig_dim1 <- subplot(
+    group_plots_dim1,
+    nrows = 1,
+    margin = margin,
+    shareX = TRUE
+  ) |>
+    layout(layout_args)
+
+  group_fig_dim2 <- subplot(
+    group_plots_dim2,
+    nrows = 1,
+    margin = margin,
+    shareX = TRUE
+  ) |>
+    layout(layout_args)
+
+  if (D == 2) {
+    plots <- list(
+      group_plot = group_fig,
+      full_plot = full_fig,
+      group_plot_dim1 = group_fig_dim1,
+      group_plot_dim2 = group_fig_dim2
+    )
+  } else if (D == 3) {
+    group_fig_dim3 <- subplot(
+      group_plots_dim3,
+      nrows = 1,
+      margin = margin,
+      shareX = TRUE
+    ) |>
+      layout(layout_args)
+
+    plots <- list(
+      group_plot = group_fig,
+      full_plot = full_fig,
+      group_plot_dim1 = group_fig_dim1,
+      group_plot_dim2 = group_fig_dim2,
+      group_plot_dim3 = group_fig_dim3
+    )
+  }
+
+  plots
 }
