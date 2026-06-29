@@ -22,6 +22,7 @@ cores <- availableCores()
 
 blas_set_num_threads(1)
 omp_set_num_threads(1)
+n_nodes <- 2
 
 plot_progress <- TRUE
 
@@ -71,7 +72,11 @@ sim_param_grid <- expand_grid(
   amplitude_noise,
   repetition
 )
+sim_param_grid$batch <- rep(1:n_nodes, times = nrow(sim_param_grid) / n_nodes)
 
+batch_value <- 2
+sim_param_grid <- sim_param_grid |>
+  filter(batch == batch_value)
 
 set.seed(100)
 
@@ -198,6 +203,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
     tic("fitting")
     blas_set_num_threads(cores)
 
+    print("Fitting Additive PME...")
     additive_model_list <- additive_pme(
       reduced_data = sim_reduced,
       centers = list(sim_centers),
@@ -369,6 +375,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
     source(here("code/functions/simulations/display_test_results.R"))
     source(here("code/functions/simulations/functional_permutation_test.R"))
 
+    print("Running Permutation Test...")
     tic()
     permutation_test_results <- functional_permutation_test(
       additive_model,
@@ -390,6 +397,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       progress = TRUE
     )
     permutation_test_time <- toc()
+    print("Permutation Test Complete")
 
     f_test_any_rejected <- (rowSums(permutation_test_results$f_test$rejected[[
       1
