@@ -63,7 +63,8 @@ group2_time_change <- c(0, 0.05, 0.1, 0.25, 0.5)
 group_time_change_noise <- c(0, 0.025, 0.05, 0.1)
 id_time_change_noise <- c(0, 0.025, 0.05, 0.1)
 amplitude_noise <- c(0, 0.025, 0.05, 0.1, 0.25)
-repetition <- 1:5
+# repetition <- 1:5
+repetition <- 1
 
 sim_param_grid <- expand_grid(
   group2_time_change,
@@ -74,7 +75,7 @@ sim_param_grid <- expand_grid(
 )
 sim_param_grid$batch <- rep(1:n_nodes, times = nrow(sim_param_grid) / n_nodes)
 
-batch_value <- 2
+batch_value <- 1
 sim_param_grid <- sim_param_grid |>
   filter(batch == batch_value)
 
@@ -391,7 +392,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       n_params = 250,
       template = template,
       alpha = 0.05,
-      n_permutations = 1000,
+      n_permutations = 500,
       threads = 1,
       verbose = FALSE,
       progress = TRUE
