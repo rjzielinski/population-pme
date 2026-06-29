@@ -12,7 +12,7 @@ fit_adni_additive_model <- function(
   epsilon = 0.05,
   max_iter = 100,
   cores = 1,
-  verbose = TRUE,
+  verbose = FALSE,
   plot_progress = TRUE
 ) {
   require(doFuture, quietly = TRUE)
