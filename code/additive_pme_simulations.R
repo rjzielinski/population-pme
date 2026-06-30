@@ -62,7 +62,7 @@ population_time_change <- 0.25
 group2_time_change <- c(0, 0.05, 0.1, 0.25, 0.5)
 group_time_change_noise <- c(0, 0.025, 0.05, 0.1)
 id_time_change_noise <- c(0, 0.025, 0.05, 0.1)
-amplitude_noise <- c(0, 0.025, 0.05, 0.1, 0.25)
+amplitude_noise <- c(0, 0.025, 0.05, 0.1)
 # repetition <- 1:5
 repetition <- 1
 
@@ -92,7 +92,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       n_groups = 2,
       n_individuals = 100,
       group_probs = c(0.5, 0.5),
-      population_time_change = 0.1,
+      population_time_change = population_time_change,
       group_time_change_diff = c(
         -sim_param_grid$group2_time_change[sim_idx],
         sim_param_grid$group2_time_change[sim_idx]
@@ -457,7 +457,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       anova = permutation_test_results,
       anova_plots = permutation_test_plots,
 
-      f_test_results = list(
+      f_test_rejected = list(
         any_rejected = f_test_any_rejected,
         all_rejected = f_test_all_rejected,
         rejected_pct = f_test_rejected_pct
