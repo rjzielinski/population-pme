@@ -90,7 +90,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
 
     test_sim <- simulate_hierarchical_data(
       n_groups = 2,
-      n_individuals = 100,
+      n_individuals = 80,
       group_probs = c(0.5, 0.5),
       population_time_change = population_time_change,
       group_time_change_diff = c(
