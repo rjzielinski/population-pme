@@ -744,7 +744,9 @@ fit_permutation_models <- function(
   id_vals <- sort(unique(ids))
   scan_vals <- sort(unique(scans))
 
-  print("Initializing...")
+  if (verbose == TRUE) {
+    print("Initializing...")
+  }
 
   # create new grid of parameter values, with number of points equal to maximum
   # of clusters across all scans
@@ -779,7 +781,9 @@ fit_permutation_models <- function(
   group_preds <- matrix(0, nrow = nrow(centers), ncol = ncol(centers))
   id_preds <- matrix(0, nrow = nrow(centers), ncol = ncol(centers))
 
-  print("Estimating initial group-level embeddings...")
+  if (verbose == TRUE) {
+    print("Estimating initial group-level embeddings...")
+  }
 
   group_embeddings <- foreach(group_idx = seq_along(group_vals)) %do%
     {
@@ -825,7 +829,9 @@ fit_permutation_models <- function(
       t()
   }
 
-  print("Estimating initial individual-level embeddings...")
+  if (verbose == TRUE) {
+    print("Estimating initial individual-level embeddings...")
+  }
 
   id_embeddings <- foreach(
     id_idx = seq_along(id_vals),
@@ -918,23 +924,29 @@ fit_permutation_models <- function(
     reduce(c) %>%
     mean()
 
-  print(
-    paste0(
-      "Backfitting Iteration ",
-      as.character(0),
-      ": ",
-      "Estimated mean squared error - ",
-      as.character(round(mse, 10)),
-      "; Relative change in mean squared error - ",
-      as.character(NA)
+  if (verbose == TRUE) {
+    print(
+      paste0(
+        "Backfitting Iteration ",
+        as.character(0),
+        ": ",
+        "Estimated mean squared error - ",
+        as.character(round(mse, 10)),
+        "; Relative change in mean squared error - ",
+        as.character(NA)
+      )
     )
-  )
+  }
 
-  print("Initialization Complete, beginning iterations")
+  if (verbose == TRUE) {
+    print("Initialization Complete, beginning iterations")
+  }
 
   while ((epsilon_hat > epsilon) & (n <= max_iter)) {
     mse_old <- mse
-    print("Estimating group-level embeddings...")
+    if (verbose == TRUE) {
+      print("Estimating group-level embeddings...")
+    }
 
     group_embeddings <- foreach(group_idx = seq_along(group_vals)) %do%
       {
@@ -982,7 +994,9 @@ fit_permutation_models <- function(
         t()
     }
 
-    print("Estimating individual-level embeddings...")
+    if (verbose == TRUE) {
+      print("Estimating individual-level embeddings...")
+    }
 
     id_embeddings <- foreach(
       id_idx = seq_along(id_vals),
@@ -1076,17 +1090,19 @@ fit_permutation_models <- function(
     epsilon_hat <- mse_ratio
     n <- n + 1
 
-    print(
-      paste0(
-        "Backfitting Iteration ",
-        as.character(n),
-        ": ",
-        "Estimated mean squared error - ",
-        as.character(round(mse, 10)),
-        "; Relative change in mean squared error - ",
-        as.character(round(mse_ratio, 5))
+    if (verbose == TRUE) {
+      print(
+        paste0(
+          "Backfitting Iteration ",
+          as.character(n),
+          ": ",
+          "Estimated mean squared error - ",
+          as.character(round(mse, 10)),
+          "; Relative change in mean squared error - ",
+          as.character(round(mse_ratio, 5))
+        )
       )
-    )
+    }
   }
 
   full_embeddings <- foreach(id_idx = seq_along(id_vals)) %do%
