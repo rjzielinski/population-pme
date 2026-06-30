@@ -60,8 +60,8 @@ if (case == 1) {
 
 population_time_change <- 0.25
 group2_time_change <- c(0, 0.05, 0.1, 0.25, 0.5)
-group_time_change_noise <- c(0, 0.025, 0.05, 0.1)
-id_time_change_noise <- c(0, 0.025, 0.05, 0.1)
+group_time_change_noise <- c(0, 0.025, 0.05, 0.1, 0.25)
+id_time_change_noise <- c(0, 0.025, 0.05, 0.1, 0.25)
 amplitude_noise <- c(0, 0.025, 0.05, 0.1)
 # repetition <- 1:5
 repetition <- 1
@@ -101,7 +101,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       id_time_change_noise = sim_param_grid$id_time_change_noise[sim_idx],
       population_time_trend = "linear",
       group_time_trends = c("linear", "linear"),
-      duration = 5,
+      duration = 4,
       interval = 0.5,
       case = case,
       obs_noise = 0.05,
