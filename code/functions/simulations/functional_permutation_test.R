@@ -99,6 +99,14 @@ functional_permutation_test <- function(
   chisq_p_values <- list()
   l2_norm_p_values <- list()
 
+  f_permute_rejected <- list()
+  chisq_permute_rejected <- list()
+  l2_norm_permute_rejected <- list()
+
+  f_permute_p_values <- list()
+  chisq_permute_p_values <- list()
+  l2_norm_permute_p_values <- list()
+
   for (partition_idx in seq_len(n_partitions)) {
     f_test_stat[[partition_idx]] <- (sum_squares$ssh[[partition_idx]] /
       (n_groups - 1)) /
@@ -111,6 +119,98 @@ functional_permutation_test <- function(
     l2_norm_test_stat[[partition_idx]] <- sum(
       sum_squares$ssh[[partition_idx]] * param_interval_vols[partition_idx]
     )
+  }
+
+  f_critical_value <- qf(1 - alpha, n_groups - 1, n_individuals - n_groups)
+  chisq_critical_value <- qchisq(1 - alpha, n_groups - 1) / (n_groups - 1)
+
+  sample_cov <- list()
+  trace_sample_cov <- list()
+  trace_sample_cov2 <- list()
+  C <- list()
+  D <- list()
+
+  l2_norm_critical_value <- list()
+  for (partition_idx in seq_len(n_partitions)) {
+    with_progress({
+      p <- progressor(nrow(param_grids[[partition_idx]]))
+      trace_sample_cov[[partition_idx]] <- future_map(
+        seq_len(nrow(param_grids[[partition_idx]])),
+        ~ {
+          p()
+          calc_sample_cov(
+            embeddings,
+            param_grids,
+            partition_idx,
+            .x,
+            .x
+          ) *
+            param_interval_vols[partition_idx]
+        },
+        .options = furrr_options(seed = TRUE)
+      ) |>
+        reduce(sum)
+    })
+
+    with_progress({
+      p <- progressor(nrow(param_grids[[partition_idx]]))
+      trace_sample_cov2[[partition_idx]] <- future_map(
+        seq_len(nrow(param_grids[[partition_idx]])),
+        ~ {
+          p()
+          calc_sample_cov2(
+            embeddings,
+            param_grids,
+            partition_idx,
+            .x,
+            .x,
+            param_interval_vols
+          ) *
+            param_interval_vols[partition_idx]
+        },
+        .options = furrr_options(seed = TRUE)
+      ) |>
+        reduce(sum)
+    })
+
+    C[[partition_idx]] <- trace_sample_cov2[[partition_idx]] /
+      trace_sample_cov[[partition_idx]]
+
+    D[[partition_idx]] <- (trace_sample_cov[[partition_idx]]^2) /
+      trace_sample_cov2[[partition_idx]]
+
+    l2_norm_critical_value[[partition_idx]] <- C[[partition_idx]] *
+      qchisq(1 - alpha, (n_groups - 1) * D[[partition_idx]])
+  }
+
+  for (partition_idx in seq_len(n_partitions)) {
+    f_rejected[[partition_idx]] <- f_test_stat[[partition_idx]] >
+      f_critical_value
+
+    f_p_values[[partition_idx]] <- 1 -
+      pf(
+        f_test_stat[[partition_idx]],
+        n_groups - 1,
+        n_individuals - n_groups
+      )
+
+    chisq_rejected[[partition_idx]] <- chisq_test_stat[[partition_idx]] >
+      chisq_critical_value
+
+    chisq_p_values[[partition_idx]] <- 1 -
+      pchisq(
+        (n_groups - 1) * chisq_test_stat[[partition_idx]],
+        n_groups - 1
+      )
+
+    l2_norm_rejected[[partition_idx]] <- l2_norm_test_stat[[partition_idx]] >
+      l2_norm_critical_value[[partition_idx]]
+
+    l2_norm_p_values[[partition_idx]] <- 1 -
+      pchisq(
+        l2_norm_test_stat[[partition_idx]] / C[[partition_idx]],
+        (n_groups - 1) * D[[partition_idx]]
+      )
   }
 
   f_permute_test_stats <- f_test_stat
@@ -258,7 +358,7 @@ functional_permutation_test <- function(
   }
 
   # calculate critical values at each parameter point
-  f_critical_values <- map(
+  f_permute_critical_values <- map(
     f_permute_test_stats,
     ~ matrix(
       data = NA,
@@ -266,7 +366,7 @@ functional_permutation_test <- function(
       ncol = dim(.x)[2]
     )
   )
-  f_p_vals <- map(
+  f_permute_p_vals <- map(
     f_permute_test_stats,
     ~ matrix(
       data = NA,
@@ -275,7 +375,7 @@ functional_permutation_test <- function(
     )
   )
 
-  chisq_critical_values <- map(
+  chisq_permute_critical_values <- map(
     chisq_permute_test_stats,
     ~ matrix(
       data = NA,
@@ -283,7 +383,7 @@ functional_permutation_test <- function(
       ncol = dim(.x)[2]
     )
   )
-  chisq_p_vals <- map(
+  chisq_permute_p_vals <- map(
     chisq_permute_test_stats,
     ~ matrix(
       data = NA,
@@ -292,11 +392,11 @@ functional_permutation_test <- function(
     )
   )
 
-  l2_norm_critical_values <- vector(
+  l2_norm_permute_critical_values <- vector(
     mode = "numeric",
     length = length(l2_norm_permute_test_stats)
   )
-  l2_norm_p_vals <- vector(
+  l2_norm_permute_p_vals <- vector(
     mode = "numeric",
     length = length(l2_norm_permute_test_stats)
   )
@@ -307,24 +407,30 @@ functional_permutation_test <- function(
 
     for (row_idx in seq_len(nrows)) {
       for (col_idx in seq_len(ncols)) {
-        f_critical_values[[partition_idx]][row_idx, col_idx] <- quantile(
+        f_permute_critical_values[[partition_idx]][
+          row_idx,
+          col_idx
+        ] <- quantile(
           f_permute_test_stats[[partition_idx]][row_idx, col_idx, ],
           probs = 1 - alpha,
           na.rm = TRUE
         )
-        f_p_vals[[partition_idx]][row_idx, col_idx] <- 1 -
+        f_permute_p_vals[[partition_idx]][row_idx, col_idx] <- 1 -
           mean(
             f_test_stat[[partition_idx]][row_idx, col_idx] >
               f_permute_test_stats[[partition_idx]][row_idx, col_idx, ],
             na.rm = TRUE
           )
 
-        chisq_critical_values[[partition_idx]][row_idx, col_idx] <- quantile(
+        chisq_permute_critical_values[[partition_idx]][
+          row_idx,
+          col_idx
+        ] <- quantile(
           chisq_permute_test_stats[[partition_idx]][row_idx, col_idx, ],
           probs = 1 - alpha,
           na.rm = TRUE
         )
-        chisq_p_vals[[partition_idx]][row_idx, col_idx] <- 1 -
+        chisq_permute_p_vals[[partition_idx]][row_idx, col_idx] <- 1 -
           mean(
             chisq_test_stat[[partition_idx]][row_idx, col_idx] >
               chisq_permute_test_stats[[partition_idx]][row_idx, col_idx, ],
@@ -333,12 +439,12 @@ functional_permutation_test <- function(
       }
     }
 
-    l2_norm_critical_values[partition_idx] <- quantile(
+    l2_norm_permute_critical_values[partition_idx] <- quantile(
       l2_norm_permute_test_stats[[partition_idx]],
       probs = 1 - alpha,
       na.rm = TRUE
     )
-    l2_norm_p_vals[partition_idx] <- 1 -
+    l2_norm_permute_p_vals[partition_idx] <- 1 -
       mean(
         l2_norm_test_stat[[partition_idx]] >
           l2_norm_permute_test_stats[[partition_idx]],
@@ -347,38 +453,55 @@ functional_permutation_test <- function(
   }
 
   for (partition_idx in seq_len(n_partitions)) {
-    f_rejected[[partition_idx]] <- f_test_stat[[partition_idx]] >
-      f_critical_values[[partition_idx]]
-    f_p_values[[partition_idx]] <- f_p_vals[[partition_idx]]
+    f_permute_rejected[[partition_idx]] <- f_test_stat[[partition_idx]] >
+      f_permute_critical_values[[partition_idx]]
+    f_permute_p_values[[partition_idx]] <- f_permute_p_vals[[partition_idx]]
 
-    chisq_rejected[[partition_idx]] <- chisq_test_stat[[partition_idx]] >
-      chisq_critical_values[[partition_idx]]
-    chisq_p_values[[partition_idx]] <- chisq_p_vals[[partition_idx]]
+    chisq_permute_rejected[[partition_idx]] <- chisq_test_stat[[
+      partition_idx
+    ]] >
+      chisq_permute_critical_values[[partition_idx]]
+    chisq_permute_p_values[[partition_idx]] <- chisq_permute_p_vals[[
+      partition_idx
+    ]]
 
-    l2_norm_rejected[[partition_idx]] <- l2_norm_test_stat[[partition_idx]] >
-      l2_norm_critical_values[partition_idx]
-    l2_norm_p_values[[partition_idx]] <- l2_norm_p_vals[partition_idx]
+    l2_norm_permute_rejected[[partition_idx]] <- l2_norm_test_stat[[
+      partition_idx
+    ]] >
+      l2_norm_permute_critical_values[partition_idx]
+    l2_norm_permute_p_values[[partition_idx]] <- l2_norm_permute_p_vals[
+      partition_idx
+    ]
   }
 
   f_test <- list(
     test_statistics = f_test_stat,
-    critical_values = f_critical_values,
-    rejected = f_rejected,
-    p_values = f_p_values
+    param_critical_value = f_critical_value,
+    param_rejected = f_rejected,
+    param_p_values = f_p_values,
+    permute_critical_values = f_permute_critical_values,
+    permute_rejected = f_permute_rejected,
+    permute_p_values = f_permute_p_values
   )
 
   chisq_test <- list(
     test_statistics = chisq_test_stat,
-    critical_values = chisq_critical_values,
-    rejected = chisq_rejected,
-    p_values = chisq_p_values
+    param_critical_values = chisq_critical_value,
+    param_rejected = chisq_rejected,
+    param_p_values = chisq_p_values,
+    permute_critical_values = chisq_permute_critical_values,
+    permute_rejected = chisq_permute_rejected,
+    permute_p_values = chisq_permute_p_values
   )
 
   l2_norm_test <- list(
     test_statistic = l2_norm_test_stat,
-    critical_value = l2_norm_critical_values,
-    rejected = l2_norm_rejected,
-    p_value = l2_norm_p_values
+    param_critical_value = l2_norm_critical_value,
+    param_rejected = l2_norm_rejected,
+    param_p_value = l2_norm_p_values,
+    permute_critical_values = l2_norm_permute_critical_values,
+    permute_rejected = l2_norm_permute_rejected,
+    permute_p_values = l2_norm_permute_p_values
   )
 
   test_out <- list(
