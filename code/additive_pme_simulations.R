@@ -392,6 +392,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       alpha = 0.05,
       n_permutations = 1000,
       threads = 1,
+      mode = "sample_mean",
       verbose = FALSE,
       progress = TRUE
     )
