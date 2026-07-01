@@ -14,6 +14,7 @@ functional_permutation_test <- function(
   alpha = 0.05,
   n_permutations = 1000,
   threads = 4,
+  mode = "sample_mean",
   progress = TRUE,
   verbose = TRUE
 ) {
@@ -68,22 +69,39 @@ functional_permutation_test <- function(
     print("Computing Embeddings")
   }
 
-  embeddings <- calc_embeddings(
-    additive_model,
-    param_grids,
-    n_groups,
-    n_individuals,
-    id_groups
-  )
+  if (mode == "additive_embeddings") {
+    embeddings <- calc_embeddings(
+      additive_model,
+      param_grids,
+      n_groups,
+      n_individuals,
+      id_groups
+    )
+
+    sum_squares <- calc_sum_squares(
+      embeddings,
+      param_grids,
+      groups,
+      ids
+    )
+  } else if (mode == "sample_mean") {
+    embeddings <- calc_embeddings_sample_means(
+      additive_model,
+      param_grids,
+      n_groups,
+      n_individuals,
+      id_groups
+    )
+
+    sum_squares <- calc_sum_squares_sample_means(
+      embeddings,
+      param_grids,
+      groups,
+      ids
+    )
+  }
 
   gc()
-
-  sum_squares <- calc_sum_squares(
-    embeddings,
-    param_grids,
-    groups,
-    ids
-  )
 
   f_test_stat <- list()
   chisq_test_stat <- list()
@@ -128,7 +146,7 @@ functional_permutation_test <- function(
   C <- list()
   D <- list()
 
-  l2_norm_critical_value <- list()
+  l2_norm_critical_values <- list()
   for (partition_idx in seq_len(n_partitions)) {
     trace_sample_cov[[partition_idx]] <- vector()
     trace_sample_cov2[[partition_idx]] <- vector()
@@ -158,7 +176,7 @@ functional_permutation_test <- function(
     D[[partition_idx]] <- (trace_sample_cov[[partition_idx]]^2) /
       trace_sample_cov2[[partition_idx]]
 
-    l2_norm_critical_value[[partition_idx]] <- C[[partition_idx]] *
+    l2_norm_critical_values[[partition_idx]] <- C[[partition_idx]] *
       qchisq(1 - alpha, (n_groups - 1) * D[[partition_idx]])
   }
 
@@ -183,7 +201,7 @@ functional_permutation_test <- function(
       )
 
     l2_norm_rejected[[partition_idx]] <- l2_norm_test_stat[[partition_idx]] >
-      l2_norm_critical_value[[partition_idx]]
+      l2_norm_critical_values[[partition_idx]]
 
     l2_norm_p_values[[partition_idx]] <- 1 -
       pchisq(
@@ -265,22 +283,41 @@ functional_permutation_test <- function(
           )
         }
 
-        permute_embeddings <- calc_embeddings(
-          permute_model,
-          param_grids,
-          n_groups,
-          n_individuals,
-          permute_id_groups
-        )
+        if (mode == "additive_embeddings") {
+          permute_embeddings <- calc_embeddings(
+            permute_model,
+            param_grids,
+            n_groups,
+            n_individuals,
+            permute_id_groups
+          )
 
-        gc()
+          gc()
 
-        permute_sum_squares <- calc_sum_squares(
-          permute_embeddings,
-          param_grids,
-          permute_groups,
-          ids
-        )
+          permute_sum_squares <- calc_sum_squares(
+            permute_embeddings,
+            param_grids,
+            permute_groups,
+            ids
+          )
+        } else if (mode == "sample_means") {
+          permute_embeddings <- calc_embeddings_sample_means(
+            permute_model,
+            param_grids,
+            n_groups,
+            n_individuals,
+            permute_id_groups
+          )
+
+          gc()
+
+          permute_sum_squares <- calc_sum_squares_sample_means(
+            permute_embeddings,
+            param_grids,
+            permute_groups,
+            ids
+          )
+        }
 
         permute_f_stat <- list()
         permute_chisq_stat <- list()
@@ -477,7 +514,7 @@ functional_permutation_test <- function(
 
   l2_norm_test <- list(
     test_statistic = l2_norm_test_stat,
-    param_critical_value = l2_norm_critical_value,
+    param_critical_values = l2_norm_critical_values,
     param_rejected = l2_norm_rejected,
     param_p_value = l2_norm_p_values,
     permute_critical_values = l2_norm_permute_critical_values,
@@ -767,6 +804,141 @@ calc_embeddings <- function(
   )
 }
 
+
+calc_embeddings_sample_means <- function(
+  additive_model,
+  param_grids,
+  n_groups,
+  n_individuals,
+  id_groups
+) {
+  require(foreach, quietly = TRUE)
+  require(furrr, quietly = TRUE)
+  require(progressr, quietly = TRUE)
+
+  full_embeddings <- list()
+  population_embeddings <- list()
+  group_embeddings <- list()
+  id_embeddings <- list()
+
+  grand_mean <- list()
+  group_means <- list()
+
+  for (partition_idx in seq_along(additive_model)) {
+    param_grid <- param_grids[[partition_idx]]
+
+    pop_embedding_map <- additive_model[[
+      partition_idx
+    ]]$population_embedding$embedding_map
+    group_embedding_maps <- map(
+      additive_model[[partition_idx]]$group_embeddings,
+      ~ .x$embedding_map
+    )
+    id_embedding_maps <- map(
+      additive_model[[partition_idx]]$id_embeddings,
+      ~ .x$embedding_map
+    )
+
+    part_population_embeddings <- map(
+      seq_len(nrow(param_grid)),
+      ~ {
+        pop_embedding_map(param_grid[.x, ])
+      }
+    )
+    population_embeddings[[partition_idx]] <- do.call(
+      rbind,
+      part_population_embeddings
+    )
+
+    part_group_embeddings <- foreach(
+      group_idx = seq_len(n_groups),
+      .options.future = list(seed = TRUE)
+    ) %do%
+      {
+        group_embedding_map <- group_embedding_maps[[group_idx]]
+        group_embedding_list <- map(
+          seq_len(nrow(param_grid)),
+          ~ {
+            group_embedding_map(param_grid[.x, ])
+          }
+        )
+        do.call(rbind, group_embedding_list)
+      }
+
+    part_id_embeddings <- foreach(
+      id_idx = seq_len(n_individuals),
+      .options.future = list(seed = TRUE)
+    ) %do%
+      {
+        id_embedding_map <- id_embedding_maps[[id_idx]]
+        id_embedding_list <- map(
+          seq_len(nrow(param_grid)),
+          ~ id_embedding_map(param_grid[.x, ])
+        )
+        do.call(rbind, id_embedding_list)
+      }
+
+    full_embeddings[[partition_idx]] <- map(
+      seq_along(part_id_embeddings),
+      ~ cbind(
+        part_group_embeddings[[id_groups[.x]]][, 1],
+        population_embeddings[[partition_idx]][, -1] +
+          part_group_embeddings[[id_groups[.x]]][, -1] +
+          part_id_embeddings[[.x]][, -1]
+      )
+    )
+
+    grand_mean[[partition_idx]] <- reduce(
+      full_embeddings[[partition_idx]],
+      `+`
+    ) /
+      length(full_embeddings[[partition_idx]])
+
+    group_means[[partition_idx]] <- foreach(
+      group_idx = seq_len(n_groups)
+    ) %do%
+      {
+        full_embeddings[[partition_idx]][id_groups == group_idx] |>
+          reduce(`+`) /
+          sum(id_groups == group_idx)
+      }
+
+    # instead of using embeddings directly from embedding maps, use grand mean,
+    # group-mean differences from grand mean, and differences between id embeddings
+    # and group means
+
+    group_embeddings[[partition_idx]] <- foreach(
+      group_idx = seq_len(n_groups)
+    ) %do%
+      {
+        cbind(
+          grand_mean[[partition_idx]][, 1],
+          group_means[[partition_idx]][[group_idx]][, -1] -
+            grand_mean[[partition_idx]][, -1]
+        )
+      }
+
+    id_embeddings[[partition_idx]] <- foreach(
+      id_idx = seq_len(n_individuals)
+    ) %do%
+      {
+        cbind(
+          full_embeddings[[partition_idx]][[id_idx]][, 1],
+          full_embeddings[[partition_idx]][[id_idx]][, -1] -
+            group_means[[partition_idx]][[id_groups[id_idx]]][, -1]
+        )
+      }
+  }
+
+  embedding_list <- list(
+    population_embeddings = population_embeddings,
+    group_embeddings = group_embeddings,
+    id_embeddings = id_embeddings,
+    group_assignments = id_groups
+  )
+}
+
+
 calc_sum_squares <- function(
   embeddings,
   param_grids,
@@ -813,6 +985,59 @@ calc_sum_squares <- function(
           colSums()
       } |>
       reduce(rbind)
+  }
+
+  out <- list(
+    ssh = ssh,
+    sse = sse
+  )
+}
+
+calc_sum_squares_sample_means <- function(
+  embeddings,
+  param_grids,
+  groups,
+  ids
+) {
+  require(foreach, quietly = TRUE)
+
+  population_embeddings <- embeddings$population_embeddings
+  group_embeddings <- embeddings$group_embeddings
+  id_embeddings <- embeddings$id_embeddings
+  id_groups <- embeddings$group_assignments
+
+  group_n <- map(sort(unique(groups)), ~ sum(id_groups == .x)) |>
+    reduce(c)
+
+  n_partitions <- length(embeddings$population_embeddings)
+  n_groups <- length(group_embeddings[[1]])
+  n_individuals <- length(id_embeddings[[1]])
+
+  covariance_arrays <- list()
+  ssh <- list()
+  sse <- list()
+
+  for (partition_idx in seq_len(n_partitions)) {
+    covariance_arrays[[partition_idx]] <- calc_sample_cov_arr(
+      embeddings,
+      param_grids,
+      partition_idx,
+      n_individuals,
+      n_groups
+    )
+
+    ssh[[partition_idx]] <- map(
+      seq_along(group_embeddings[[partition_idx]]),
+      ~ group_n[.x] * group_embeddings[[partition_idx]][[.x]][, -1]^2
+    ) |>
+      reduce(`+`)
+
+    sse[[partition_idx]] <- map(
+      seq_len(dim(covariance_arrays[[partition_idx]])[3]),
+      ~ (n_individuals - n_groups) *
+        diag(covariance_arrays[[partition_idx]][,, .x])
+    ) |>
+      reduce(cbind)
   }
 
   out <- list(
