@@ -115,7 +115,6 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
 
     sim_preprocessed <- preprocess_data(test_sim, case = 1, d = d, D = D)
 
-    tic("full")
     tic("init")
     # LPME Initialization
     init_data <- sim_preprocessed$data |>
@@ -314,7 +313,6 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
           projections = group_projections[[group_idx]]$projections
         )
       }
-    full_time <- toc()
 
     # as expected, we encounter issues in the convergence of the HDMDE algorithm when
     # applied to the full dataset
@@ -392,7 +390,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       n_params = 250,
       template = template,
       alpha = 0.05,
-      n_permutations = 500,
+      n_permutations = 1000,
       threads = 1,
       verbose = FALSE,
       progress = TRUE
@@ -400,33 +398,69 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
     permutation_test_time <- toc()
     print("Permutation Test Complete")
 
-    f_test_any_rejected <- (rowSums(permutation_test_results$f_test$rejected[[
+    f_param_test_any_rejected <- (rowSums(permutation_test_results$f_test$param_rejected[[
       1
     ]]) >
       0) |>
       mean()
-    f_test_all_rejected <- (rowSums(permutation_test_results$f_test$rejected[[
+    f_param_test_all_rejected <- (rowSums(permutation_test_results$f_test$param_rejected[[
       1
     ]]) ==
       D) |>
       mean()
-    f_test_rejected_pct <- mean(permutation_test_results$f_test$rejected[[1]])
-
-    chisq_test_any_rejected <- (rowSums(permutation_test_results$chisq_test$rejected[[
-      1
-    ]]) >
-      0) |>
-      mean()
-    chisq_test_all_rejected <- (rowSums(permutation_test_results$chisq_test$rejected[[
-      1
-    ]]) ==
-      D) |>
-      mean()
-    chisq_test_rejected_pct <- mean(permutation_test_results$chisq_test$rejected[[
+    f_param_test_rejected_pct <- mean(permutation_test_results$f_test$param_rejected[[
       1
     ]])
 
-    l2_norm_test_rejected <- permutation_test_results$l2_norm_test$rejected[[1]]
+    chisq_param_test_any_rejected <- (rowSums(permutation_test_results$chisq_test$param_rejected[[
+      1
+    ]]) >
+      0) |>
+      mean()
+    chisq_param_test_all_rejected <- (rowSums(permutation_test_results$chisq_test$param_rejected[[
+      1
+    ]]) ==
+      D) |>
+      mean()
+    chisq_param_test_rejected_pct <- mean(permutation_test_results$chisq_test$param_rejected[[
+      1
+    ]])
+
+    l2_norm_param_test_rejected <- permutation_test_results$l2_norm_test$param_rejected[[
+      1
+    ]]
+
+    f_permute_test_any_rejected <- (rowSums(permutation_test_results$f_test$permute_rejected[[
+      1
+    ]]) >
+      0) |>
+      mean()
+    f_permute_test_all_rejected <- (rowSums(permutation_test_results$f_test$permute_rejected[[
+      1
+    ]]) ==
+      D) |>
+      mean()
+    f_permute_test_rejected_pct <- mean(permutation_test_results$f_test$permute_rejected[[
+      1
+    ]])
+
+    chisq_permute_test_any_rejected <- (rowSums(permutation_test_results$chisq_test$permute_rejected[[
+      1
+    ]]) >
+      0) |>
+      mean()
+    chisq_permute_test_all_rejected <- (rowSums(permutation_test_results$chisq_test$permute_rejected[[
+      1
+    ]]) ==
+      D) |>
+      mean()
+    chisq_permute_test_rejected_pct <- mean(permutation_test_results$chisq_test$permute_rejected[[
+      1
+    ]])
+
+    l2_norm_permute_test_rejected <- permutation_test_results$l2_norm_test$permute_rejected[[
+      1
+    ]]
 
     permutation_test_plots <- display_test_results(
       permutation_test_results,
@@ -441,7 +475,6 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       projection = projection_time,
       population_projection = pop_projection_time,
       group_projection = group_projection_times,
-      full = full_time,
       permutation_test = permutation_test_time
     )
 
@@ -458,16 +491,27 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       anova_plots = permutation_test_plots,
 
       f_test_rejected = list(
-        any_rejected = f_test_any_rejected,
-        all_rejected = f_test_all_rejected,
-        rejected_pct = f_test_rejected_pct
+        param_any_rejected = f_param_test_any_rejected,
+        param_all_rejected = f_param_test_all_rejected,
+        param_rejected_pct = f_param_test_rejected_pct,
+        permute_any_rejected = f_permute_test_any_rejected,
+        permute_all_rejected = f_permute_test_all_rejected,
+        permute_rejected_pct = f_permute_test_rejected_pct
       ),
+
       chisq_test_rejected = list(
-        any_rejected = chisq_test_any_rejected,
-        all_rejected = chisq_test_all_rejected,
-        rejected_pct = chisq_test_rejected_pct
+        param_any_rejected = chisq_param_test_any_rejected,
+        param_all_rejected = chisq_param_test_all_rejected,
+        param_rejected_pct = chisq_param_test_rejected_pct,
+        permute_any_rejected = chisq_permute_test_any_rejected,
+        permute_all_rejected = chisq_permute_test_all_rejected,
+        permute_rejected_pct = chisq_permute_test_rejected_pct
       ),
-      l2_norm_test_rejected = l2_norm_test_rejected,
+
+      l2_norm_test_rejected = list(
+        param_test_rejected = l2_norm_param_test_rejected,
+        permute_test_rejected = l2_norm_permute_test_rejected
+      ),
       times = times,
       group_time_change_diff = sim_param_grid$group2_time_change[sim_idx],
       group_time_change_noise = sim_param_grid$group_time_change_noise[sim_idx],
