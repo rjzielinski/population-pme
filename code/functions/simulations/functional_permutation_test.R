@@ -300,7 +300,7 @@ functional_permutation_test <- function(
             permute_groups,
             ids
           )
-        } else if (mode == "sample_means") {
+        } else if (mode == "sample_mean") {
           permute_embeddings <- calc_embeddings_sample_means(
             permute_model,
             param_grids,
