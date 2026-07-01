@@ -27,7 +27,7 @@ functional_permutation_test <- function(
   require(purrr, quietly = TRUE)
   require(RhpcBLASctl, quietly = TRUE)
 
-  total_cores <- availableCores()
+  total_cores <- availableCores() - 4
   workers <- floor(total_cores / threads)
 
   old_plan <- plan(multicore, workers = workers)
@@ -46,8 +46,6 @@ functional_permutation_test <- function(
     params,
     n_params,
     interval = 0.25,
-    noise_factor = 10,
-    dist_kernel_sd = 0.5,
     template = template
   )
 
@@ -116,7 +114,7 @@ functional_permutation_test <- function(
       (n_groups - 1)) /
       (sum_squares$sse[[partition_idx]] / (n_individuals - n_groups))
 
-    l2_norm_test_stat[[partition_idx]] <- sum(
+    l2_norm_test_stat[[partition_idx]] <- colSums(
       sum_squares$ssh[[partition_idx]] * param_interval_vols[partition_idx]
     )
   }
@@ -124,54 +122,35 @@ functional_permutation_test <- function(
   f_critical_value <- qf(1 - alpha, n_groups - 1, n_individuals - n_groups)
   chisq_critical_value <- qchisq(1 - alpha, n_groups - 1) / (n_groups - 1)
 
-  sample_cov <- list()
   trace_sample_cov <- list()
   trace_sample_cov2 <- list()
+
   C <- list()
   D <- list()
 
   l2_norm_critical_value <- list()
   for (partition_idx in seq_len(n_partitions)) {
-    with_progress({
-      p <- progressor(nrow(param_grids[[partition_idx]]))
-      trace_sample_cov[[partition_idx]] <- future_map(
-        seq_len(nrow(param_grids[[partition_idx]])),
-        ~ {
-          p()
-          calc_sample_cov(
-            embeddings,
-            param_grids,
-            partition_idx,
-            .x,
-            .x
-          ) *
-            param_interval_vols[partition_idx]
-        },
-        .options = furrr_options(seed = TRUE)
-      ) |>
-        reduce(sum)
-    })
+    trace_sample_cov[[partition_idx]] <- vector()
+    trace_sample_cov2[[partition_idx]] <- vector()
 
-    with_progress({
-      p <- progressor(nrow(param_grids[[partition_idx]]))
-      trace_sample_cov2[[partition_idx]] <- future_map(
-        seq_len(nrow(param_grids[[partition_idx]])),
-        ~ {
-          p()
-          calc_sample_cov2(
-            embeddings,
-            param_grids,
-            partition_idx,
-            .x,
-            .x,
-            param_interval_vols
-          ) *
-            param_interval_vols[partition_idx]
-        },
-        .options = furrr_options(seed = TRUE)
-      ) |>
-        reduce(sum)
-    })
+    covariance_array <- calc_sample_cov_arr(
+      embeddings,
+      param_grids,
+      partition_idx,
+      n_individuals,
+      n_groups
+    )
+
+    for (dim_idx in seq_len(dim(covariance_array)[3])) {
+      covariance_mat <- covariance_array[,, dim_idx]
+
+      trace_sample_cov[[partition_idx]][dim_idx] <- (diag(covariance_mat) *
+        param_interval_vols[partition_idx]) |>
+        sum()
+
+      trace_sample_cov2[[partition_idx]][dim_idx] <- sum(covariance_mat^2) *
+        param_interval_vols[partition_idx]^2
+    }
 
     C[[partition_idx]] <- trace_sample_cov2[[partition_idx]] /
       trace_sample_cov[[partition_idx]]
@@ -227,7 +206,7 @@ functional_permutation_test <- function(
   )
   l2_norm_permute_test_stats <- map(
     l2_norm_permute_test_stats,
-    ~ vector(mode = "numeric", length = n_permutations)
+    ~ matrix(nrow = n_permutations, ncol = length(.x))
   )
 
   if (verbose == TRUE) {
@@ -322,7 +301,7 @@ functional_permutation_test <- function(
             (permute_sum_squares$sse[[partition_idx]] /
               (n_individuals - n_groups))
 
-          permute_l2_norm_stat[[partition_idx]] <- sum(
+          permute_l2_norm_stat[[partition_idx]] <- colSums(
             permute_sum_squares$ssh[[partition_idx]] *
               param_interval_vols[partition_idx]
           )
@@ -352,7 +331,7 @@ functional_permutation_test <- function(
       ] <- permutation_results[[permute_idx]]$chisq_test_stat[[partition_idx]]
 
       l2_norm_permute_test_stats[[partition_idx]][
-        permute_idx
+        permute_idx,
       ] <- permutation_results[[permute_idx]]$l2_norm_test_stat[[partition_idx]]
     }
   }
@@ -392,13 +371,13 @@ functional_permutation_test <- function(
     )
   )
 
-  l2_norm_permute_critical_values <- vector(
-    mode = "numeric",
-    length = length(l2_norm_permute_test_stats)
+  l2_norm_permute_critical_values <- map(
+    l2_norm_permute_test_stats,
+    ~ vector(mode = "numeric", length = ncol(.x))
   )
-  l2_norm_permute_p_vals <- vector(
-    mode = "numeric",
-    length = length(l2_norm_permute_test_stats)
+  l2_norm_permute_p_vals <- map(
+    l2_norm_permute_test_stats,
+    ~ vector(mode = "numeric", length = ncol(.x))
   )
 
   for (partition_idx in seq_len(n_partitions)) {
@@ -439,17 +418,19 @@ functional_permutation_test <- function(
       }
     }
 
-    l2_norm_permute_critical_values[partition_idx] <- quantile(
-      l2_norm_permute_test_stats[[partition_idx]],
-      probs = 1 - alpha,
-      na.rm = TRUE
-    )
-    l2_norm_permute_p_vals[partition_idx] <- 1 -
-      mean(
-        l2_norm_test_stat[[partition_idx]] >
-          l2_norm_permute_test_stats[[partition_idx]],
+    for (col_idx in seq_len(ncols)) {
+      l2_norm_permute_critical_values[[partition_idx]][col_idx] <- quantile(
+        l2_norm_permute_test_stats[[partition_idx]][, col_idx],
+        probs = 1 - alpha,
         na.rm = TRUE
       )
+      l2_norm_permute_p_vals[[partition_idx]][col_idx] <- 1 -
+        mean(
+          l2_norm_test_stat[[partition_idx]][col_idx] >
+            l2_norm_permute_test_stats[[partition_idx]][, col_idx],
+          na.rm = TRUE
+        )
+    }
   }
 
   for (partition_idx in seq_len(n_partitions)) {
@@ -468,7 +449,7 @@ functional_permutation_test <- function(
     l2_norm_permute_rejected[[partition_idx]] <- l2_norm_test_stat[[
       partition_idx
     ]] >
-      l2_norm_permute_critical_values[partition_idx]
+      l2_norm_permute_critical_values[[partition_idx]]
     l2_norm_permute_p_values[[partition_idx]] <- l2_norm_permute_p_vals[
       partition_idx
     ]
@@ -515,6 +496,101 @@ functional_permutation_test <- function(
 }
 
 calc_param_grids <- function(
+  params,
+  n_params,
+  interval = 0.25,
+  template = "euclidean"
+) {
+  require(Rfast, quietly = TRUE)
+
+  time_points_list <- list()
+  param_bound_list <- list()
+  param_grid_list <- list()
+  param_interval_list <- list()
+
+  for (param_idx in seq_along(params)) {
+    time_points_list[[param_idx]] <- sort(unique(params[[param_idx]][, 1]))
+
+    d <- ncol(params[[param_idx]]) - 1
+    if (template == "euclidean") {
+      param_bounds <- colMinsMaxs(params[[param_idx]][, -1])
+      param_bound_list[[param_idx]] <- param_bounds
+    }
+  }
+
+  all_times <- unlist(time_points_list) |>
+    unique()
+  min_time <- map(time_points_list, min) |> unlist() |> min()
+  max_time <- map(time_points_list, max) |> unlist() |> max()
+  n_times <- ceiling((max_time / interval) - (min_time / interval))
+  time_vals <- seq(from = min_time, by = interval, length.out = n_times)
+
+  for (param_idx in seq_along(params)) {
+    if (template == "euclidean") {
+      param_bound_mat <- param_bound_list[[param_idx]]
+      param_intervals <- vector(mode = "numeric", length = d)
+
+      for (dim_idx in seq_len(d)) {
+        param_intervals[dim_idx] <- (param_bound_mat[2, dim_idx] -
+          param_bound_mat[1, dim_idx]) /
+          n_params
+      }
+
+      param_interval_list[[param_idx]] <- param_intervals
+    }
+  }
+
+  param_grid_times <- list()
+
+  for (param_idx in seq_along(params)) {
+    param_grid_list[[param_idx]] <- list()
+    param_grid_times[[param_idx]] <- list()
+    for (time_idx in seq_along(time_vals)) {
+      if (template == "euclidean") {
+        nearest_time <- which.min(abs(all_times - time_vals[time_idx]))
+        nearest_time_val <- all_times[nearest_time]
+        nearest_time_params <- params[[param_idx]][
+          params[[param_idx]][, 1] == nearest_time_val,
+          -1,
+          drop = FALSE
+        ]
+        nearest_time_param_bounds <- colMinsMaxs(nearest_time_params)
+
+        param_list <- list()
+        for (dim in seq_len(d)) {
+          param_list[[dim]] <- seq(
+            from = nearest_time_param_bounds[1, dim],
+            to = param_bounds[2, dim],
+            by = param_interval_list[[param_idx]][dim]
+          )
+        }
+
+        param_grid_list[[param_idx]][[time_idx]] <- expand.grid(param_list)
+        param_grid_times[[param_idx]][[time_idx]] <- cbind(
+          time_vals[time_idx],
+          param_grid_list[[param_idx]][[time_idx]]
+        ) |>
+          as.matrix()
+      } else if (template == "sphere") {
+        param_grid_list[[param_idx]] <- fibonacci_sphere(n_params)
+        param_grid_times[[param_idx]][[time_idx]] <- cbind(
+          time_vals[time_idx],
+          param_grid_list[[param_idx]][[time_idx]]
+        ) |>
+          as.matrix()
+      }
+    }
+  }
+
+  param_grids <- map(
+    param_grid_times,
+    ~ do.call(rbind, .x)
+  )
+
+  param_grids
+}
+
+calc_param_grids_resample <- function(
   params,
   n_params,
   interval = 0.25,
@@ -745,6 +821,63 @@ calc_sum_squares <- function(
   )
 }
 
+calc_sample_cov_arr <- function(
+  embeddings,
+  param_grids,
+  partition,
+  n_individuals,
+  n_groups
+) {
+  id_embeddings <- embeddings$id_embeddings[[partition]]
+  D <- ncol(id_embeddings[[1]]) - 1
+
+  complete_embeddings <- lapply(
+    id_embeddings,
+    function(x) x[, -1, drop = FALSE]
+  ) |>
+    unlist()
+
+  embedding_array <- array(
+    complete_embeddings,
+    dim = c(nrow(param_grids[[partition]]), D, n_individuals)
+  )
+
+  covariance_array <- array(
+    dim = c(dim(embedding_array)[1], dim(embedding_array)[1], D)
+  )
+  for (dim_idx in seq_len(D)) {
+    dim_embedding <- embedding_array[, dim_idx, ]
+    dim_cov_mat <- dim_embedding %*%
+      t(dim_embedding) /
+      (n_individuals - n_groups)
+    covariance_array[,, dim_idx] <- dim_cov_mat
+  }
+
+  covariance_array
+}
+
+calc_sample_cov_mat <- function(
+  embeddings,
+  partition,
+  n_individuals,
+  n_groups
+) {
+  id_embeddings <- embeddings$id_embeddings[[partition]]
+
+  # obtain embedding matrix for all IDs
+  complete_embeddings <- lapply(
+    id_embeddings,
+    function(x) x[, -1, drop = FALSE]
+  ) |>
+    reduce(cbind)
+
+  covariance_mat <- complete_embeddings %*%
+    t(complete_embeddings) /
+    (n_individuals - n_groups)
+
+  covariance_mat
+}
+
 calc_sample_cov <- function(
   embeddings,
   param_grids,
@@ -755,30 +888,60 @@ calc_sample_cov <- function(
   # NOTE: this function assumes that param1 and param2 are elements of the param_grids matrices
 
   n_groups <- length(embeddings$group_embeddings[[partition]])
-  n_individuals <- length(embeddings$id_embeddings[[partition]])
+  id_embeddings <- embeddings$id_embeddings[[partition]]
+  n_individuals <- length(id_embeddings)
 
-  embeddings_param1 <- map(
-    embeddings$id_embeddings[[partition]],
-    ~ .x[param_idx1, ][-1]
+  embeddings_param1 <- sapply(
+    id_embeddings,
+    function(x) x[param_idx1, -1]
   )
-  embeddings_param1 <- do.call(rbind, embeddings_param1)
 
   if (param_idx1 == param_idx2) {
-    sample_cov <- diag(embeddings_param1 %*% t(embeddings_param1)) |>
-      sum()
+    sample_cov <- sum(embeddings_param1^2)
   } else {
-    embeddings_param2 <- map(
-      embeddings$id_embeddings[[partition]],
-      ~ .x[param_idx2, ][-1]
+    embeddings_param2 <- sapply(
+      id_embeddings,
+      function(x) x[param_idx2, -1]
     )
-    embeddings_param2 <- do.call(rbind, embeddings_param2)
 
-    sample_cov <- diag(embeddings_param1 %*% t(embeddings_param2)) |>
-      sum()
+    sample_cov <- sum(embeddings_param1 * embeddings_param2)
   }
 
   sample_cov <- sample_cov / (n_individuals - n_groups)
 
+  sample_cov
+}
+
+calc_sample_cov_vec <- function(
+  embeddings,
+  param_grids,
+  partition,
+  param_idx1,
+  param_idx2
+) {
+  n_groups <- length(embeddings$group_embeddings[[partition]])
+  id_embeddings <- embeddings$id_embeddings[[partition]]
+  n_individuals <- length(id_embeddings)
+
+  embeddings_param1 <- sapply(
+    id_embeddings,
+    function(x) x[param_idx1, -1]
+  ) |>
+    t()
+
+  if (param_idx1 == param_idx2) {
+    sample_cov <- colSums(embeddings_param1^2)
+  } else {
+    embeddings_param2 <- sapply(
+      id_embeddings,
+      function(x) x[param_idx2, -1]
+    ) |>
+      t()
+
+    sample_cov <- colSums(embeddings_param1 * embeddings_param2)
+  }
+
+  sample_cov <- sample_cov / (n_individuals - n_groups)
   sample_cov
 }
 
@@ -790,7 +953,7 @@ calc_sample_cov2 <- function(
   param_idx2,
   param_interval_vols
 ) {
-  sample_covs1 <- map(
+  sample_covs1 <- map_dbl(
     seq_len(nrow(param_grids[[partition]])),
     ~ calc_sample_cov(
       embeddings,
@@ -799,13 +962,12 @@ calc_sample_cov2 <- function(
       param_idx1,
       .x
     )
-  ) |>
-    reduce(c)
+  )
 
   if (param_idx1 == param_idx2) {
     sample_cov2_val <- sum(sample_covs1^2 * param_interval_vols[partition])
   } else {
-    sample_covs2 <- map(
+    sample_covs2 <- map_dbl(
       seq_len(nrow(param_grids[[partition]])),
       ~ calc_sample_cov(
         embeddings,
@@ -814,12 +976,45 @@ calc_sample_cov2 <- function(
         .x,
         param_idx2
       )
-    ) |>
-      reduce(c)
-
+    )
     sample_cov2_val <- sum(
       sample_covs1 * sample_covs2 * param_interval_vols[partition]
     )
+  }
+
+  sample_cov2_val
+}
+
+calc_sample_cov2_opt <- function(
+  embeddings,
+  param_grids,
+  partition,
+  param_idx1,
+  param_idx2,
+  param_interval_vols
+) {
+  id_embeddings <- embeddings$id_embeddings[[partition]]
+  n_individuals <- length(id_embeddings)
+  n_groups <- length(embeddings$group_embeddings[[partition]])
+  vol <- param_interval_vols[partition]
+
+  # obtain embedding matrix for all IDs
+  complete_embeddings <- lapply(
+    id_embeddings,
+    function(x) x[, -1, drop = FALSE]
+  ) |>
+    reduce(cbind)
+
+  # tcrossprod() is a faster version of mat %*% t(mat)
+  covariance_mat <- tcrossprod(complete_embeddings) / (n_individuals - n_groups)
+
+  sample_covs1 <- covariance_mat[param_idx1, ]
+
+  if (param_idx1 == param_idx2) {
+    sample_cov2_val <- sum(sample_covs1^2 * vol)
+  } else {
+    sample_covs2 <- covariance_mat[param_idx2, ]
+    sample_cov2_val <- sum(sample_covs1 * sample_covs2 * vol)
   }
 
   sample_cov2_val
