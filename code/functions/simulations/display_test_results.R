@@ -9,8 +9,12 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
   population_embeddings_full <- reduce(population_embeddings, rbind)
   group_embeddings_full <- list()
   # rejected_full <- reduce(test_results$rejected, c)
-  f_test_rejected_full <- reduce(test_results$f_test$rejected, c)
-  chisq_test_rejected_full <- reduce(test_results$chisq_test$rejected, c)
+
+  f_param_test_rejected_full <- reduce(test_results$f_test$param_rejected, c)
+  f_permute_test_rejected_full <- reduce(
+    test_results$f_test$permute_rejected,
+    c
+  )
 
   D <- ncol(population_embeddings_full) - 1
 
@@ -32,7 +36,8 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
     group_embeddings_full[[group_idx]] <- cbind(
       groups[group_idx],
       group_embeddings_full[[group_idx]],
-      f_test_rejected_full
+      f_param_test_rejected_full,
+      f_permute_test_rejected_full
     )
   }
 
@@ -43,7 +48,8 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
     "Group",
     "Time",
     col_names,
-    paste0("Rejected_", col_names)
+    paste0("param_rejected_", col_names),
+    paste0("permute_rejected_", col_names)
   )
 
   embeddings_full <- embeddings_full |>
@@ -51,14 +57,20 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
       Group = as.factor(Group),
       Time = as.numeric(Time)
     ) |>
-    mutate_at(col_names, as.numeric)
+    mutate_at(col_names, as.numeric) |>
+    mutate_at(vars(contains("rejected")), as.logical)
 
-  group_plots <- list()
+  param_group_plots <- list()
+  permute_group_plots <- list()
   layout_args <- list()
 
-  group_plots_dim1 <- list()
-  group_plots_dim2 <- list()
-  group_plots_dim3 <- list()
+  param_group_plots_dim1 <- list()
+  param_group_plots_dim2 <- list()
+  param_group_plots_dim3 <- list()
+
+  permute_group_plots_dim1 <- list()
+  permute_group_plots_dim2 <- list()
+  permute_group_plots_dim3 <- list()
 
   for (group_idx in seq_len(n_groups)) {
     group_val <- groups[group_idx]
@@ -72,12 +84,12 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
     )
 
     if (D == 2) {
-      group_plots[[group_idx]] <- plot_ly(
+      param_group_plots[[group_idx]] <- plot_ly(
         filter(embeddings_full, Group == group_val),
         x = ~Time,
         y = ~x,
         z = ~y,
-        color = ~ (Rejected_x & Rejected_y),
+        color = ~ (param_rejected_x & param_rejected_y),
         type = "scatter3d",
         mode = "markers",
         marker = list(size = 3),
@@ -95,12 +107,12 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
           font = list(size = 15)
         )
 
-      group_plots_dim1[[group_idx]] <- plot_ly(
+      param_group_plots_dim1[[group_idx]] <- plot_ly(
         filter(embeddings_full, Group == group_val),
         x = ~Time,
         y = ~x,
         z = ~y,
-        color = ~Rejected_x,
+        color = ~param_rejected_x,
         type = "scatter3d",
         mode = "markers",
         marker = list(size = 3),
@@ -118,12 +130,81 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
           font = list(size = 15)
         )
 
-      group_plots_dim2[[group_idx]] <- plot_ly(
+      param_group_plots_dim2[[group_idx]] <- plot_ly(
         filter(embeddings_full, Group == group_val),
         x = ~Time,
         y = ~x,
         z = ~y,
-        color = ~Rejected_y,
+        color = ~param_rejected_y,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
+      permute_group_plots[[group_idx]] <- plot_ly(
+        filter(embeddings_full, Group == group_val),
+        x = ~Time,
+        y = ~x,
+        z = ~y,
+        color = ~ (permute_rejected_x & permute_rejected_y),
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
+      permute_group_plots_dim1[[group_idx]] <- plot_ly(
+        filter(embeddings_full, Group == group_val),
+        x = ~Time,
+        y = ~x,
+        z = ~y,
+        color = ~permute_rejected_x,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
+      permute_group_plots_dim2[[group_idx]] <- plot_ly(
+        filter(embeddings_full, Group == group_val),
+        x = ~Time,
+        y = ~x,
+        z = ~y,
+        color = ~permute_rejected_y,
         type = "scatter3d",
         mode = "markers",
         marker = list(size = 3),
@@ -152,12 +233,12 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
         marker = list(size = 3)
       )
     } else if (D == 3) {
-      group_plots[[group_idx]] <- plot_ly(
+      param_group_plots[[group_idx]] <- plot_ly(
         embeddings_full,
         x = ~x,
         y = ~y,
         z = ~z,
-        color = ~ (Rejected_x & Rejected_y & Rejected_z),
+        color = ~ (param_rejected_x & param_rejected_y & param_rejected_z),
         frame = ~Time,
         type = "scatter3d",
         mode = "markers",
@@ -176,12 +257,12 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
           font = list(size = 15)
         )
 
-      group_plots_dim1[[group_idx]] <- plot_ly(
+      param_group_plots_dim1[[group_idx]] <- plot_ly(
         embeddings_full,
         x = ~x,
         y = ~y,
         z = ~z,
-        color = ~Rejected_x,
+        color = ~param_rejected_x,
         frame = ~Time,
         type = "scatter3d",
         mode = "markers",
@@ -200,12 +281,12 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
           font = list(size = 15)
         )
 
-      group_plots_dim2[[group_idx]] <- plot_ly(
+      param_group_plots_dim2[[group_idx]] <- plot_ly(
         embeddings_full,
         x = ~x,
         y = ~y,
         z = ~z,
-        color = ~Rejected_y,
+        color = ~param_rejected_y,
         frame = ~Time,
         type = "scatter3d",
         mode = "markers",
@@ -224,12 +305,110 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
           font = list(size = 15)
         )
 
-      group_plots_dim3[[group_idx]] <- plot_ly(
+      param_group_plots_dim3[[group_idx]] <- plot_ly(
         embeddings_full,
         x = ~x,
         y = ~y,
         z = ~z,
-        color = ~Rejected_z,
+        color = ~param_rejected_z,
+        frame = ~Time,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
+      permute_group_plots[[group_idx]] <- plot_ly(
+        embeddings_full,
+        x = ~x,
+        y = ~y,
+        z = ~z,
+        color = ~ (permute_rejected_x &
+          permute_rejected_y &
+          permute_rejected_z),
+        frame = ~Time,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
+      permute_group_plots_dim1[[group_idx]] <- plot_ly(
+        embeddings_full,
+        x = ~x,
+        y = ~y,
+        z = ~z,
+        color = ~permute_rejected_x,
+        frame = ~Time,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
+      permute_group_plots_dim2[[group_idx]] <- plot_ly(
+        embeddings_full,
+        x = ~x,
+        y = ~y,
+        z = ~z,
+        color = ~permute_rejected_y,
+        frame = ~Time,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3),
+        colors = c("#000000", "#FF6666"),
+        name = group_val,
+        scene = paste0("scene", group_idx)
+      ) |>
+        add_annotations(
+          x = (scene_start + scene_end) / 2,
+          y = 1,
+          text = group_val,
+          xanchor = "center",
+          yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 15)
+        )
+
+      permute_group_plots_dim3[[group_idx]] <- plot_ly(
+        embeddings_full,
+        x = ~x,
+        y = ~y,
+        z = ~z,
+        color = ~permute_rejected_z,
         frame = ~Time,
         type = "scatter3d",
         mode = "markers",
@@ -262,24 +441,48 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
     }
   }
 
-  group_fig <- subplot(
-    group_plots,
+  param_group_fig <- subplot(
+    param_group_plots,
     nrows = 1,
     margin = margin,
     shareX = TRUE
   ) |>
     layout(layout_args)
 
-  group_fig_dim1 <- subplot(
-    group_plots_dim1,
+  param_group_fig_dim1 <- subplot(
+    param_group_plots_dim1,
     nrows = 1,
     margin = margin,
     shareX = TRUE
   ) |>
     layout(layout_args)
 
-  group_fig_dim2 <- subplot(
-    group_plots_dim2,
+  param_group_fig_dim2 <- subplot(
+    param_group_plots_dim2,
+    nrows = 1,
+    margin = margin,
+    shareX = TRUE
+  ) |>
+    layout(layout_args)
+
+  permute_group_fig <- subplot(
+    permute_group_plots,
+    nrows = 1,
+    margin = margin,
+    shareX = TRUE
+  ) |>
+    layout(layout_args)
+
+  permute_group_fig_dim1 <- subplot(
+    permute_group_plots_dim1,
+    nrows = 1,
+    margin = margin,
+    shareX = TRUE
+  ) |>
+    layout(layout_args)
+
+  permute_group_fig_dim2 <- subplot(
+    permute_group_plots_dim2,
     nrows = 1,
     margin = margin,
     shareX = TRUE
@@ -288,14 +491,24 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
 
   if (D == 2) {
     plots <- list(
-      group_plot = group_fig,
       full_plot = full_fig,
-      group_plot_dim1 = group_fig_dim1,
-      group_plot_dim2 = group_fig_dim2
+      param_group_plot = param_group_fig,
+      param_group_plot_dim1 = param_group_fig_dim1,
+      param_group_plot_dim2 = param_group_fig_dim2,
+      permute_group_plot = permute_group_fig,
+      permute_group_plot_dim1 = permute_group_fig_dim1,
+      permute_group_plot_dim2 = permute_group_fig_dim2
     )
   } else if (D == 3) {
-    group_fig_dim3 <- subplot(
-      group_plots_dim3,
+    param_group_fig_dim3 <- subplot(
+      param_group_plots_dim3,
+      nrows = 1,
+      margin = margin,
+      shareX = TRUE
+    ) |>
+      layout(layout_args)
+    permute_group_fig_dim3 <- subplot(
+      permute_group_plots_dim3,
       nrows = 1,
       margin = margin,
       shareX = TRUE
@@ -303,11 +516,15 @@ display_test_results <- function(test_results, groups, margin = 0.02) {
       layout(layout_args)
 
     plots <- list(
-      group_plot = group_fig,
       full_plot = full_fig,
-      group_plot_dim1 = group_fig_dim1,
-      group_plot_dim2 = group_fig_dim2,
-      group_plot_dim3 = group_fig_dim3
+      param_group_plot = param_group_fig,
+      param_group_plot_dim1 = param_group_fig_dim1,
+      param_group_plot_dim2 = param_group_fig_dim2,
+      param_group_plot_dim3 = param_group_fig_dim3,
+      permute_group_plot = permute_group_fig,
+      permute_group_plot_dim1 = permute_group_fig_dim1,
+      permute_group_plot_dim2 = permute_group_fig_dim2,
+      permute_group_plot_dim3 = permute_group_fig_dim3
     )
   }
 
