@@ -583,7 +583,7 @@ calc_param_grids <- function(
           param_bound_mat[1, dim_idx]) /
           n_params
 
-        param_list[[dim]] <- seq(
+        param_list[[dim_idx]] <- seq(
           from = param_bound_mat[1, dim_idx],
           to = param_bound_mat[2, dim_idx],
           by = param_intervals[dim_idx]
