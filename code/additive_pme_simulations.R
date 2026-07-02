@@ -216,8 +216,8 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       partitions = sim_reduced$partition,
       template = template,
       cores = cores,
-      lambda = exp(-10:10),
-      gamma = exp(-10:10),
+      lambda = exp(-10:15),
+      gamma = exp(-10:15),
       max_iter = 25,
       verbose = FALSE,
       plot_progress = FALSE
@@ -381,6 +381,8 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       list(sim_centers),
       list(sim_weights),
       params,
+      lambda = exp(-10:15),
+      gamma = exp(-10:15),
       groups = sim_reduced$group,
       ids = sim_reduced$id,
       scans = sim_reduced$scan,
@@ -392,7 +394,7 @@ sim_results <- foreach(sim_idx = seq_len(nrow(sim_param_grid))) %do%
       alpha = 0.05,
       n_permutations = 500,
       threads = 1,
-      mode = "sample_mean",
+      mode = "additive_embeddings",
       verbose = FALSE,
       progress = TRUE
     )
