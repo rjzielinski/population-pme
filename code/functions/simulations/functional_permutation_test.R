@@ -14,7 +14,7 @@ functional_permutation_test <- function(
   alpha = 0.05,
   n_permutations = 1000,
   threads = 4,
-  mode = "sample_mean",
+  mode = "additive_embeddings",
   progress = TRUE,
   verbose = TRUE
 ) {
@@ -536,7 +536,8 @@ calc_param_grids <- function(
   params,
   n_params,
   interval = 0.25,
-  template = "euclidean"
+  template = "euclidean",
+  param_threshold = 0.0025
 ) {
   require(Rfast, quietly = TRUE)
 
@@ -550,7 +551,12 @@ calc_param_grids <- function(
 
     d <- ncol(params[[param_idx]]) - 1
     if (template == "euclidean") {
-      param_bounds <- colMinsMaxs(params[[param_idx]][, -1])
+      param_bounds <- apply(
+        params[[param_idx]][, -1, drop = FALSE],
+        2,
+        quantile,
+        probs = c(param_threshold, 1 - param_threshold)
+      )
       param_bound_list[[param_idx]] <- param_bounds
     }
   }
@@ -562,67 +568,39 @@ calc_param_grids <- function(
   n_times <- ceiling((max_time / interval) - (min_time / interval))
   time_vals <- seq(from = min_time, by = interval, length.out = n_times)
 
+  param_grids <- list()
   for (param_idx in seq_along(params)) {
+    param_grid_list <- list()
     if (template == "euclidean") {
       param_bound_mat <- param_bound_list[[param_idx]]
       param_intervals <- vector(mode = "numeric", length = d)
 
+      param_list <- list()
       for (dim_idx in seq_len(d)) {
         param_intervals[dim_idx] <- (param_bound_mat[2, dim_idx] -
           param_bound_mat[1, dim_idx]) /
           n_params
+
+        param_list[[dim]] <- seq(
+          from = param_bound_mat[1, dim_idx],
+          to = param_bound_mat[2, dim_idx],
+          by = param_intervals[dim_idx]
+        )
       }
+      param_grid_list[[param_idx]] <- expand.grid(param_list) |>
+        as.matrix()
 
       param_interval_list[[param_idx]] <- param_intervals
+    } else if (template == "sphere") {
+      param_grid_list[[param_idx]] <- fibonacci_sphere(n_params)
     }
+
+    param_grids[[param_idx]] <- map(
+      time_vals,
+      ~ cbind(.x, param_grid_list[[param_idx]])
+    ) |>
+      reduce(rbind)
   }
-
-  param_grid_times <- list()
-
-  for (param_idx in seq_along(params)) {
-    param_grid_list[[param_idx]] <- list()
-    param_grid_times[[param_idx]] <- list()
-    for (time_idx in seq_along(time_vals)) {
-      if (template == "euclidean") {
-        nearest_time <- which.min(abs(all_times - time_vals[time_idx]))
-        nearest_time_val <- all_times[nearest_time]
-        nearest_time_params <- params[[param_idx]][
-          params[[param_idx]][, 1] == nearest_time_val,
-          -1,
-          drop = FALSE
-        ]
-        nearest_time_param_bounds <- colMinsMaxs(nearest_time_params)
-
-        param_list <- list()
-        for (dim in seq_len(d)) {
-          param_list[[dim]] <- seq(
-            from = nearest_time_param_bounds[1, dim],
-            to = param_bounds[2, dim],
-            by = param_interval_list[[param_idx]][dim]
-          )
-        }
-
-        param_grid_list[[param_idx]][[time_idx]] <- expand.grid(param_list)
-        param_grid_times[[param_idx]][[time_idx]] <- cbind(
-          time_vals[time_idx],
-          param_grid_list[[param_idx]][[time_idx]]
-        ) |>
-          as.matrix()
-      } else if (template == "sphere") {
-        param_grid_list[[param_idx]] <- fibonacci_sphere(n_params)
-        param_grid_times[[param_idx]][[time_idx]] <- cbind(
-          time_vals[time_idx],
-          param_grid_list[[param_idx]][[time_idx]]
-        ) |>
-          as.matrix()
-      }
-    }
-  }
-
-  param_grids <- map(
-    param_grid_times,
-    ~ do.call(rbind, .x)
-  )
 
   param_grids
 }
