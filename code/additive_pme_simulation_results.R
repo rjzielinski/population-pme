@@ -4,6 +4,9 @@ library(here)
 library(progressr)
 library(readr)
 
+handlers(global = TRUE)
+handlers("progress")
+
 sim_files <- list.files(
   here("output/simulations/case1"),
   full.names = TRUE
@@ -51,7 +54,7 @@ projection_time <- vector()
 permutation_time <- vector()
 
 with_progress({
-  p <- progress(n_simulations)
+  p <- progressor(n_simulations)
   for (sim_idx in seq_along(sim_files)) {
     sim_result <- readRDS(sim_files[sim_idx])
 
@@ -187,4 +190,4 @@ sim_result_df <- tibble(
     )
   )
 
-write_csv(sim_result_df, here(output / simulation_rejection_results.csv))
+write_csv(sim_result_df, here("output/simulation_rejection_results.csv"))
