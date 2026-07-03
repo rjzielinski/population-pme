@@ -42,7 +42,7 @@ fit_adni_additive_model <- function(
   }
 
   # create new grid of parameter values, with number of points equal to maximum
-  # of clusters across all scans
+  # number of clusters across all scans
   N_prime <- max(table(scans))
 
   if (template == "euclidean") {
