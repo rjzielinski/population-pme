@@ -23,6 +23,7 @@ id_time_change_noise <- vector()
 population_msd <- vector()
 group_msd1 <- vector()
 group_msd2 <- vector()
+full_msd <- vector()
 
 f_param_test_any_rejected <- vector()
 f_param_test_all_rejected <- vector()
@@ -66,6 +67,7 @@ with_progress({
     population_msd[sim_idx] <- sim_result$population_msd
     group_msd1[sim_idx] <- sim_result$group_msd[[1]]
     group_msd2[sim_idx] <- sim_result$group_msd[[2]]
+    full_msd[sim_idx] <- sim_result$msd
 
     f_param_test_any_rejected[
       sim_idx
@@ -170,6 +172,7 @@ sim_result_df <- tibble(
   population_msd,
   group_msd1,
   group_msd2,
+  full_msd,
   f_permute_test_any_rejected,
   f_permute_test_all_rejected,
   f_permute_test_rejected_pct,
