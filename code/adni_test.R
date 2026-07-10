@@ -3,7 +3,9 @@ library(doFuture)
 library(foreach)
 library(future.mirai)
 library(here)
+library(lineup2)
 library(listenv)
+library(MatchIt)
 library(plotly)
 library(pme)
 library(progressr)
@@ -125,6 +127,7 @@ center_projections <- additive_model_list$center_projections
 # calculate final MSD and projections?
 print("Computing full projections")
 
+plan(sequential)
 projection_list <- final_projections(
   additive_model,
   lhipp_surface,
