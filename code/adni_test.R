@@ -20,7 +20,7 @@ options(renv.config.sandbox.enabled = FALSE)
 options(renv.config.auto.snapshot = FALSE)
 cores <- detectCores() - 4
 
-plot_progress <- TRUE
+plot_progress <- FALSE
 
 source("code/functions/additive_pme.R")
 source("code/functions/fit_weighted_spline.R")
@@ -117,7 +117,7 @@ additive_model_list <- additive_pme(
   partitions = lhipp_surface_red$partition,
   template = "sphere",
   cores = cores,
-  plot_progress = TRUE,
+  plot_progress = FALSE
 )
 
 additive_model <- additive_model_list$additive_model

@@ -49,12 +49,22 @@ read_data <- function(
 
   # should I be centering/scaling by scan? or should this be applied by ID?
   # scaling by scan could potentially mask differences in scale over time
+
   lhipp_surface_centers <- lhipp_surface |>
-    group_by(subid) |>
+    group_by(subid, scan_id) |>
     summarize(
       mean_x = mean(x),
       mean_y = mean(y),
-      mean_z = mean(z),
+      mean_z = mean(z)
+    )
+
+  lhipp_surface_bounds <- lhipp_surface |>
+    full_join(lhipp_surface_centers, by = c("subid", "scan_id")) |>
+    group_by(subid) |>
+    summarize(
+      # mean_x = mean(x),
+      # mean_y = mean(y),
+      # mean_z = mean(z),
       max_x = max(abs(x - mean_x)),
       max_y = max(abs(y - mean_y)),
       max_z = max(abs(z - mean_z))
@@ -69,8 +79,21 @@ read_data <- function(
     ) |>
     mutate(duration = max_date - date_bl)
 
+  lhipp_surface2 <- lhipp_surface |>
+    full_join(lhipp_surface_centers, by = c("subid", "scan_id")) |>
+    full_join(lhipp_surface_bounds, by = "subid") |>
+    full_join(lhipp_bl, by = "subid") |>
+    mutate(
+      x = x - mean_x,
+      y = y - mean_y,
+      z = z - mean_z,
+      time_from_bl = date - date_bl
+    ) |>
+    rename(image_id = scan_id)
+
   lhipp_surface <- lhipp_surface |>
-    full_join(lhipp_surface_centers, by = c("subid")) |>
+    full_join(lhipp_surface_centers, by = c("subid", "scan_id")) |>
+    full_join(lhipp_surface_bounds, by = "subid") |>
     full_join(lhipp_bl, by = "subid") |>
     mutate(
       x = (x - mean_x) / max_x,
@@ -147,6 +170,17 @@ read_data <- function(
     ungroup() |>
     mutate(Group = as.factor(Group))
 
+  lhipp_surface_info |>
+    group_by(Group) |>
+    summarize(
+      n = n(),
+      pct_male = mean(Sex == "M"),
+      age_mean = mean(Age),
+      age_sd = sd(Age),
+      duration_mean = mean(Duration),
+      duration_sd = sd(Duration)
+    )
+
   lhipp_surface_info_ad_cn <- lhipp_surface_info |>
     filter(Group %in% c("AD", "CN")) |>
     mutate(
@@ -199,6 +233,29 @@ read_data <- function(
 
   lhipp_surface <- lhipp_surface |>
     filter(subid %in% include_ids)
+
+  lhipp_surface_info_matched <- lhipp_surface |>
+    select(subid, Group, Sex, Age, duration) |>
+    group_by(subid) |>
+    summarize(
+      Group = first(Group),
+      Sex = first(Sex),
+      Age = first(Age),
+      Duration = first(duration)
+    ) |>
+    ungroup() |>
+    mutate(Group = as.factor(Group))
+
+  lhipp_surface_info_matched |>
+    # group_by(Group) |>
+    summarize(
+      n = n(),
+      pct_male = mean(Sex == "M"),
+      age_mean = mean(Age),
+      age_sd = sd(Age),
+      duration_mean = mean(Duration),
+      duration_sd = sd(Duration)
+    )
 
   group_ids <- lhipp_surface |>
     group_by(Group, subid) |>
