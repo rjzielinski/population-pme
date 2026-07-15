@@ -223,6 +223,13 @@ additive_pme <- function(
     if (verbose == TRUE) {
       print_ssd(ssd, ssd_ratio, n)
     }
+
+    if (n >= 4) {
+      recent_errors <- ssd_vec[(n - 3):n]
+      if (all(recent_errors == cummax(recent_errors))) {
+        break
+      }
+    }
   }
 
   if (plot_progress == TRUE) {

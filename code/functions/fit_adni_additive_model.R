@@ -10,7 +10,7 @@ fit_adni_additive_model <- function(
   times,
   template,
   epsilon = 0.05,
-  max_iter = 100,
+  max_iter = 25,
   cores = 1,
   verbose = FALSE,
   plot_progress = TRUE
@@ -62,6 +62,8 @@ fit_adni_additive_model <- function(
   } else if (template == "sphere") {
     param_grid <- fibonacci_sphere(N_prime)
   }
+
+  mse_vec <- vector()
 
   if (verbose == TRUE) {
     print("Estimating initial population-level embedding...")
@@ -201,7 +203,7 @@ fit_adni_additive_model <- function(
   }
 
   epsilon_hat <- 2 * epsilon
-  n <- 0
+  n <- 1
 
   full_preds <- cbind(
     centers[, 1],
@@ -241,6 +243,8 @@ fit_adni_additive_model <- function(
   ) %>%
     reduce(c) %>%
     mean()
+
+  mse_vec[1] <- mse
 
   if (verbose == TRUE) {
     print(
@@ -447,6 +451,8 @@ fit_adni_additive_model <- function(
     epsilon_hat <- mse_ratio
     n <- n + 1
 
+    mse_vec[n] <- mse
+
     if (verbose == TRUE) {
       print(
         paste0(
@@ -459,6 +465,13 @@ fit_adni_additive_model <- function(
           as.character(round(mse_ratio, 5))
         )
       )
+    }
+
+    if (n >= 4) {
+      recent_errors <- mse_vec[(n - 3):n]
+      if (all(recent_errors == cummax(recent_errors))) {
+        break
+      }
     }
   }
 
