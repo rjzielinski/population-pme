@@ -38,14 +38,19 @@ map(
 ssd_ratio_threshold <- 5
 verbose <- TRUE
 
-epsilon <- 0.05
-max_iter <- 100
+epsilon <- 0.025
+max_iter <- 50
 
 read_data(
   n_partitions = 1,
   ad_cn_ratio = 1,
   ad_mci_ratio = 1
 )
+
+lhipp_groups <- unique(lhipp_surface$Group)
+lhipp_ids <- unique(lhipp_surface$subid)
+lhipp_scans <- unique(lhipp_surface$image_id)
+lhipp_partition <- lhipp_surface$partition
 
 # INITIALIZATION
 
@@ -114,8 +119,11 @@ additive_model_list <- additive_pme(
   times = lhipp_surface_red$time_from_bl,
   partitions = lhipp_surface_red$partition,
   template = "sphere",
+  gamma = exp(-15:10),
+  epsilon = epsilon,
+  max_iter = max_iter,
   cores = cores,
-  plot_progress = FALSE
+  plot_progress = plot_progress
 )
 
 additive_model <- additive_model_list$additive_model
@@ -142,12 +150,48 @@ projection_list <- final_projections(
 print("Calculating MSD")
 msd <- calc_msd(lhipp_surface, projections = projection_list$projections)
 
+id_groups <- map(
+  id_values,
+  ~ filter(lhipp_surface_red, id == .x) |>
+    pull(group) |>
+    unique()
+) |>
+  reduce(c)
+
+permutation_test_results <- functional_permutation_test(
+  additive_model = additive_model,
+  centers = lhipp_centers,
+  weights = lhipp_weights,
+  params = params,
+  lambda = exp(-15:5),
+  gamma = exp(-15:5),
+  groups = lhipp_surface_red$group,
+  ids = lhipp_surface_red$id,
+  scans = lhipp_surface_red$scan,
+  times = lhipp_surface_red$time_from_bl,
+  partitions = lhipp_surface_red$partition,
+  id_groups = id_groups,
+  n_params = 1000,
+  template = "sphere",
+  alpha = 0.05,
+  any_reject = TRUE,
+  n_permutations = 1000,
+  threads = 1,
+  mode = "additive_embeddings",
+  contrast = NULL,
+  verbose = FALSE,
+  progress = TRUE
+)
+
+
 lhipp_test_out <- list(
   model = additive_model,
   data = lhipp_surface,
-  reduced_data = lhipp_surface_red,
   projections = projection_list,
+  test_results = permutation_test_results,
+  reduced_data = lhipp_surface_red,
   params = params,
+  weights = lhipp_weights,
   center_projections = center_projections,
   group_values = group_values,
   id_values = id_values,
@@ -155,4 +199,5 @@ lhipp_test_out <- list(
   msd = msd,
   template = "sphere"
 )
+
 saveRDS(lhipp_test_out, "output/lhipp_additive_matched_111.RDS")
