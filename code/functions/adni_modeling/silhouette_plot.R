@@ -95,6 +95,13 @@ silhouette_plot <- function(
           loc = "upper right",
           face = "line"
         )
+
+        lhipp_plot$show_grid(
+          color = "gray",
+          xtitle = "X",
+          ytitle = "Y",
+          ztitle = "Z"
+        )
       }
 
       if (time_points[time_idx] %in% group_times[[1]]) {
@@ -128,6 +135,13 @@ silhouette_plot <- function(
             border = TRUE,
             loc = "upper right",
             face = "line"
+          )
+          lhipp_plot$show_grid(
+            color = "gray",
+            padding = 0.05,
+            xtitle = "X",
+            ytitle = "Y",
+            ztitle = "Z"
           )
         }
       }
@@ -165,6 +179,13 @@ silhouette_plot <- function(
             loc = "upper right",
             face = "line"
           )
+          lhipp_plot$show_grid(
+            color = "gray",
+            padding = 0.05,
+            xtitle = "X",
+            ytitle = "Y",
+            ztitle = "Z"
+          )
         }
       }
 
@@ -200,6 +221,13 @@ silhouette_plot <- function(
             loc = "upper right",
             face = "line"
           )
+          lhipp_plot$show_grid(
+            color = "gray",
+            padding = 0.05,
+            xtitle = "X",
+            ytitle = "Y",
+            ztitle = "Z"
+          )
         }
       }
 
@@ -218,6 +246,7 @@ silhouette_plot <- function(
     }
   }
 
+  lhipp_plot$camera$zoom(1.2)
   lhipp_plot$show()
 
   if (!is.null(filename)) {
