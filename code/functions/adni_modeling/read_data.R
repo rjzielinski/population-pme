@@ -79,18 +79,6 @@ read_data <- function(
     ) |>
     mutate(duration = max_date - date_bl)
 
-  lhipp_surface2 <- lhipp_surface |>
-    full_join(lhipp_surface_centers, by = c("subid", "scan_id")) |>
-    full_join(lhipp_surface_bounds, by = "subid") |>
-    full_join(lhipp_bl, by = "subid") |>
-    mutate(
-      x = x - mean_x,
-      y = y - mean_y,
-      z = z - mean_z,
-      time_from_bl = date - date_bl
-    ) |>
-    rename(image_id = scan_id)
-
   lhipp_surface <- lhipp_surface |>
     full_join(lhipp_surface_centers, by = c("subid", "scan_id")) |>
     full_join(lhipp_surface_bounds, by = "subid") |>
