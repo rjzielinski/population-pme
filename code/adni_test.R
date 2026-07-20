@@ -18,7 +18,7 @@ handlers("progress")
 options(future.globals.maxSize = 32 * 1024^3)
 options(renv.config.sandbox.enabled = FALSE)
 options(renv.config.auto.snapshot = FALSE)
-cores <- availableCores()
+cores <- availableCores() - 4
 
 plot_progress <- FALSE
 
@@ -48,6 +48,16 @@ read_data(
   ad_cn_ratio = 1,
   ad_mci_ratio = 1
 )
+
+include_ids <- lhipp_surface |>
+  group_by(Group, subid) |>
+  tally() |>
+  mutate(id_num = row_number()) |>
+  filter(id_num <= 50) |>
+  pull(subid)
+
+lhipp_surface <- lhipp_surface |>
+  filter(subid %in% include_ids)
 
 lhipp_groups <- unique(lhipp_surface$Group)
 lhipp_ids <- unique(lhipp_surface$subid)
@@ -202,4 +212,4 @@ lhipp_test_out <- list(
   template = "sphere"
 )
 
-saveRDS(lhipp_test_out, "output/lhipp_additive_matched_111.RDS")
+saveRDS(lhipp_test_out, "output/lhipp_additive_matched_111_sub150.RDS")
