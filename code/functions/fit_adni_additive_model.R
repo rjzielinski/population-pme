@@ -25,6 +25,7 @@ fit_adni_additive_model <- function(
   require(progressr, quietly = TRUE)
   require(purrr, quietly = TRUE)
   require(Rfast, quietly = TRUE)
+  require(RhpcBLASctl, quietly = TRUE)
 
   source(here("code/functions/fit_weighted_spline.R"))
   source(here("code/functions/gen_full_embedding.R"))
@@ -68,6 +69,8 @@ fit_adni_additive_model <- function(
   if (verbose == TRUE) {
     print("Estimating initial population-level embedding...")
   }
+
+  RhpcBLASctl::blas_set_num_threads(cores)
 
   population_embedding <- varying_coef_spline(
     centers,
@@ -144,6 +147,8 @@ fit_adni_additive_model <- function(
     print("Estimating initial individual-level embeddings...")
   }
 
+  RhpcBLASctl::blas_set_num_threads(1)
+
   with_progress({
     if (verbose == TRUE) {
       p <- progressor(along = unique(ids))
@@ -151,7 +156,7 @@ fit_adni_additive_model <- function(
     id_embeddings <- foreach(
       id_idx = seq_along(id_vals),
       .options.future = list(seed = TRUE)
-    ) %do%
+    ) %dofuture%
       {
         id_set <- ids == id_vals[id_idx]
 
@@ -276,6 +281,7 @@ fit_adni_additive_model <- function(
       print("Estimating population-level embedding...")
     }
 
+    RhpcBLASctl::blas_set_num_threads(cores)
     population_embedding <- varying_coef_spline(
       adjusted_centers,
       params,
@@ -346,6 +352,8 @@ fit_adni_additive_model <- function(
         t()
     }
 
+    RhpcBLASctl::blas_set_num_threads(1)
+
     if (verbose == TRUE) {
       print("Estimating individual-level embeddings...")
     }
@@ -357,7 +365,7 @@ fit_adni_additive_model <- function(
       id_embeddings <- foreach(
         id_idx = seq_along(id_vals),
         .options.future = list(seed = TRUE)
-      ) %do%
+      ) %dofuture%
         {
           id_set <- ids == id_vals[id_idx]
 
