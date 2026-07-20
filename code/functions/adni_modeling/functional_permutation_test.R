@@ -16,7 +16,6 @@ functional_permutation_test <- function(
   alpha = 0.05,
   any_reject = TRUE,
   n_permutations = 1000,
-  threads = 4,
   mode = "additive_embeddings",
   contrast = NULL,
   progress = TRUE,
@@ -35,12 +34,6 @@ functional_permutation_test <- function(
   require(progressr, quietly = TRUE)
   require(purrr, quietly = TRUE)
   require(RhpcBLASctl, quietly = TRUE)
-
-  total_cores <- availableCores() - 4
-  workers <- floor(total_cores / threads)
-
-  old_plan <- plan(multicore, workers = workers)
-  on.exit(plan(old_plan), add = TRUE)
 
   n_partitions <- length(additive_model)
   n_groups <- length(additive_model[[1]]$group_embeddings)
@@ -238,10 +231,11 @@ functional_permutation_test <- function(
     ~ matrix(nrow = n_permutations, ncol = length(.x))
   )
 
-  plan(sequential)
   if (verbose == TRUE) {
     print("Getting Permutation Statistics...")
   }
+
+  RhpcBLASctl::blas_set_num_threads(1)
 
   with_progress({
     if (progress == TRUE) {
@@ -253,9 +247,6 @@ functional_permutation_test <- function(
       .options.future = list(seed = TRUE)
     ) %dofuture%
       {
-        blas_set_num_threads(threads)
-        omp_set_num_threads(threads)
-
         permute_id_groups <- id_groups |>
           sample(size = n_individuals)
 
