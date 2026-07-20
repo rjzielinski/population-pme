@@ -18,7 +18,7 @@ handlers("progress")
 options(future.globals.maxSize = 32 * 1024^3)
 options(renv.config.sandbox.enabled = FALSE)
 options(renv.config.auto.snapshot = FALSE)
-cores <- detectCores() - 4
+cores <- availableCores()
 
 plot_progress <- FALSE
 
@@ -135,7 +135,6 @@ center_projections <- additive_model_list$center_projections
 # calculate final MSD and projections?
 print("Computing full projections")
 
-plan(sequential)
 projection_list <- final_projections(
   additive_model,
   lhipp_surface,
