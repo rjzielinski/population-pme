@@ -20,6 +20,7 @@ final_projections <- function(
   require(pme, quietly = TRUE)
   require(progressr, quietly = TRUE)
   require(purrr, quietly = TRUE)
+  require(RhpcBLASctl, quietly = TRUE)
 
   source(here("code/functions/adni_modeling/calc_nearest_clusters.R"))
 
@@ -48,6 +49,7 @@ final_projections <- function(
   )
 
   data.table::setDTthreads(1)
+  RhpcBLASctl::blas_set_num_threads(1)
 
   with_progress({
     p <- progressor(length(id_values[unique(id_indices)]))
