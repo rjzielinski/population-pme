@@ -188,7 +188,6 @@ permutation_test_results <- functional_permutation_test(
   alpha = 0.05,
   any_reject = TRUE,
   n_permutations = 1000,
-  threads = 1,
   mode = "additive_embeddings",
   contrast = NULL,
   verbose = FALSE,
