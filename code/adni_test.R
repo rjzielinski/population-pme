@@ -10,6 +10,7 @@ library(plotly)
 library(pme)
 library(progressr)
 library(Rfast)
+library(RhpcBLASctl)
 library(tidyverse)
 
 handlers(global = TRUE)
@@ -18,7 +19,7 @@ handlers("progress")
 options(future.globals.maxSize = 32 * 1024^3)
 options(renv.config.sandbox.enabled = FALSE)
 options(renv.config.auto.snapshot = FALSE)
-cores <- availableCores() - 4
+cores <- availableCores()
 
 plot_progress <- FALSE
 
@@ -53,7 +54,7 @@ include_ids <- lhipp_surface |>
   group_by(Group, subid) |>
   tally() |>
   mutate(id_num = row_number()) |>
-  filter(id_num <= 50) |>
+  filter(id_num <= 30) |>
   pull(subid)
 
 lhipp_surface <- lhipp_surface |>
@@ -145,6 +146,8 @@ center_projections <- additive_model_list$center_projections
 # calculate final MSD and projections?
 print("Computing full projections")
 
+plan(sequential)
+
 projection_list <- final_projections(
   additive_model,
   lhipp_surface,
@@ -170,6 +173,28 @@ id_groups <- map(
 ) |>
   reduce(c)
 
+model_out <- list(
+  additive_model = additive_model,
+  centers = lhipp_centers,
+  weights = lhipp_weights,
+  params = params,
+  groups = lhipp_surface_red$group,
+  ids = lhipp_surface_red$id,
+  scans = lhipp_surface_red$scan,
+  times = lhipp_surface_red$time_from_bl,
+  partitions = lhipp_surface_red$partition,
+  id_groups = id_groups
+)
+saveRDS(model_out, "output/rhipp_additive_model_matched_111_sub90.RDS")
+
+print("Running Permutation Tests")
+
+total_cores <- availableCores()
+n_concurrent_permutations <- 8
+threads_per_permutation <- floor(total_cores / n_concurrent_permutations)
+
+plan(multisession, workers = max(1, floor(availableCores() * 0.75)))
+
 permutation_test_results <- functional_permutation_test(
   additive_model = additive_model,
   centers = lhipp_centers,
@@ -188,6 +213,7 @@ permutation_test_results <- functional_permutation_test(
   alpha = 0.05,
   any_reject = TRUE,
   n_permutations = 1000,
+  threads = threads_per_permutation,
   mode = "additive_embeddings",
   contrast = NULL,
   verbose = FALSE,
@@ -211,4 +237,4 @@ lhipp_test_out <- list(
   template = "sphere"
 )
 
-saveRDS(lhipp_test_out, "output/lhipp_additive_matched_111_sub150.RDS")
+saveRDS(lhipp_test_out, "output/rhipp_additive_full_matched_111_sub90.RDS")

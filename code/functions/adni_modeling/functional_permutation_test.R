@@ -16,6 +16,7 @@ functional_permutation_test <- function(
   alpha = 0.05,
   any_reject = TRUE,
   n_permutations = 1000,
+  threads = 1,
   mode = "additive_embeddings",
   contrast = NULL,
   progress = TRUE,
@@ -236,6 +237,7 @@ functional_permutation_test <- function(
   }
 
   RhpcBLASctl::blas_set_num_threads(1)
+  RhpcBLASctl::omp_set_num_threads(1)
 
   with_progress({
     if (progress == TRUE) {
@@ -247,6 +249,9 @@ functional_permutation_test <- function(
       .options.future = list(seed = TRUE)
     ) %dofuture%
       {
+        RhpcBLASctl::blas_set_num_threads(threads)
+        RhpcBLASctl::omp_set_num_threads(threads)
+
         permute_id_groups <- id_groups |>
           sample(size = n_individuals)
 
